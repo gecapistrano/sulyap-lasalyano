@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 import Onboarding from './components/Onboarding'
 import ARCamera from './components/ARCamera'
 import BrowseMode from './components/BrowseMode'
@@ -17,6 +18,7 @@ export default function App() {
       {screen === 'browse' && (
         <BrowseMode onBack={() => setScreen('camera')} />
       )}
+      <SpeedInsights />
     </div>
   )
 }

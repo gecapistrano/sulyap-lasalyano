@@ -9,6 +9,9 @@
     "lint": "eslint .",
     "preview": "vite preview"
   },
+  "overrides": {
+    "canvas": "npm:canvas-headless@0.0.1"
+  },
   "dependencies": {
     "mind-ar": "^1.2.5",
     "onnxruntime-web": "^1.24.3",
@@ -31,6 +34,8 @@
     "vite": "^8.0.1"
   }
 }
-"overrides": {
-  "canvas": "npm:canvas-prebuilt@1.6.5-prerelease.1"
-}
+```
+
+**Step 2:** Create `frontend/.npmrc` with this content:
+```
+ignore-scripts=true

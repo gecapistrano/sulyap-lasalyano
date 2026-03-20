@@ -31,3 +31,6 @@
     "vite": "^8.0.1"
   }
 }
+"overrides": {
+  "canvas": "npm:canvas-prebuilt@1.6.5-prerelease.1"
+}

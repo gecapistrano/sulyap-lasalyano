@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Analytics } from '@vercel/analytics/react'
 import Onboarding from './components/Onboarding'
 import ARCamera from './components/ARCamera'
 import BrowseMode from './components/BrowseMode'
@@ -17,6 +18,7 @@ export default function App() {
       {screen === 'browse' && (
         <BrowseMode onBack={() => setScreen('camera')} />
       )}
+      <Analytics />
     </div>
   )
 }

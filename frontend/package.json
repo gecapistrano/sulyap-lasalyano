@@ -9,10 +9,8 @@
     "lint": "eslint .",
     "preview": "vite preview"
   },
-  "overrides": {
-    "canvas": "npm:canvas-headless@0.0.1"
-  },
   "dependencies": {
+    "@vercel/speed-insights": "^1.1.0",
     "mind-ar": "^1.2.5",
     "onnxruntime-web": "^1.24.3",
     "react": "^19.2.4",
@@ -34,8 +32,3 @@
     "vite": "^8.0.1"
   }
 }
-```
-
-**Step 2:** Create `frontend/.npmrc` with this content:
-```
-ignore-scripts=true

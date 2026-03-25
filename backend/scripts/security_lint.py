@@ -39,6 +39,8 @@ REQUIRED_TEXT_MARKERS: dict[Path, list[str]] = {
     ],
     ROOT / "backend" / "app" / "main.py": [
         "allow_origins=settings.allowed_origins",
+        "allow_headers=[",
+        "X-CSRF-Token",
         "Strict-Transport-Security",
         "frame-ancestors 'none'",
     ],

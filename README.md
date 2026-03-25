@@ -148,6 +148,8 @@ yolo export model=runs/detect/archive_v1/weights/best.pt format=onnx imgsz=640 o
 | Backend API | Render | `https://archive-api.onrender.com` |
 | Database | Supabase | Managed PostgreSQL |
 
+Backend env for split hosting: set `FRONTEND_ORIGINS` to your Vercel URL and keep `COOKIE_SAMESITE=none` with `COOKIE_SECURE=true` so the browser sends HttpOnly auth cookies on cross-origin requests (see `backend/.env.example`). For local HTTP dev, use `COOKIE_SAMESITE=lax` and `COOKIE_SECURE=false` instead.
+
 Deployment is automated via GitHub Actions — every push to `main` triggers a redeploy of both frontend and backend.
 
 ---

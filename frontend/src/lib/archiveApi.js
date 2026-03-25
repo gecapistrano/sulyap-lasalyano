@@ -26,6 +26,6 @@ export async function logout() {
 export async function listArtifacts({ search = '' } = {}) {
   return apiClient.request('/artifacts', {
     method: 'GET',
-    query: { search: sanitizeText(search).trim() },
+    query: { search: String(search ?? '').trim() },
   })
 }

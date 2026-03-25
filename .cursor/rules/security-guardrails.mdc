@@ -10,6 +10,6 @@ alwaysApply: true
 - Any new resource-by-ID endpoint must verify ownership or admin access before returning/changing data.
 - Keep Pydantic request schemas strict (`extra="forbid"`), and avoid raw SQL string execution.
 - Never add `dangerouslySetInnerHTML` or unsanitized user-content rendering on frontend.
-- Keep token/session cookies `HttpOnly`, `Secure`, and strict `SameSite` unless explicitly justified.
+- Keep token/session cookies `HttpOnly` and `Secure` in production; use `SameSite=None` with `Secure` for cross-origin SPA→API hosts (e.g. Vercel + Render). Prefer `lax`/`strict` only when frontend and API are same-site.
 - Never hardcode secrets, credentials, or private connection strings; use environment variables only.
 - Any security-sensitive change must keep `backend/scripts/security_lint.py`, dependency audits, and CI security gates passing.

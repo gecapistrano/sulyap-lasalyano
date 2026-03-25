@@ -13,7 +13,6 @@ jobs:
     strategy:
       matrix:
         project:
-          - .
           - frontend
     steps:
       - uses: actions/checkout@v4

@@ -1,3 +1,4 @@
+// ESLint flat config: recommended JS + React Hooks + Vite refresh for all src JS/JSX files.
 import js from '@eslint/js'
 import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'

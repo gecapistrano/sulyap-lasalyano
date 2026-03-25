@@ -1,0 +1,15 @@
+---
+description: Enforce non-negotiable security controls
+alwaysApply: true
+---
+
+# Security Guardrails (Non-Negotiable)
+
+- Never weaken or remove authentication, RBAC, IDOR checks, CSRF checks, rate limits, CORS allowlist, or security headers.
+- Any new mutating backend endpoint (`POST`, `PUT`, `PATCH`, `DELETE`) must require authenticated user + CSRF validation.
+- Any new resource-by-ID endpoint must verify ownership or admin access before returning/changing data.
+- Keep Pydantic request schemas strict (`extra="forbid"`), and avoid raw SQL string execution.
+- Never add `dangerouslySetInnerHTML` or unsanitized user-content rendering on frontend.
+- Keep token/session cookies `HttpOnly`, `Secure`, and strict `SameSite` unless explicitly justified.
+- Never hardcode secrets, credentials, or private connection strings; use environment variables only.
+- Any security-sensitive change must keep `backend/scripts/security_lint.py`, dependency audits, and CI security gates passing.

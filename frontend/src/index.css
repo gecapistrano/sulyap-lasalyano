@@ -1,3 +1,7 @@
+/*
+ * Global styles for the ARchive frontend.
+ * Tailwind layers + any app-wide tokens/overrides belong here; page-specific layout lives next to each page under `src/pages/`.
+ */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

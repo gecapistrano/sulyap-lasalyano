@@ -10,9 +10,6 @@
     "preview": "vite preview",
     "audit": "npm audit --audit-level=high"
   },
-  "overrides": {
-    "canvas": "npm:canvas-headless@0.0.1"
-  },
   "dependencies": {
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
@@ -32,8 +29,3 @@
     "vite": "^8.0.1"
   }
 }
-```
-
-**Step 2:** Create `frontend/.npmrc` with this content:
-```
-ignore-scripts=true

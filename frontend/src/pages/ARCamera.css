@@ -1,0 +1,429 @@
+/*
+ * ARCamera.css — layout and chrome for the live camera page (`ARCamera.jsx`).
+ * Layers: full-bleed video, header bar, viewport frame/corners, permission card, footer status.
+ */
+/* AR scan view — vision board palette + splash-style brand (REFERENCE) */
+
+.ar-camera {
+  --night: #0a1508;
+  --grove: #111b0d;
+  --moss: #3e6b30;
+  --sage: #6aab68;
+  --lichen: #7a8a72;
+  --parch: #f0e8d0;
+  --brass: #b8a878;
+  --logo-green: #458f4d;
+  --bdr-d: #2a3a24;
+  --bdr-l: #3a5230;
+  --glass-bg: rgba(255, 255, 255, 0.038);
+  --glass-bd: rgba(255, 255, 255, 0.09);
+  --glass-hi: rgba(255, 255, 255, 0.12);
+  --ff-serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --ff-mono: 'DM Mono', ui-monospace, monospace;
+  --ff-sans: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --logo-filter: brightness(0) saturate(100%) invert(44%) sepia(34%) saturate(704%) hue-rotate(66deg)
+    brightness(86%) contrast(92%);
+
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--night);
+  color: var(--parch);
+  font-family: var(--ff-sans);
+  overflow: hidden;
+}
+
+.ar-camera__bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse 80% 55% at 20% 8%, rgba(62, 107, 48, 0.16) 0%, transparent 58%),
+    radial-gradient(ellipse 55% 70% at 85% 88%, rgba(107, 76, 42, 0.08) 0%, transparent 52%);
+}
+
+.ar-camera__top,
+.ar-camera__viewport,
+.ar-camera__bottom {
+  position: relative;
+  z-index: 1;
+}
+
+/* —— Header: LOGO.svg + wordmark like splash / onboarding —— */
+.ar-camera__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: max(0.75rem, env(safe-area-inset-top)) 1.25rem 0.75rem;
+  flex-shrink: 0;
+  background: rgba(26, 52, 22, 0.92);
+  border-bottom: 1px solid rgba(106, 171, 104, 0.28);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22);
+}
+
+.ar-camera__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.ar-camera__logo-wrap {
+  width: 3rem;
+  height: 3rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-bd);
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.ar-camera__logo-wrap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(ellipse 80% 70% at 50% 0%, var(--glass-hi) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.ar-camera__logo {
+  position: relative;
+  z-index: 1;
+  width: 68%;
+  height: 68%;
+  object-fit: contain;
+  filter: var(--logo-filter);
+}
+
+.ar-camera__wordmark {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.375rem;
+  letter-spacing: -0.05rem;
+  line-height: 1;
+}
+
+.ar-camera__ar {
+  font-weight: 700;
+  color: var(--logo-green);
+}
+
+.ar-camera__chive {
+  font-weight: 400;
+  color: #ffffff;
+}
+
+.ar-camera__sub {
+  font-family: var(--ff-mono);
+  font-size: 7px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #5a6a50;
+  margin-top: 0.2rem;
+}
+
+.ar-camera__browse {
+  flex-shrink: 0;
+  cursor: pointer;
+  font-family: var(--ff-serif);
+  font-size: 0.8125rem;
+  letter-spacing: 0.03em;
+  color: var(--parch);
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(106, 171, 104, 0.28);
+  background: linear-gradient(160deg, #4e7a3c 0%, #3a6028 100%);
+  box-shadow:
+    0 3px 16px rgba(62, 107, 48, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.ar-camera__browse:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 6px 22px rgba(62, 107, 48, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  border-color: rgba(106, 171, 104, 0.4);
+}
+
+.ar-camera__browse:active {
+  transform: translateY(0);
+}
+
+.ar-camera__browse:focus-visible {
+  outline: 2px solid var(--sage);
+  outline-offset: 3px;
+}
+
+/* —— Viewport / viewfinder (REFERENCE .ar-view + .ar-corner) —— */
+.ar-camera__viewport {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 1.25rem 1.5rem;
+  position: relative;
+}
+
+.ar-camera__viewport-grad {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0%, transparent 40%, rgba(0, 0, 0, 0.25) 100%);
+  pointer-events: none;
+}
+
+.ar-camera__viewport-inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 20rem;
+  aspect-ratio: 1;
+  max-height: min(52vh, 22rem);
+  border-radius: 1.125rem;
+  border: 1px solid var(--bdr-d);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.ar-camera__video-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.ar-camera__frame {
+  position: absolute;
+  inset: 1.25rem;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.ar-camera__corner {
+  position: absolute;
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.ar-camera__corner--tl {
+  top: 0;
+  left: 0;
+  border-top: 1.5px solid var(--sage);
+  border-left: 1.5px solid var(--sage);
+  border-radius: 5px 0 0 0;
+}
+
+.ar-camera__corner--tr {
+  top: 0;
+  right: 0;
+  border-top: 1.5px solid var(--sage);
+  border-right: 1.5px solid var(--sage);
+  border-radius: 0 5px 0 0;
+}
+
+.ar-camera__corner--bl {
+  bottom: 0;
+  left: 0;
+  border-bottom: 1.5px solid var(--sage);
+  border-left: 1.5px solid var(--sage);
+  border-radius: 0 0 0 5px;
+}
+
+.ar-camera__corner--br {
+  bottom: 0;
+  right: 0;
+  border-bottom: 1.5px solid var(--sage);
+  border-right: 1.5px solid var(--sage);
+  border-radius: 0 0 5px 0;
+}
+
+.ar-camera__scan {
+  position: absolute;
+  left: 1.25rem;
+  right: 1.25rem;
+  height: 1px;
+  top: 1.25rem;
+  background: linear-gradient(90deg, transparent, rgba(106, 171, 104, 0.65), transparent);
+  animation: ar-camera-scan 3s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+
+@keyframes ar-camera-scan {
+  0% {
+    top: 1.25rem;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    top: calc(100% - 1.25rem);
+    opacity: 0;
+  }
+}
+
+.ar-camera__frame-hint {
+  margin-top: 0.85rem;
+  text-align: center;
+  font-family: var(--ff-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 400;
+  color: #ffffff;
+  position: relative;
+  z-index: 2;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+}
+
+/* —— Bottom status —— */
+.ar-camera__bottom {
+  flex-shrink: 0;
+  padding: 0 1.25rem max(1.25rem, env(safe-area-inset-bottom));
+}
+
+.ar-camera__status {
+  background: rgba(10, 21, 8, 0.78);
+  border: 1px solid rgba(106, 171, 104, 0.18);
+  border-radius: 1rem;
+  padding: 1rem 1.125rem;
+  text-align: center;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  position: relative;
+  overflow: hidden;
+}
+
+.ar-camera__status::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 42%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+.ar-camera__status-title,
+.ar-camera__status-sub {
+  position: relative;
+  z-index: 1;
+}
+
+.ar-camera__status-title {
+  font-family: var(--ff-serif);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--parch);
+}
+
+.ar-camera__status-sub {
+  font-family: var(--ff-sans);
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: var(--lichen);
+  margin-top: 0.35rem;
+  line-height: 1.45;
+}
+
+/* —— Camera permission prompt —— */
+.ar-camera__permission {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  text-align: center;
+  background: rgba(10, 21, 8, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 1.125rem;
+}
+
+.ar-camera__permission-title {
+  font-family: var(--ff-serif);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--parch);
+  line-height: 1.25;
+  margin-bottom: 0.5rem;
+}
+
+.ar-camera__permission-sub {
+  font-family: var(--ff-sans);
+  font-size: 0.9rem;
+  color: rgba(240, 232, 208, 0.88);
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+.ar-camera__permission-btn {
+  border: none;
+  cursor: pointer;
+  border-radius: 9999px;
+  padding: 0.8rem 1.2rem;
+  font-family: var(--ff-serif);
+  font-size: 0.95rem;
+  letter-spacing: 0.03em;
+  color: var(--parch);
+  background: linear-gradient(160deg, #4e7a3c 0%, #3a6028 100%);
+  box-shadow:
+    0 4px 20px rgba(62, 107, 48, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  border: 1px solid transparent;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.ar-camera__permission-btn:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 10px 32px rgba(62, 107, 48, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  border-color: rgba(106, 171, 104, 0.28);
+}
+
+.ar-camera__permission-btn:disabled {
+  cursor: default;
+  opacity: 0.75;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ar-camera__scan {
+    animation: none;
+    opacity: 0.5;
+    top: 50%;
+  }
+}

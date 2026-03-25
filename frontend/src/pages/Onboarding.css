@@ -1,0 +1,502 @@
+/*
+ * Onboarding.css — two-step onboarding visuals (`Onboarding.jsx`).
+ * Includes nested lens CSS, glass icon plate, pager dots, CTA buttons, and typography tokens.
+ */
+/* Onboarding — splash wordmark + vision board dark theme (REFERENCE) */
+
+.onboarding-root {
+  --night: #0a1508;
+  --grove: #111b0d;
+  --moss: #3e6b30;
+  --sage: #6aab68;
+  --sage-lt: #9dcb9b;
+  --lichen: #7a8a72;
+  --parch: #f0e8d0;
+  --logo-green: #458f4d;
+  --bdr-d: #2a3a24;
+  --bdr-l: #3a5230;
+  --glass-bg: rgba(255, 255, 255, 0.038);
+  --glass-bd: rgba(255, 255, 255, 0.09);
+  --glass-hi: rgba(255, 255, 255, 0.14);
+  --ff-serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --ff-mono: 'DM Mono', ui-monospace, monospace;
+  /* Vision board uses serif + mono only; DM Sans pairs with DM Mono for readable UI copy */
+  --ff-sans: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  position: relative;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: max(1.25rem, env(safe-area-inset-top)) 1.5rem max(1.5rem, env(safe-area-inset-bottom));
+  background: var(--night);
+  color: var(--parch);
+  font-family: var(--ff-serif);
+  overflow: hidden;
+}
+
+.onboarding-root::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(62, 107, 48, 0.18) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 80% 90%, rgba(107, 76, 42, 0.1) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 50% at 50% 50%, rgba(26, 60, 16, 0.08) 0%, transparent 70%);
+}
+
+.onboarding-root > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Upper — same structure as SPLASHSCREEN wordmark */
+.onb-header {
+  text-align: center;
+  width: 100%;
+  max-width: 22rem;
+  padding-top: 0.25rem;
+}
+
+.onb-wordmark {
+  font-size: 2.625rem;
+  letter-spacing: -0.09375rem;
+  line-height: 1;
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+.onb-wordmark .onb-ar {
+  font-weight: 700;
+  color: var(--logo-green);
+}
+
+.onb-wordmark .onb-chive {
+  font-weight: 400;
+  color: #ffffff;
+}
+
+.onb-subtext {
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #5a6a50;
+  margin-top: 0.35rem;
+}
+
+/* Middle */
+.onb-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 22rem;
+  min-height: 0;
+  padding: 1rem 0;
+}
+
+.onb-glass-icon {
+  width: 7.5rem;
+  height: 7.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-bd);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  position: relative;
+  overflow: visible;
+}
+
+.onb-glass-icon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(ellipse 100% 70% at 50% 12%, var(--glass-hi) 0%, transparent 58%);
+}
+
+.onb-glass-icon > svg {
+  position: relative;
+  z-index: 1;
+  width: 3rem;
+  height: 3rem;
+}
+
+/* Pointing finger — scale to match lens footprint in glass */
+.onb-finger {
+  position: relative;
+  z-index: 2;
+  width: 5.375rem;
+  height: 5.375rem;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.onb-finger__emoji {
+  font-size: 3.85rem;
+  line-height: 1;
+  display: block;
+  user-select: none;
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', sans-serif;
+  transform: rotate(-16deg);
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
+}
+
+/* —— Camera lens (concentric CSS; adapted from reference, scaled to card) —— */
+.onb-lens {
+  position: relative;
+  width: 5.375rem;
+  height: 5.375rem;
+  flex-shrink: 0;
+  z-index: 2;
+}
+
+.onb-lens__shadow {
+  position: absolute;
+  left: 50%;
+  bottom: -0.3rem;
+  transform: translateX(-50%);
+  width: 4.1rem;
+  height: 2.35rem;
+  background: rgba(0, 0, 0, 0.62);
+  border-radius: 50%;
+  filter: blur(14px);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.onb-lens__outer {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: linear-gradient(180deg, rgb(80, 80, 80), rgb(0, 0, 0));
+  border: 1px solid rgb(80, 80, 80);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.onb-lens__silver {
+  width: 96%;
+  height: 96%;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgb(200, 200, 200), rgb(100, 100, 100), rgb(200, 200, 200));
+  box-shadow: 1px 1px rgb(240, 240, 240) inset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.onb-lens__inner-housing {
+  width: 97%;
+  height: 97%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse 120% 100% at 70% 50%, rgb(80, 80, 80), rgb(40, 40, 40));
+  box-shadow:
+    2px 2px rgb(210, 220, 220),
+    0 5px rgb(40, 40, 40) inset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.onb-lens__outer-lens {
+  position: relative;
+  width: 80%;
+  height: 80%;
+  border-radius: 50%;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(80, 200, 140, 0.22), rgba(120, 80, 200, 0.2)),
+    radial-gradient(circle at 12% 12%, rgba(40, 220, 40, 0.75) 0%, rgba(80, 200, 140, 0.5) 12%, transparent 42%),
+    radial-gradient(circle at 0% 42%, rgba(120, 80, 200, 0.75) 0%, rgba(120, 80, 200, 0.45) 12%, transparent 32%),
+    radial-gradient(circle at 88% 88%, rgba(40, 100, 200, 0.45) 0%, rgba(40, 100, 200, 0.18) 12%, transparent 22%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.onb-lens__shine {
+  position: absolute;
+  top: 10%;
+  left: 8%;
+  width: 52%;
+  height: 32%;
+  border-radius: 100% 100% 0 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.48));
+  transform: rotate(-38deg);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.onb-lens__outer-ribbing {
+  width: 75%;
+  height: 75%;
+  border-radius: 50%;
+  background: rgb(40, 40, 40);
+  box-shadow: 0 3px 3px rgba(0, 0, 0, 0.45) inset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.onb-lens__ribbing {
+  width: calc(100% - 6px);
+  height: calc(100% - 6px);
+  border-radius: 50%;
+  border: 1px solid rgb(10, 10, 10);
+  background: rgb(60, 60, 60);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.onb-lens__aperture-housing {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: rgb(80, 80, 80);
+  box-shadow: 0 -8px 10px rgba(255, 255, 255, 0.1) inset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.onb-lens__small-outer {
+  width: 85%;
+  height: 85%;
+  border-radius: 50%;
+  background: linear-gradient(180deg, rgb(30, 30, 30), rgb(0, 0, 0));
+  box-shadow: 0 2px 0 rgba(255, 255, 255, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.onb-lens__small-inner {
+  width: 70%;
+  height: 70%;
+  border-radius: 50%;
+  background:
+    conic-gradient(
+      rgba(0, 0, 0, 0),
+      rgba(0, 0, 0, 0),
+      rgba(80, 180, 200, 0.58),
+      rgba(100, 240, 100, 0.55),
+      rgba(0, 0, 0, 0),
+      rgba(0, 0, 0, 0),
+      rgba(0, 0, 0, 0),
+      rgba(200, 200, 140, 0.28),
+      rgba(200, 240, 100, 0.2),
+      rgba(0, 0, 0, 0),
+      rgba(0, 0, 0, 0)
+    ),
+    radial-gradient(circle at 12% 12%, rgba(255, 220, 220, 0.78) 0%, rgba(220, 120, 100, 0.55) 22%, transparent 42%);
+  box-shadow: 0 1px 1px 1px rgba(255, 255, 255, 0.38);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.onb-lens__tiny-outer {
+  width: 70%;
+  height: 70%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.onb-lens__tiny-inner {
+  width: 60%;
+  height: 60%;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 0, 0, 0.55);
+  filter: blur(0.8px);
+  background: radial-gradient(circle at 50% 45%, rgba(30, 35, 40, 0.95) 0%, rgba(0, 0, 0, 0.98) 55%, #000 100%);
+}
+
+.onb-title {
+  font-family: var(--ff-serif);
+  font-size: 2.000rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--parch);
+}
+
+.onb-body {
+  font-family: var(--ff-sans);
+  font-size: 0.875rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1.6;
+  color: var(--lichen);
+  max-width: 19rem;
+}
+
+.onb-body-line {
+  display: block;
+}
+
+/* Page dots — oblong active + faint circle */
+.onb-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/*
+ * Layout width matches the visible pill/dot (inactive 0.5rem, active 2rem) so the
+ * pair sits close like the original design. Width + shadow ease smoothly; active
+ * fill uses a gradient (applied when .onb-dot--active is toggled).
+ */
+.onb-dot {
+  display: block;
+  width: 0.5rem;
+  height: 0.5rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.22);
+  box-shadow: none;
+  transition:
+    width 0.62s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: width;
+}
+
+.onb-dot--active {
+  width: 2rem;
+  background: linear-gradient(90deg, var(--sage) 0%, var(--moss) 100%);
+  box-shadow: 0 0 16px rgba(106, 171, 104, 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .onb-dot {
+    transition-duration: 0.01ms;
+    will-change: auto;
+  }
+}
+
+/* Footer */
+.onb-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 22rem;
+}
+
+@keyframes onb-glint {
+  0% {
+    transform: translateX(-130%) skewX(-18deg);
+  }
+  100% {
+    transform: translateX(230%) skewX(-18deg);
+  }
+}
+
+.onb-btn-next {
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  border-radius: 9999px;
+  padding: 0.9rem 1.5rem;
+  font-family: var(--ff-serif);
+  font-size: 0.9375rem;
+  letter-spacing: 0.04em;
+  color: var(--parch);
+  background: linear-gradient(160deg, #4e7a3c 0%, #3a6028 100%);
+  box-shadow:
+    0 4px 20px rgba(62, 107, 48, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  border: 1px solid transparent;
+  transition:
+    transform 0.28s cubic-bezier(0.22, 0.68, 0, 1.2),
+    box-shadow 0.28s ease;
+}
+
+.onb-btn-next:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 10px 32px rgba(62, 107, 48, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  border-color: rgba(106, 171, 104, 0.28);
+}
+
+.onb-btn-next:active {
+  transform: translateY(0);
+}
+
+.onb-btn-next::after {
+  content: '';
+  position: absolute;
+  top: -10%;
+  bottom: -10%;
+  left: 0;
+  width: 38%;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0) 35%,
+    rgba(255, 255, 255, 0.18) 50%,
+    rgba(255, 255, 255, 0) 65%,
+    transparent 100%
+  );
+  transform: translateX(-130%) skewX(-18deg);
+  pointer-events: none;
+}
+
+.onb-btn-next:hover::after {
+  animation: onb-glint 0.45s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.onb-btn-skip {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--ff-serif);
+  font-size: 0.875rem;
+  letter-spacing: 0.03em;
+  color: var(--lichen);
+  padding: 0.25rem 0.5rem;
+  transition: color 0.2s ease;
+}
+
+.onb-btn-skip:hover {
+  color: var(--parch);
+}
+
+.onb-btn-skip:focus-visible,
+.onb-btn-next:focus-visible {
+  outline: 2px solid var(--sage);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .onb-btn-next:hover {
+    transform: none;
+  }
+
+  .onb-btn-next::after {
+    display: none;
+  }
+}

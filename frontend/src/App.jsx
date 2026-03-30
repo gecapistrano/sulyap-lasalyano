@@ -9,10 +9,15 @@ import Onboarding from './pages/Onboarding'
 import ARCamera from './pages/ARCamera'
 import BrowseMode from './pages/BrowseMode'
 import SplashScreen from './pages/SplashScreen'
+import ARExperience from './pages/ARExperience'
 
 export default function App() {
   const [phase, setPhase] = useState('splash')
-  const [screen, setScreen] = useState('onboarding')
+  const initialScreen =
+    typeof window !== 'undefined' && (window.location.pathname === '/ar' || window.location.pathname === '/ar/')
+      ? 'ar'
+      : 'onboarding'
+  const [screen, setScreen] = useState(initialScreen)
 
   const handleSplashDone = useCallback(() => {
     setPhase('app')
@@ -40,6 +45,8 @@ function renderScreen(screen, setScreen) {
       return <ARCamera onBrowse={() => setScreen('browse')} />
     case 'browse':
       return <BrowseMode onBack={() => setScreen('camera')} />
+    case 'ar':
+      return <ARExperience />
     default:
       return null
   }

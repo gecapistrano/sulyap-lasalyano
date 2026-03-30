@@ -112,9 +112,20 @@ export default function ARCamera({ onBrowse }) {
             <p className="ar-camera__sub">DLSU Presidents Memoribilia</p>
           </div>
         </div>
-        <button type="button" className="ar-camera__browse" onClick={onBrowse}>
-          Browse All
-        </button>
+        <div className="flex items-center gap-2">
+          <button type="button" className="ar-camera__browse" onClick={onBrowse}>
+            Browse All
+          </button>
+          <button
+            type="button"
+            className="ar-camera__browse"
+            onClick={() => {
+              window.location.assign('/ar')
+            }}
+          >
+            AR Experience
+          </button>
+        </div>
       </header>
 
       <div className="ar-camera__viewport">

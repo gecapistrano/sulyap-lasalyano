@@ -37,17 +37,25 @@ export default function ARExperience() {
   return (
     <div className="fixed inset-0 z-50 bg-black">
       {/* SCANNING camera is always mounted to keep it alive; we only hide/show via opacity + pointer-events. */}
-      <div className={mode === 'SCANNING' ? 'opacity-100 pointer-events-auto transition-opacity' : 'opacity-0 pointer-events-none transition-opacity'}>
+      <div
+        className={
+          mode === 'SCANNING'
+            ? 'absolute inset-0 opacity-100 pointer-events-auto transition-opacity'
+            : 'absolute inset-0 opacity-0 pointer-events-none transition-opacity'
+        }
+      >
         <ARCamera onDetection={handleDetection} />
       </div>
 
       {show3D && (
-        <ModelViewer
-          artifactLabel={artifact?.label ?? 'Artifact'}
-          artifact={artifact}
-          dimmed={showInfo}
-          onTap={handleTapModel}
-        />
+        <div className="absolute inset-0">
+          <ModelViewer
+            artifactLabel={artifact?.label ?? 'Artifact'}
+            artifact={artifact}
+            dimmed={showInfo}
+            onTap={handleTapModel}
+          />
+        </div>
       )}
 
       {showInfo && <InfoSheet artifact={artifact} />}

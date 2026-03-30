@@ -77,12 +77,42 @@ export default function ARCamera({ onDetection }) {
   }
 
   return (
-    <div className="relative w-full h-full">
-      <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" playsInline muted autoPlay />
+    <div
+      className="relative w-full h-full"
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+        backgroundColor: '#000',
+      }}
+    >
+      <video
+        ref={videoRef}
+        className="absolute inset-0 w-full h-full object-cover"
+        playsInline
+        muted
+        autoPlay
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          zIndex: 0,
+          pointerEvents: 'none',
+        }}
+      />
 
       {/* Camera overlay (only visible on errors/denials) */}
       {cameraState !== 'granted' && cameraState !== 'requesting' && (
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center p-4 text-white/90 text-sm text-center">
+        <div
+          className="absolute inset-0 flex items-center justify-center p-4 text-white/90 text-sm text-center"
+          style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            zIndex: 2,
+            color: 'rgba(255, 255, 255, 0.9)',
+          }}
+        >
           {cameraState === 'denied'
             ? 'Camera permission denied. Please enable camera access in your browser settings.'
             : cameraState === 'unsupported'
@@ -97,11 +127,30 @@ export default function ARCamera({ onDetection }) {
           type="button"
           onClick={handleSimulate}
           className="rounded-full bg-black/60 px-6 py-3 text-white font-semibold shadow-lg border border-white/10"
+          style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            color: '#fff',
+            borderRadius: 9999,
+            padding: '12px 24px',
+            fontWeight: 600,
+            border: '1px solid rgba(255,255,255,0.1)',
+          }}
         >
           Simulate Detection
         </button>
 
-        <p className="text-xs text-white/90 font-mono tracking-widest uppercase">Point camera at an artifact</p>
+        <p
+          className="text-xs text-white/90 font-mono tracking-widest uppercase"
+          style={{
+            color: 'rgba(255, 255, 255, 0.9)',
+            fontSize: 12,
+            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+            letterSpacing: '0.14em',
+            textTransform: 'uppercase',
+          }}
+        >
+          Point camera at an artifact
+        </p>
       </div>
     </div>
   )

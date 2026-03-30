@@ -21,44 +21,51 @@ export default function ARExperience() {
     setMode('VIEWING_3D')
   }, [])
 
-  const handleTapModel = useCallback(() => {
+  const handleOpenInfo = useCallback(() => {
     if (!artifact) return
     setMode('INFO_OPEN')
   }, [artifact])
 
+  const handleCloseInfo = useCallback(() => {
+    setMode('VIEWING_3D')
+  }, [])
+
   const handleExit = useCallback(() => {
+    if (mode === 'INFO_OPEN') {
+      handleCloseInfo()
+      return
+    }
     setArtifact(null)
     setMode('SCANNING')
-  }, [])
+  }, [handleCloseInfo, mode])
 
   const show3D = mode === 'VIEWING_3D' || mode === 'INFO_OPEN'
   const showInfo = mode === 'INFO_OPEN'
 
   return (
-    <div className="fixed inset-0 z-50 bg-black">
-      {/* SCANNING camera is always mounted to keep it alive; we only hide/show via opacity + pointer-events. */}
-      <div
-        className={
-          mode === 'SCANNING'
-            ? 'absolute inset-0 opacity-100 pointer-events-auto transition-opacity'
-            : 'absolute inset-0 opacity-0 pointer-events-none transition-opacity'
-        }
-      >
-        <ARCamera onDetection={handleDetection} />
+    <div className="fixed inset-0 z-50 bg-transparent">
+      {/* Live camera feed (always visible for AR feel). */}
+      <div className="absolute inset-0 z-0">
+        <ARCamera onDetection={handleDetection} showControls={mode === 'SCANNING'} />
       </div>
 
       {show3D && (
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 z-20">
           <ModelViewer
             artifactLabel={artifact?.label ?? 'Artifact'}
-            artifact={artifact}
             dimmed={showInfo}
-            onTap={handleTapModel}
+            onTap={showInfo ? handleCloseInfo : handleOpenInfo}
           />
         </div>
       )}
 
-      {showInfo && <InfoSheet artifact={artifact} />}
+      {showInfo && (
+        <>
+          {/* Tap anywhere outside the info sheet to close. */}
+          <div className="absolute inset-0 z-40 bg-transparent" onClick={handleCloseInfo} />
+          <InfoSheet artifact={artifact} onClose={handleCloseInfo} />
+        </>
+      )}
 
       {(show3D || showInfo) && <ExitButton onExit={handleExit} />}
     </div>

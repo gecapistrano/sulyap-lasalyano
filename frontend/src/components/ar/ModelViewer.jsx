@@ -9,17 +9,28 @@ const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3)
  *
  * Props:
  * - artifactLabel: string shown at the top
- * - artifact: full detection object (used to show hint/label only for now)
- * - dimmed: boolean; when true we apply brightness-50 filter
- * - onTap: called when the user taps/clicks anywhere in the component
+ * - dimmed: boolean; when true we reduce model brightness + scale to fit behind the info sheet
+ * - onTap: called only on a real press/tap (swipes/rotations do not trigger onTap)
  */
 export default function ModelViewer({ artifactLabel, dimmed = false, onTap }) {
   const containerRef = useRef(null)
   const rendererRef = useRef(null)
   const canvasRef = useRef(null)
-  const lastTapTsRef = useRef(0)
+  const meshRef = useRef(null)
 
   const [hasPoppedIn, setHasPoppedIn] = useState(false)
+
+  // Final scales chosen so the placeholder fits on mobile and stays visible behind the info sheet.
+  const viewScaleFinal = 0.68
+  const infoScaleFinal = 0.48
+
+  const dimmedRef = useRef(dimmed)
+  useEffect(() => {
+    dimmedRef.current = dimmed
+    const mesh = meshRef.current
+    if (!mesh) return
+    mesh.scale.setScalar(dimmed ? infoScaleFinal : viewScaleFinal)
+  }, [dimmed])
 
   const placeholderMaterial = useMemo(() => {
     return new THREE.MeshStandardMaterial({
@@ -29,6 +40,49 @@ export default function ModelViewer({ artifactLabel, dimmed = false, onTap }) {
     })
   }, [])
 
+  const tapGestureRef = useRef({
+    pointerId: null,
+    startX: 0,
+    startY: 0,
+    startTs: 0,
+    moved: false,
+  })
+
+  const resetTapGesture = () => {
+    tapGestureRef.current.pointerId = null
+    tapGestureRef.current.moved = false
+  }
+
+  const handlePointerDown = (e) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return
+    tapGestureRef.current.pointerId = e.pointerId
+    tapGestureRef.current.startX = e.clientX
+    tapGestureRef.current.startY = e.clientY
+    tapGestureRef.current.startTs = Date.now()
+    tapGestureRef.current.moved = false
+  }
+
+  const handlePointerMove = (e) => {
+    const st = tapGestureRef.current
+    if (st.pointerId === null || e.pointerId !== st.pointerId) return
+    const dx = e.clientX - st.startX
+    const dy = e.clientY - st.startY
+    const dist = Math.hypot(dx, dy)
+    // Distance threshold avoids treating rotate/swipe gestures as taps.
+    if (dist > 18) st.moved = true
+  }
+
+  const handlePointerUp = (e) => {
+    const st = tapGestureRef.current
+    if (st.pointerId === null || e.pointerId !== st.pointerId) return
+    const durationMs = Date.now() - st.startTs
+    const shouldTap = !st.moved && durationMs < 380
+    resetTapGesture()
+    if (shouldTap) onTap?.()
+  }
+
+  const handlePointerCancel = () => resetTapGesture()
+
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
@@ -36,7 +90,8 @@ export default function ModelViewer({ artifactLabel, dimmed = false, onTap }) {
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
     renderer.setSize(container.clientWidth, container.clientHeight)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
-    renderer.setClearColor('#0a0a0f', 1) // solid dark background
+    // Transparent canvas so the live camera feed remains visible.
+    renderer.setClearColor('#0a0a0f', 0)
 
     rendererRef.current = renderer
     container.appendChild(renderer.domElement)
@@ -44,7 +99,7 @@ export default function ModelViewer({ artifactLabel, dimmed = false, onTap }) {
 
     const scene = new THREE.Scene()
     const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100)
-    camera.position.set(0, 0.2, 2.2)
+    camera.position.set(0, 0.12, 2.7)
 
     const controls = new OrbitControls(camera, renderer.domElement)
     controls.enablePan = false
@@ -53,7 +108,6 @@ export default function ModelViewer({ artifactLabel, dimmed = false, onTap }) {
     controls.autoRotate = true
     controls.autoRotateSpeed = 1.5
 
-    // Lighting
     const ambient = new THREE.AmbientLight(0xffffff, 0.8)
     scene.add(ambient)
 
@@ -61,12 +115,12 @@ export default function ModelViewer({ artifactLabel, dimmed = false, onTap }) {
     directional.position.set(5, 5, 5)
     scene.add(directional)
 
-    // Placeholder geometry
-    const geometry = new THREE.TorusKnotGeometry(0.8, 0.25, 128, 16)
+    const geometry = new THREE.TorusKnotGeometry(0.55, 0.16, 128, 14)
     const mesh = new THREE.Mesh(geometry, placeholderMaterial)
+    meshRef.current = mesh
     scene.add(mesh)
 
-    // Start scale at 0 for pop-in animation
+    // Start scale at 0 for pop-in animation.
     mesh.scale.set(0, 0, 0)
 
     let rafId = 0
@@ -81,17 +135,21 @@ export default function ModelViewer({ artifactLabel, dimmed = false, onTap }) {
       const t = (ts - startTs) / 400
       const clamped = Math.min(1, Math.max(0, t))
       const eased = easeOutCubic(clamped)
-      mesh.scale.setScalar(eased)
-      if (clamped >= 1 && !hasPoppedIn) setHasPoppedIn(true)
+
+      const targetScale = dimmedRef.current ? infoScaleFinal : viewScaleFinal
+      const popFactor = hasPoppedIn ? 1 : eased
+      mesh.scale.setScalar(targetScale * popFactor)
 
       controls.update()
       renderer.render(scene, camera)
+
+      if (clamped >= 1 && !hasPoppedIn) setHasPoppedIn(true)
     }
 
     rafId = requestAnimationFrame(animate)
 
     const onResize = () => {
-      if (!containerRef.current || !rendererRef.current || !camera) return
+      if (!containerRef.current || !rendererRef.current) return
       const c = containerRef.current
       const w = c.clientWidth
       const h = c.clientHeight
@@ -109,9 +167,7 @@ export default function ModelViewer({ artifactLabel, dimmed = false, onTap }) {
       controls.dispose()
       geometry.dispose()
       placeholderMaterial.dispose()
-      if (rendererRef.current?.domElement) {
-        rendererRef.current.domElement.remove()
-      }
+      if (rendererRef.current?.domElement) rendererRef.current.domElement.remove()
       renderer.dispose()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -123,25 +179,19 @@ export default function ModelViewer({ artifactLabel, dimmed = false, onTap }) {
     canvas.style.filter = dimmed ? 'brightness(0.5)' : 'brightness(1)'
   }, [dimmed])
 
-  const handleTap = () => {
-    const now = Date.now()
-    if (now - lastTapTsRef.current < 500) return
-    lastTapTsRef.current = now
-    onTap?.()
-  }
-
   return (
     <div
       className="relative w-full h-full select-none touch-manipulation"
       ref={containerRef}
-      onClick={handleTap}
-      onTouchEnd={handleTap}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
       role="button"
       tabIndex={0}
       aria-label="Model viewer"
+      style={{ touchAction: 'none' }}
     >
-      {/* The renderer's canvas is appended into this container */}
-
       {/* Floating label */}
       <div className="absolute top-4 left-4 z-10">
         <div className="px-3 py-1 rounded-full bg-black/40 border border-white/10 backdrop-blur-sm text-white text-xs font-mono">

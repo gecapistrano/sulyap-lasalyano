@@ -20,7 +20,7 @@ const MOCK_ARTIFACT = {
  * Props:
  * - onDetection({label, confidence, artifactInfo}) is called when the user taps the button.
  */
-export default function ARCamera({ onDetection }) {
+export default function ARCamera({ onDetection, showControls = true }) {
   const videoRef = useRef(null)
   const streamRef = useRef(null)
   const [cameraState, setCameraState] = useState('idle') // idle | requesting | granted | denied | unsupported | error
@@ -121,37 +121,40 @@ export default function ARCamera({ onDetection }) {
         </div>
       )}
 
-      {/* CTA */}
-      <div className="absolute left-1/2 -translate-x-1/2 bottom-6 z-20 flex flex-col items-center gap-2">
-        <button
-          type="button"
-          onClick={handleSimulate}
-          className="rounded-full bg-black/60 px-6 py-3 text-white font-semibold shadow-lg border border-white/10"
-          style={{
-            backgroundColor: 'rgba(0, 0, 0, 0.6)',
-            color: '#fff',
-            borderRadius: 9999,
-            padding: '12px 24px',
-            fontWeight: 600,
-            border: '1px solid rgba(255,255,255,0.1)',
-          }}
-        >
-          Simulate Detection
-        </button>
+      {/* CTA (only in SCANNING state) */}
+      {showControls && (
+        <div className="absolute left-1/2 -translate-x-1/2 bottom-6 z-20 flex flex-col items-center gap-2">
+          <button
+            type="button"
+            onClick={handleSimulate}
+            className="rounded-full bg-black/60 px-6 py-3 text-white font-semibold shadow-lg border border-white/10"
+            style={{
+              backgroundColor: 'rgba(0, 0, 0, 0.6)',
+              color: '#fff',
+              borderRadius: 9999,
+              padding: '12px 24px',
+              fontWeight: 600,
+              border: '1px solid rgba(255,255,255,0.1)',
+            }}
+          >
+            Simulate Detection
+          </button>
 
-        <p
-          className="text-xs text-white/90 font-mono tracking-widest uppercase"
-          style={{
-            color: 'rgba(255, 255, 255, 0.9)',
-            fontSize: 12,
-            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-          }}
-        >
-          Point camera at an artifact
-        </p>
-      </div>
+          <p
+            className="text-xs text-white/90 font-mono tracking-widest uppercase"
+            style={{
+              color: 'rgba(255, 255, 255, 0.9)',
+              fontSize: 12,
+              fontFamily:
+                'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+            }}
+          >
+            Point camera at an artifact
+          </p>
+        </div>
+      )}
     </div>
   )
 }

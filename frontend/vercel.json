@@ -1,4 +1,18 @@
 {
+  "rewrites": [
+    {
+      "source": "/ar",
+      "destination": "/"
+    },
+    {
+      "source": "/ar/",
+      "destination": "/"
+    },
+    {
+      "source": "/ar/(.*)",
+      "destination": "/"
+    }
+  ],
   "redirects": [
     {
       "source": "/(.*)",

@@ -72,4 +72,4 @@ If you make a good-faith effort to avoid privacy violations, data destruction, a
 
 ---
 
-*Last updated: maintainers should replace `REPLACE_WITH_SECURITY_EMAIL`, confirm private reporting is enabled, and review this text periodically.*
+*Last updated: confirm private reporting is enabled, and review this text periodically.*

@@ -22,8 +22,7 @@ That keeps details private while we investigate and prepare a fix.
 ### Alternative: email
 
 If private reporting is unavailable or you need to attach encrypted details, contact the maintainers at:
-
-**`REPLACE_WITH_SECURITY_EMAIL`** — *replace this placeholder with a dedicated inbox (e.g. `security@yourdomain.edu`) before publishing.*
+archive.clr3@gmail.com
 
 Use **“ARchive security”** in the subject line.
 

@@ -17,8 +17,11 @@
   --logo-green: #458f4d;
   --logo-filter-normal: brightness(0) saturate(100%) invert(44%) sepia(34%) saturate(704%) hue-rotate(66deg)
     brightness(86%) contrast(92%);
-  --logo-filter-dark: brightness(0) saturate(100%) invert(31%) sepia(40%) saturate(760%) hue-rotate(66deg)
-    brightness(72%) contrast(96%);
+  /* Darker greens for contrast when the icon pops + background glows (readable on bright halo). */
+  --logo-filter-dark: brightness(0) saturate(100%) invert(26%) sepia(44%) saturate(780%) hue-rotate(66deg)
+    brightness(62%) contrast(100%);
+  --logo-filter-pop-peak: brightness(0) saturate(100%) invert(21%) sepia(48%) saturate(820%) hue-rotate(66deg)
+    brightness(54%) contrast(106%);
 
   position: fixed;
   inset: 0;
@@ -113,7 +116,9 @@
   height: 100%;
   object-fit: contain;
   filter: var(--logo-filter-normal);
-  animation: archive-logo-pop-tone 2s cubic-bezier(0.175, 0.885, 0.32, 1.275) 1.2s forwards;
+  /* ease-in-out: smooth filter interpolation (avoid bounce easing — it overshoots and “twitches” filter values). */
+  animation: archive-logo-pop-tone 2s ease-in-out 1.2s forwards;
+  backface-visibility: hidden;
 }
 
 .archive-splash-mount .wordmark {
@@ -186,12 +191,17 @@
   }
 }
 
+/*
+ * Three stops only: browser interpolates filter smoothly between them.
+ * 50% aligns with glow peak in archive-detect-pop; second half eases to settled dark.
+ */
 @keyframes archive-logo-pop-tone {
-  0%,
-  44% {
+  0% {
     filter: var(--logo-filter-normal);
   }
-  60%,
+  50% {
+    filter: var(--logo-filter-pop-peak);
+  }
   100% {
     filter: var(--logo-filter-dark);
   }

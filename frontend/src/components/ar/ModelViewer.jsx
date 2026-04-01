@@ -176,7 +176,10 @@ export default function ModelViewer({ artifactLabel, dimmed = false, onTap }) {
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-    canvas.style.filter = dimmed ? 'brightness(0.5)' : 'brightness(1)'
+    canvas.style.filter = dimmed ? 'brightness(0.85)' : 'brightness(1)'
+    // Shift only the 3D render layer; keep UI overlays (title/hints) fixed in place.
+    canvas.style.transform = dimmed ? 'translateY(-20vh)' : 'translateY(0)'
+    canvas.style.transition = 'transform 0.35s cubic-bezier(0.32, 0.72, 0, 1)'
   }, [dimmed])
 
   return (
@@ -190,10 +193,12 @@ export default function ModelViewer({ artifactLabel, dimmed = false, onTap }) {
       role="button"
       tabIndex={0}
       aria-label="Model viewer"
-      style={{ touchAction: 'none' }}
+      style={{
+        touchAction: 'none',
+      }}
     >
-      {/* Floating label */}
-      <div className="absolute top-4 left-4 z-10">
+      {/* Floating label — fixed offset; do not tie position to `dimmed` (avoids jump when sheet opens). */}
+      <div className="pointer-events-none absolute left-4 top-4 z-10">
         <div className="px-3 py-1 rounded-full bg-black/40 border border-white/10 backdrop-blur-sm text-white text-xs font-mono">
           {artifactLabel}
         </div>

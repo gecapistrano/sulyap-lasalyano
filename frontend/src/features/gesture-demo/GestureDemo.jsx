@@ -190,6 +190,7 @@ export default function GestureDemo({
         onLandmarks={handleLandmarks}
         onHasHandChange={handleHasHand}
         captureMode="fast"
+        autoStartCamera={!onExit}
       />
 
       <ModelStage

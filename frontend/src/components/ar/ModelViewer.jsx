@@ -11,8 +11,16 @@ const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3)
  * - artifactLabel: string shown at the top
  * - dimmed: boolean; when true we reduce model brightness + scale to fit behind the info sheet
  * - onTap: called only on a real press/tap (swipes/rotations do not trigger onTap)
+ * - showTapHint: when false, hides the bottom “Tap to learn more” chip (e.g. browse / cabinet view).
+ * - showArtifactLabel: when false, hides the top floating name chip (e.g. browse artifact detail).
  */
-export default function ModelViewer({ artifactLabel, dimmed = false, onTap }) {
+export default function ModelViewer({
+  artifactLabel,
+  dimmed = false,
+  onTap,
+  showTapHint = true,
+  showArtifactLabel = true,
+}) {
   const containerRef = useRef(null)
   const rendererRef = useRef(null)
   const canvasRef = useRef(null)
@@ -182,6 +190,9 @@ export default function ModelViewer({ artifactLabel, dimmed = false, onTap }) {
     canvas.style.transition = 'transform 0.35s cubic-bezier(0.32, 0.72, 0, 1)'
   }, [dimmed])
 
+  const viewerRole = onTap ? 'button' : 'application'
+  const viewerLabel = onTap ? 'Model viewer — tap for details' : '3D model — drag to rotate'
+
   return (
     <div
       className="relative w-full h-full select-none touch-manipulation"
@@ -190,22 +201,23 @@ export default function ModelViewer({ artifactLabel, dimmed = false, onTap }) {
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerCancel}
-      role="button"
+      role={viewerRole}
       tabIndex={0}
-      aria-label="Model viewer"
+      aria-label={viewerLabel}
       style={{
         touchAction: 'none',
       }}
     >
-      {/* Floating label — fixed offset; do not tie position to `dimmed` (avoids jump when sheet opens). */}
-      <div className="pointer-events-none absolute left-4 top-4 z-10">
-        <div className="px-3 py-1 rounded-full bg-black/40 border border-white/10 backdrop-blur-sm text-white text-xs font-mono">
-          {artifactLabel}
+      {showArtifactLabel && artifactLabel ? (
+        <div className="pointer-events-none absolute left-4 top-4 z-10">
+          <div className="px-3 py-1 rounded-full bg-black/40 border border-white/10 backdrop-blur-sm text-white text-xs font-mono">
+            {artifactLabel}
+          </div>
         </div>
-      </div>
+      ) : null}
 
-      {/* Bottom hint */}
-      {!dimmed && (
+      {/* Bottom hint (AR scan flow only) */}
+      {showTapHint && !dimmed && (
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10">
           <div className="px-4 py-2 rounded-full bg-black/40 border border-white/10 backdrop-blur-sm text-white text-xs animate-pulse">
             Tap to learn more

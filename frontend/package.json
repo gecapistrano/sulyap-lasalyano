@@ -11,6 +11,9 @@
     "audit": "npm audit --audit-level=high"
   },
   "dependencies": {
+    "@mediapipe/camera_utils": "^0.3.1675466862",
+    "@mediapipe/drawing_utils": "^0.3.1675466124",
+    "@mediapipe/hands": "^0.4.1675469240",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "three": "^0.183.2"

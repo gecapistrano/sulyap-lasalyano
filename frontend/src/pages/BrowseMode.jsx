@@ -3,53 +3,10 @@
  * Mock rows keep the UI usable offline or before login; successful `listArtifacts` replaces artifact rows.
  */
 import { useEffect, useMemo, useState } from 'react'
+import { MOCK_ARTIFACTS_BROWSE, PLACEHOLDER_ARTIFACT_DESCRIPTION } from '../data/artifactBrowseMocks'
 import { listArtifacts } from '../lib/archiveApi'
 import { sanitizeText, validateSearchQuery } from '../utils/security'
 import './BrowseMode.css'
-
-/** Demo artifact rows when API is unreachable or returns nothing useful. */
-const mockArtifacts = [
-  {
-    id: 1,
-    name: 'Founding Plaque',
-    subtitle: 'From the first expansion era',
-    year: '1975',
-    owner: 'Br. Andrew B. Gonzalez, FSC',
-    icon: '🏺',
-  },
-  {
-    id: 2,
-    name: 'Excellence Trophy',
-    subtitle: 'Institutional achievement marker',
-    year: '1988',
-    owner: 'Br. Rolando V. Dizon, FSC',
-    icon: '🏆',
-  },
-  {
-    id: 3,
-    name: 'Presidential Portrait',
-    subtitle: 'Official museum collection',
-    year: '1995',
-    owner: 'Br. Narciso S. Erguiza, FSC',
-    icon: '🖼️',
-  },
-  {
-    id: 4,
-    name: 'Accreditation Medallion',
-    subtitle: 'Quality standards milestone',
-    year: '2003',
-    owner: 'Dr. Carmelita R. Quebengco',
-    icon: '🎖️',
-  },
-  {
-    id: 5,
-    name: 'Charter Document',
-    subtitle: 'Historic governance record',
-    year: '2010',
-    owner: 'Br. Armin A. Luistro, FSC',
-    icon: '📜',
-  },
-]
 
 const mockPresidents = [
   { id: 1, name: 'Br. Andrew B. Gonzalez, FSC', service: '1975 - 1987', icon: '👤' },
@@ -59,10 +16,23 @@ const mockPresidents = [
   { id: 5, name: 'Br. Armin A. Luistro, FSC', service: '2008 - 2010', icon: '👤' },
 ]
 
-export default function BrowseMode({ onBack }) {
+export default function BrowseMode({
+  onBack,
+  onOpenArtifact,
+  onOpenPresident,
+  listView: listViewProp,
+  onListViewChange,
+}) {
   const [query, setQuery] = useState('')
-  const [view, setView] = useState('presidents')
-  const [artifacts, setArtifacts] = useState(mockArtifacts)
+  const [artifacts, setArtifacts] = useState(MOCK_ARTIFACTS_BROWSE)
+  const [internalView, setInternalView] = useState('presidents')
+
+  const controlled = typeof onListViewChange === 'function'
+  const view =
+    controlled && (listViewProp === 'artifacts' || listViewProp === 'presidents')
+      ? listViewProp
+      : internalView
+  const setView = controlled ? onListViewChange : setInternalView
 
   // Try to hydrate artifacts from the backend; on failure (401, network) we keep `mockArtifacts`.
   useEffect(() => {
@@ -84,6 +54,11 @@ export default function BrowseMode({ onBack }) {
               year: String(item.created_at ?? '').slice(0, 4) || 'N/A',
               owner: sanitizeText(ownerName),
               icon: '🏺',
+              description: sanitizeText(
+                typeof item.description === 'string' && item.description.trim()
+                  ? item.description
+                  : PLACEHOLDER_ARTIFACT_DESCRIPTION,
+              ),
             }
           }),
         )
@@ -135,7 +110,7 @@ export default function BrowseMode({ onBack }) {
           type="button"
           className="browse-switch"
           onClick={() => {
-            setView((prev) => (prev === 'presidents' ? 'artifacts' : 'presidents'))
+            setView(view === 'presidents' ? 'artifacts' : 'presidents')
             setQuery('')
           }}
         >
@@ -163,7 +138,11 @@ export default function BrowseMode({ onBack }) {
             type="button"
             className="browse-card-button"
             onClick={() => {
-              // Placeholder action while detail page/data wiring is pending.
+              if (isPresidentView && typeof onOpenPresident === 'function') {
+                onOpenPresident(entry)
+              } else if (!isPresidentView && typeof onOpenArtifact === 'function') {
+                onOpenArtifact(entry)
+              }
             }}
           >
             <div className="browse-card-thumb" aria-hidden>

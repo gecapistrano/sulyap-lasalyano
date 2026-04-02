@@ -1,6 +1,6 @@
 /*
  * BrowseMode.css — list/grid for presidents and artifacts (`BrowseMode.jsx`).
- * Header actions, search field, card hover glow, responsive two-column layout on wide viewports.
+ * Header actions, search field, card hover glow; scrollable list; two columns in landscape or wide portrait.
  */
 /* Browse list — vision board palette (REFERENCE) */
 
@@ -20,7 +20,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  min-height: 100%;
+  min-height: 0;
   background: var(--night);
   color: var(--parch);
   font-family: var(--ff-sans);
@@ -42,6 +42,11 @@
 .browse-list {
   position: relative;
   z-index: 1;
+}
+
+.browse-header,
+.browse-search-wrap {
+  flex-shrink: 0;
 }
 
 .browse-header {
@@ -136,11 +141,14 @@
 
 .browse-list {
   flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
   overflow-y: auto;
   padding: 0 1.25rem max(2rem, env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
+  -webkit-overflow-scrolling: touch;
 }
 
 .browse-card-button {
@@ -149,6 +157,7 @@
   display: flex;
   align-items: center;
   gap: 1rem;
+  flex-shrink: 0;
   width: 100%;
   text-align: left;
   padding: 0.9rem 1rem;
@@ -242,17 +251,15 @@
   opacity: 0.7;
 }
 
-/* Landscape / wide screens: use 2 columns to maximize space */
-@media (orientation: landscape) and (min-width: 820px) {
+/*
+ * Two columns: landscape (phones/tablets sideways) or wide portrait (desktop).
+ * Grid + align-content: start keeps row height natural; list scrolls as a whole.
+ */
+@media (orientation: landscape), (min-width: 1100px) {
   .browse-list {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.85rem;
-  }
-}
-
-@media (min-width: 1100px) {
-  .browse-list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: start;
   }
 }

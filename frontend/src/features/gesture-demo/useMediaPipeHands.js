@@ -14,18 +14,10 @@ const DETECTOR_COLORS = {
 }
 
 /**
- * @param {object} opts
- * @param {boolean} [opts.autoStartCamera] — if false, call `startTracking()` from a button `onClick` so
- *   `getUserMedia` runs inside a user gesture (required on many browsers after SPA navigation; fixes Vercel).
+ * Starts the MediaPipe camera automatically after mount (same site permission as the scanner applies).
  */
-export function useMediaPipeHands({
-  videoRef,
-  canvasRef,
-  onLandmarks,
-  captureMode = 'quality',
-  autoStartCamera = true,
-}) {
-  const [isLoading, setIsLoading] = useState(autoStartCamera)
+export function useMediaPipeHands({ videoRef, canvasRef, onLandmarks, captureMode = 'quality' }) {
+  const [isLoading, setIsLoading] = useState(true)
   const [hasHand, setHasHand] = useState(false)
   const [error, setError] = useState(null)
 
@@ -214,15 +206,11 @@ export function useMediaPipeHands({
   }, [videoRef, canvasRef, captureMode, stopTracking])
 
   useEffect(() => {
-    if (!autoStartCamera) {
-      setIsLoading(false)
-      return
-    }
     const id = requestAnimationFrame(() => {
       void startTracking()
     })
     return () => cancelAnimationFrame(id)
-  }, [autoStartCamera, startTracking])
+  }, [startTracking])
 
   useEffect(() => {
     return () => {

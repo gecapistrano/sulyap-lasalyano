@@ -52,3 +52,33 @@ class ArtifactOut(StrictSchema):
     description: str
     image_url: HttpUrl
     created_at: datetime
+
+
+class RecognitionCandidate(StrictSchema):
+    artifact_id: str = Field(min_length=1, max_length=120)
+    label: str = Field(min_length=1, max_length=240)
+    score: float = Field(ge=0.0, le=1.0)
+    source: str = Field(default="unknown", min_length=1, max_length=120)
+
+
+class RecognitionRequest(StrictSchema):
+    """
+    Hybrid-scaffold request:
+    - send exactly one of `frame_data_url` OR `frame_base64`
+    - optional `client_ts` for latency diagnostics
+    """
+
+    frame_data_url: str | None = Field(default=None, min_length=50, max_length=6_000_000)
+    frame_base64: str | None = Field(default=None, min_length=40, max_length=6_000_000)
+    top_k: int = Field(default=5, ge=1, le=20)
+    min_score: float = Field(default=0.7, ge=0.0, le=1.0)
+    client_ts: int | None = Field(default=None, ge=0)
+
+
+class RecognitionResponse(StrictSchema):
+    status: str = Field(pattern="^(ok)$")
+    model_version: str = Field(min_length=1, max_length=80)
+    supported: bool
+    top_k: int = Field(ge=1, le=20)
+    min_score: float = Field(ge=0.0, le=1.0)
+    candidates: list[RecognitionCandidate]

@@ -5,6 +5,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import InfoSheet from '../components/ar/InfoSheet'
 import ModelViewer from '../components/ar/ModelViewer'
+import { env } from '../config/env'
+import { analyzeFrameSignals, classifyRdItemsFrame, getRdModelClasses } from '../lib/rdClassifier'
+import { fetchRecognitionCandidates } from '../lib/recognitionApi'
 import './ARCamera.css'
 
 const MOCK_ARTIFACT = {
@@ -21,14 +24,84 @@ const MOCK_ARTIFACT = {
   },
 }
 
+const SUPPORTED_RD_CLASSES = new Set(getRdModelClasses())
+// Runtime gates to reduce false positives from a closed-set 2-class classifier.
+const MIN_DETECTION_CONFIDENCE = 0.72
+const MIN_CONFIDENCE_MARGIN = 0.4
+const MIN_STABLE_HITS = 2
+const INFERENCE_EVERY_MS = 900
+const HANDLIKE_SKIN_RATIO = 0.34
+const HANDLIKE_EDGE_DENSITY = 0.12
+
 export default function ARCamera({ onBrowse }) {
   const streamRef = useRef(null)
   const videoRef = useRef(null)
+  const frameCanvasRef = useRef(null)
+  const detectIntervalRef = useRef(null)
+  const detectionLockRef = useRef(false)
+  const stableMatchRef = useRef({ className: null, hits: 0 })
+  const hybridAvailableRef = useRef(env.recognitionHybridEnabled)
   /** UI state machine for permission + device errors. */
   const [cameraState, setCameraState] = useState('idle') // idle | requesting | granted | denied | unsupported | error
   const [cameraMessage, setCameraMessage] = useState('')
   const [mode, setMode] = useState('SCANNING') // SCANNING | VIEWING_3D | INFO_OPEN
   const [artifact, setArtifact] = useState(null)
+  const [livePrediction, setLivePrediction] = useState(null)
+
+  const captureFrameDataUrl = useCallback(() => {
+    const video = videoRef.current
+    if (!video || video.readyState < 2) return null
+    let canvas = frameCanvasRef.current
+    if (!canvas) {
+      canvas = document.createElement('canvas')
+      frameCanvasRef.current = canvas
+    }
+    const side = 320
+    canvas.width = side
+    canvas.height = side
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return null
+    ctx.drawImage(video, 0, 0, side, side)
+    return canvas.toDataURL('image/jpeg', 0.72)
+  }, [])
+
+  const classifyFrameHybridOrLocal = useCallback(async () => {
+    const video = videoRef.current
+    if (!video) return null
+
+    if (hybridAvailableRef.current) {
+      try {
+        const frameDataUrl = captureFrameDataUrl()
+        if (!frameDataUrl) return null
+        const response = await fetchRecognitionCandidates({
+          frameDataUrl,
+          topK: 5,
+          minScore: MIN_DETECTION_CONFIDENCE,
+        })
+        const best = response?.candidates?.[0]
+        if (!best || response?.supported === false) return null
+        // Ignore backend scaffold placeholders (non-frame-aware mock candidates).
+        // This prevents false triggers (e.g., faces/hands) until real retrieval is wired.
+        if (typeof best.source === 'string' && best.source.startsWith('mock-')) {
+          throw new Error('Hybrid scaffold candidate ignored; fallback to local classifier')
+        }
+        return {
+          className: best.label,
+          confidence: Number(best.score ?? 0),
+          classIndex: -1,
+          probabilities: [],
+          source: 'hybrid',
+        }
+      } catch {
+        // If hybrid route is unavailable (e.g., auth/session not ready), stay functional with local ONNX.
+        hybridAvailableRef.current = false
+      }
+    }
+
+    const local = await classifyRdItemsFrame(video)
+    if (!local) return null
+    return { ...local, source: 'local' }
+  }, [captureFrameDataUrl])
 
   const stopStream = useCallback(() => {
     if (!streamRef.current) return
@@ -42,11 +115,21 @@ export default function ARCamera({ onBrowse }) {
     }
   }, [])
 
+  const clearDetectionWatchers = useCallback(() => {
+    detectionLockRef.current = false
+    stableMatchRef.current = { className: null, hits: 0 }
+    if (detectIntervalRef.current) {
+      window.clearInterval(detectIntervalRef.current)
+      detectIntervalRef.current = null
+    }
+  }, [])
+
   useEffect(() => {
     return () => {
+      clearDetectionWatchers()
       stopStream()
     }
-  }, [stopStream])
+  }, [clearDetectionWatchers, stopStream])
 
   /** Binds a MediaStream to the background `<video>` and attempts autoplay (required on many mobile browsers). */
   const attachStreamToVideo = useCallback((stream) => {
@@ -105,9 +188,14 @@ export default function ARCamera({ onBrowse }) {
     return () => window.clearTimeout(id)
   }, [requestCamera])
 
-  // Temporary dev trigger: replace with real detector callback once model inference is integrated.
-  const handleTemporaryDetection = useCallback(() => {
-    setArtifact(MOCK_ARTIFACT)
+  // Temporary mock popup (3D + info) now triggered by classifier match.
+  const handleTemporaryDetection = useCallback((detectedClass, confidence) => {
+    const prettyConf = typeof confidence === 'number' ? Math.round(confidence * 100) / 100 : MOCK_ARTIFACT.confidence
+    setArtifact({
+      ...MOCK_ARTIFACT,
+      label: detectedClass || MOCK_ARTIFACT.label,
+      confidence: prettyConf,
+    })
     setMode('VIEWING_3D')
   }, [])
 
@@ -127,10 +215,75 @@ export default function ARCamera({ onBrowse }) {
     }
     setArtifact(null)
     setMode('SCANNING')
+    setLivePrediction(null)
   }, [handleCloseInfo, mode])
+
+  useEffect(() => {
+    clearDetectionWatchers()
+    if (cameraState !== 'granted' || mode !== 'SCANNING') return
+
+    setLivePrediction(null)
+    detectionLockRef.current = false
+
+    const runInference = async () => {
+      if (detectionLockRef.current) return
+      const video = videoRef.current
+      if (!video) return
+      try {
+        const pred = await classifyFrameHybridOrLocal()
+        if (!pred) return
+        const frameSignals = analyzeFrameSignals(video)
+        const looksHandLike =
+          frameSignals &&
+          frameSignals.skinRatio >= HANDLIKE_SKIN_RATIO &&
+          frameSignals.edgeDensity <= HANDLIKE_EDGE_DENSITY
+
+        const probs = pred.probabilities ?? []
+        let secondBest = 0
+        for (let i = 0; i < probs.length; i += 1) {
+          if (i === pred.classIndex) continue
+          if (probs[i] > secondBest) secondBest = probs[i]
+        }
+        const margin = Math.max(0, pred.confidence - secondBest)
+        setLivePrediction({ ...pred, margin: Number(margin.toFixed(4)) })
+        const isKnown = SUPPORTED_RD_CLASSES.has(pred.className)
+        const strongOpenSetMatch =
+          pred.confidence >= MIN_DETECTION_CONFIDENCE && margin >= MIN_CONFIDENCE_MARGIN
+        if (!isKnown || !strongOpenSetMatch || looksHandLike) {
+          stableMatchRef.current = { className: null, hits: 0 }
+          return
+        }
+
+        if (stableMatchRef.current.className === pred.className) {
+          stableMatchRef.current.hits += 1
+        } else {
+          stableMatchRef.current = { className: pred.className, hits: 1 }
+        }
+        if (stableMatchRef.current.hits < MIN_STABLE_HITS) return
+
+        detectionLockRef.current = true
+        clearDetectionWatchers()
+        handleTemporaryDetection(pred.className, pred.confidence)
+      } catch {
+        // Keep scanning if one frame fails.
+      }
+    }
+
+    detectIntervalRef.current = window.setInterval(() => {
+      void runInference()
+    }, INFERENCE_EVERY_MS)
+    void runInference()
+
+    return () => {
+      clearDetectionWatchers()
+    }
+  }, [cameraState, classifyFrameHybridOrLocal, clearDetectionWatchers, handleTemporaryDetection, mode])
 
   const show3D = mode === 'VIEWING_3D' || mode === 'INFO_OPEN'
   const showInfo = mode === 'INFO_OPEN'
+  const liveClass = livePrediction?.className ?? 'scanning...'
+  const liveConfidence = livePrediction?.confidence ?? 0
+  const liveKnownClass = livePrediction ? SUPPORTED_RD_CLASSES.has(livePrediction.className) : false
 
   return (
     <div className="ar-camera">
@@ -179,6 +332,28 @@ export default function ARCamera({ onBrowse }) {
           <>
             <div className="ar-camera__viewport-inner">
               <div className="ar-camera__scan" aria-hidden />
+              <div
+                className={`ar-camera__live-box ${
+                  livePrediction
+                    ? liveKnownClass
+                      ? 'ar-camera__live-box--known'
+                      : 'ar-camera__live-box--unknown'
+                    : ''
+                }`}
+                style={{
+                  transform: `scale(${0.88 + Math.min(0.12, liveConfidence * 0.12)})`,
+                  opacity: 0.55 + Math.min(0.4, liveConfidence * 0.4),
+                }}
+                aria-hidden
+              >
+                <div className="ar-camera__live-box-line ar-camera__live-box-line--h" />
+                <div className="ar-camera__live-box-line ar-camera__live-box-line--v" />
+                <div className="ar-camera__live-box-sweep" />
+              </div>
+              <div className="ar-camera__live-pill" aria-live="polite">
+                <span>{liveClass}</span>
+                <span>{Math.round(liveConfidence * 100)}%</span>
+              </div>
               <div className="ar-camera__frame" aria-hidden>
                 <span className="ar-camera__corner ar-camera__corner--tl" />
                 <span className="ar-camera__corner ar-camera__corner--tr" />
@@ -221,7 +396,7 @@ export default function ARCamera({ onBrowse }) {
         <footer className="ar-camera__bottom">
           {cameraState === 'granted' && mode === 'SCANNING' && (
             <div className="ar-camera__simulate-wrap">
-              <button type="button" className="ar-camera__simulate" onClick={handleTemporaryDetection}>
+              <button type="button" className="ar-camera__simulate" onClick={() => handleTemporaryDetection()}>
                 Simulate Detection
               </button>
             </div>

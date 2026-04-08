@@ -71,9 +71,13 @@ archive-dlsud/
 │   ├── scripts/
 │   │   ├── augment.py
 │   │   ├── train.py
-│   │   └── export_onnx.py
+│   │   ├── export_onnx.py
+│   │   └── prepare_yolov8_cls_data.py
+│   ├── yolov8_cls_data/       # local classification dataset splits (train/val/test)
+│   ├── runs/                  # local training outputs/checkpoints
+│   ├── evaluation/            # local evaluation CSV outputs
 │   └── weights/
-│       ├── best.onnx          # exported inference model
+│       ├── yolov8n-cls.pt     # base classifier checkpoint
 │       └── classes.txt
 │
 ├── .github/
@@ -132,10 +136,12 @@ uvicorn app.main:app --reload
 ```bash
 cd ml
 pip install ultralytics albumentations label-studio
-# After annotation and augmentation:
-yolo detect train model=yolov8n.pt data=dataset/data.yaml epochs=100 imgsz=640 batch=8 name=archive_v1
-# Export to ONNX after training:
-yolo export model=runs/detect/archive_v1/weights/best.pt format=onnx imgsz=640 opset=12
+# Optional: prepare classification split folders under ml/yolov8_cls_data
+python scripts/prepare_yolov8_cls_data.py
+# Train classifier (example)
+yolo classify train model=weights/yolov8n-cls.pt data=yolov8_cls_data epochs=30 imgsz=224 batch=16 name=rd_items_cls_gpu project=runs
+# Export to ONNX after training (example)
+yolo export model=runs/rd_items_cls_gpu/weights/best.pt format=onnx imgsz=224 opset=12
 ```
 
 ---

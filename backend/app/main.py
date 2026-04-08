@@ -15,7 +15,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from .core.config import get_settings
 from .core.database import Base, engine
 from .core.rate_limit import limiter
-from .routers import artifacts, auth
+from .routers import artifacts, auth, recognition
 
 settings = get_settings()
 logger = logging.getLogger("archive.security")
@@ -90,3 +90,4 @@ def healthcheck():
 
 app.include_router(auth.router)
 app.include_router(artifacts.router)
+app.include_router(recognition.router)

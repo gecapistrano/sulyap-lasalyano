@@ -1,1 +1,1 @@
-"""API routers package (`auth`, `artifacts` are mounted from `main.py`)."""
+"""API routers package (`auth`, `artifacts`, `recognition` are mounted from `main.py`)."""

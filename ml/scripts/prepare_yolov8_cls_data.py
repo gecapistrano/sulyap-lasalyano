@@ -5,8 +5,10 @@ import shutil
 from pathlib import Path
 
 
+# Set SOURCE_ROOT to your local raw image folder (one subfolder per class).
 SOURCE_ROOT = Path(r"C:\Users\Justine\Documents\Images_Archive")
-OUTPUT_ROOT = Path(r"C:\Users\Justine\Documents\Cursor\yolov8_cls_data")
+# Always write prepared splits into this repository's ml/yolov8_cls_data folder.
+OUTPUT_ROOT = Path(__file__).resolve().parents[1] / "yolov8_cls_data"
 SPLITS = {"train": 0.7, "val": 0.2, "test": 0.1}
 SEED = 42
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}

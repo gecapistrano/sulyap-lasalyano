@@ -13,4 +13,7 @@ if (API_BASE_URL) {
 
 export const env = {
   apiBaseUrl: API_BASE_URL || 'https://api.example.com',
+  recognitionMode: import.meta.env.VITE_RECOGNITION_MODE || 'local',
+  recognitionHybridEnabled:
+    (import.meta.env.VITE_RECOGNITION_MODE || 'local') === 'hybrid' && Boolean(API_BASE_URL),
 }

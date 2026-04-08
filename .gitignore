@@ -27,6 +27,9 @@ frontend/.env.*
 !backend/.env.example
 !frontend/.env.example
 
+# Local backend state
+backend/archive.db
+
 # OS files
 .DS_Store
 Thumbs.db

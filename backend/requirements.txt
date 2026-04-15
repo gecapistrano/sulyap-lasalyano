@@ -5,5 +5,5 @@ pydantic-settings==2.10.1
 email-validator==2.3.0
 pyjwt[crypto]==2.12.1
 passlib[bcrypt]==1.7.4
-python-multipart==0.0.22
+python-multipart==0.0.26
 slowapi==0.1.9

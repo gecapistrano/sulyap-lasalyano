@@ -24,7 +24,6 @@ const MOCK_ARTIFACT = {
   },
 }
 
-const SUPPORTED_RD_CLASSES = new Set(getRdModelClasses())
 // Runtime gates to reduce false positives from a closed-set 2-class classifier.
 const MIN_DETECTION_CONFIDENCE = 0.72
 const MIN_CONFIDENCE_MARGIN = 0.4
@@ -47,6 +46,19 @@ export default function ARCamera({ onBrowse }) {
   const [mode, setMode] = useState('SCANNING') // SCANNING | VIEWING_3D | INFO_OPEN
   const [artifact, setArtifact] = useState(null)
   const [livePrediction, setLivePrediction] = useState(null)
+  const [supportedClassSet, setSupportedClassSet] = useState(() => new Set())
+
+  useEffect(() => {
+    let cancelled = false
+    const loadClasses = async () => {
+      const labels = await getRdModelClasses()
+      if (!cancelled) setSupportedClassSet(new Set(labels))
+    }
+    void loadClasses()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const captureFrameDataUrl = useCallback(() => {
     const video = videoRef.current
@@ -246,7 +258,8 @@ export default function ARCamera({ onBrowse }) {
         }
         const margin = Math.max(0, pred.confidence - secondBest)
         setLivePrediction({ ...pred, margin: Number(margin.toFixed(4)) })
-        const isKnown = SUPPORTED_RD_CLASSES.has(pred.className)
+        const hasSupportedLabels = supportedClassSet.size > 0
+        const isKnown = hasSupportedLabels && supportedClassSet.has(pred.className)
         const strongOpenSetMatch =
           pred.confidence >= MIN_DETECTION_CONFIDENCE && margin >= MIN_CONFIDENCE_MARGIN
         if (!isKnown || !strongOpenSetMatch || looksHandLike) {
@@ -277,13 +290,20 @@ export default function ARCamera({ onBrowse }) {
     return () => {
       clearDetectionWatchers()
     }
-  }, [cameraState, classifyFrameHybridOrLocal, clearDetectionWatchers, handleTemporaryDetection, mode])
+  }, [
+    cameraState,
+    classifyFrameHybridOrLocal,
+    clearDetectionWatchers,
+    handleTemporaryDetection,
+    mode,
+    supportedClassSet,
+  ])
 
   const show3D = mode === 'VIEWING_3D' || mode === 'INFO_OPEN'
   const showInfo = mode === 'INFO_OPEN'
   const liveClass = livePrediction?.className ?? 'scanning...'
   const liveConfidence = livePrediction?.confidence ?? 0
-  const liveKnownClass = livePrediction ? SUPPORTED_RD_CLASSES.has(livePrediction.className) : false
+  const liveKnownClass = livePrediction ? supportedClassSet.has(livePrediction.className) : false
 
   return (
     <div className="ar-camera">

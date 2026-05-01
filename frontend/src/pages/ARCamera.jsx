@@ -24,13 +24,17 @@ const MOCK_ARTIFACT = {
   },
 }
 
-// Runtime gates to reduce false positives from a closed-set 2-class classifier.
-const MIN_DETECTION_CONFIDENCE = 0.72
-const MIN_CONFIDENCE_MARGIN = 0.4
-const MIN_STABLE_HITS = 2
-const INFERENCE_EVERY_MS = 900
-const HANDLIKE_SKIN_RATIO = 0.34
-const HANDLIKE_EDGE_DENSITY = 0.12
+// Gates use probability-calibrated scores (YOLO logits → sigmoid + anchor fusion + EMA in this page).
+const MIN_DETECTION_CONFIDENCE = 0.62
+const MIN_CONFIDENCE_MARGIN = 0.17
+const MIN_STABLE_HITS = 3
+const INFERENCE_EVERY_MS = 480
+/** Higher = smoother / fewer flips between similar classes (e.g. RD336 vs RD374). */
+const PROB_EMA_ALPHA = 0.4
+/** Only suppress obvious hand close-ups while confidence is still weak (wooden/warm relics skew “skin”). */
+const HAND_REJECT_MAX_CONFIDENCE = 0.72
+const HANDLIKE_SKIN_RATIO = 0.38
+const HANDLIKE_EDGE_DENSITY = 0.1
 
 export default function ARCamera({ onBrowse }) {
   const streamRef = useRef(null)
@@ -40,6 +44,8 @@ export default function ARCamera({ onBrowse }) {
   const detectionLockRef = useRef(false)
   const stableMatchRef = useRef({ className: null, hits: 0 })
   const hybridAvailableRef = useRef(env.recognitionHybridEnabled)
+  const labelsOrderedRef = useRef([])
+  const probEmaRef = useRef(null)
   /** UI state machine for permission + device errors. */
   const [cameraState, setCameraState] = useState('idle') // idle | requesting | granted | denied | unsupported | error
   const [cameraMessage, setCameraMessage] = useState('')
@@ -52,7 +58,10 @@ export default function ARCamera({ onBrowse }) {
     let cancelled = false
     const loadClasses = async () => {
       const labels = await getRdModelClasses()
-      if (!cancelled) setSupportedClassSet(new Set(labels))
+      if (!cancelled) {
+        labelsOrderedRef.current = labels
+        setSupportedClassSet(new Set(labels))
+      }
     }
     void loadClasses()
     return () => {
@@ -130,6 +139,7 @@ export default function ARCamera({ onBrowse }) {
   const clearDetectionWatchers = useCallback(() => {
     detectionLockRef.current = false
     stableMatchRef.current = { className: null, hits: 0 }
+    probEmaRef.current = null
     if (detectIntervalRef.current) {
       window.clearInterval(detectIntervalRef.current)
       detectIntervalRef.current = null
@@ -250,33 +260,82 @@ export default function ARCamera({ onBrowse }) {
           frameSignals.skinRatio >= HANDLIKE_SKIN_RATIO &&
           frameSignals.edgeDensity <= HANDLIKE_EDGE_DENSITY
 
-        const probs = pred.probabilities ?? []
+        let gated = pred
+        const rawProbs = pred.probabilities
+        if (Array.isArray(rawProbs) && rawProbs.length > 0) {
+          const n = rawProbs.length
+          let ema = probEmaRef.current
+          if (!ema || ema.length !== n) {
+            probEmaRef.current = Float32Array.from(rawProbs)
+            ema = probEmaRef.current
+          } else {
+            const a = PROB_EMA_ALPHA
+            for (let i = 0; i < n; i += 1) {
+              ema[i] = (1 - a) * ema[i] + a * rawProbs[i]
+            }
+          }
+          let norm = 0
+          for (let i = 0; i < n; i += 1) norm += ema[i]
+          if (norm > 0) {
+            for (let i = 0; i < n; i += 1) ema[i] /= norm
+          }
+          let bestIdx = 0
+          let best = ema[0] ?? 0
+          let second = 0
+          for (let i = 0; i < n; i += 1) {
+            const p = ema[i] ?? 0
+            if (p > best) {
+              second = best
+              best = p
+              bestIdx = i
+            } else if (p > second) {
+              second = p
+            }
+          }
+          const labels = labelsOrderedRef.current
+          const smoothedName = labels[bestIdx] ?? pred.className
+          const marginSmoothed = Math.max(0, best - second)
+          gated = {
+            ...pred,
+            classIndex: bestIdx,
+            className: smoothedName,
+            confidence: Number(best.toFixed(4)),
+            margin: Number(marginSmoothed.toFixed(4)),
+            probabilities: Array.from(ema),
+          }
+        }
+
+        const probs = gated.probabilities ?? []
         let secondBest = 0
         for (let i = 0; i < probs.length; i += 1) {
-          if (i === pred.classIndex) continue
+          if (i === gated.classIndex) continue
           if (probs[i] > secondBest) secondBest = probs[i]
         }
-        const margin = Math.max(0, pred.confidence - secondBest)
-        setLivePrediction({ ...pred, margin: Number(margin.toFixed(4)) })
+        const margin = gated.margin ?? Math.max(0, gated.confidence - secondBest)
+        setLivePrediction({ ...gated, margin: Number(margin.toFixed(4)) })
         const hasSupportedLabels = supportedClassSet.size > 0
-        const isKnown = hasSupportedLabels && supportedClassSet.has(pred.className)
+        const isKnown = hasSupportedLabels && supportedClassSet.has(gated.className)
         const strongOpenSetMatch =
-          pred.confidence >= MIN_DETECTION_CONFIDENCE && margin >= MIN_CONFIDENCE_MARGIN
-        if (!isKnown || !strongOpenSetMatch || looksHandLike) {
+          gated.confidence >= MIN_DETECTION_CONFIDENCE && margin >= MIN_CONFIDENCE_MARGIN
+        const handBlocks =
+          looksHandLike &&
+          HAND_REJECT_MAX_CONFIDENCE > 0 &&
+          gated.confidence < HAND_REJECT_MAX_CONFIDENCE
+        if (!isKnown || !strongOpenSetMatch || handBlocks) {
           stableMatchRef.current = { className: null, hits: 0 }
           return
         }
 
-        if (stableMatchRef.current.className === pred.className) {
+        if (stableMatchRef.current.className === gated.className) {
           stableMatchRef.current.hits += 1
         } else {
-          stableMatchRef.current = { className: pred.className, hits: 1 }
+          stableMatchRef.current = { className: gated.className, hits: 1 }
         }
         if (stableMatchRef.current.hits < MIN_STABLE_HITS) return
 
         detectionLockRef.current = true
         clearDetectionWatchers()
-        handleTemporaryDetection(pred.className, pred.confidence)
+        handleTemporaryDetection(gated.className, gated.confidence)
       } catch {
         // Keep scanning if one frame fails.
       }

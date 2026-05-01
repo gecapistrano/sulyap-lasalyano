@@ -4,7 +4,10 @@ const MODEL_URL = '/models/model.onnx'
 const LABELS_URL = '/models/labels.txt'
 const MODEL_INPUT_SIZE = 640
 const SIGNAL_INPUT_SIZE = 224
-const DETECTION_SCORE_FLOOR = 0.001
+/** Discard degenerate ensembles below this peak probability (post calibration). */
+const DETECTION_SCORE_FLOOR = 0.04
+/** How many highest-scoring anchors to fuse (reduces single-cell noise / class flips). */
+const DET_TOPK_ANCHORS = 12
 const DEFAULT_CLASS_NAMES = ['RD244', 'RD246']
 
 let sessionPromise = null
@@ -54,6 +57,14 @@ async function getClassNames() {
   return classNamesPromise
 }
 
+/** YOLOv8 ONNX class channels are logits; apply sigmoid like Ultralytics multiclass heads. */
+function sigmoid(x) {
+  const z = Number(x)
+  if (z >= 36) return 1
+  if (z <= -36) return 0
+  return 1 / (1 + Math.exp(-z))
+}
+
 function softmax(values) {
   let max = -Infinity
   for (let i = 0; i < values.length; i += 1) {
@@ -98,35 +109,59 @@ function parseDetectionOutput(outputTensor, classNames) {
   const classCount = channels - 4
   if (channels <= 4 || anchors <= 0 || classCount <= 0) return null
 
-  let bestConfidence = 0
-  let bestClassIndex = 0
-  let bestClassScores = null
-
+  const anchorPeak = new Float32Array(anchors)
   for (let anchor = 0; anchor < anchors; anchor += 1) {
-    let classBest = 0
-    let classBestIdx = 0
-    const classScores = new Array(classCount)
+    let peak = 0
     for (let cls = 0; cls < classCount; cls += 1) {
-      const score = Number(values[(4 + cls) * anchors + anchor] ?? 0)
-      classScores[cls] = score
-      if (score > classBest) {
-        classBest = score
-        classBestIdx = cls
-      }
+      const logit = Number(values[(4 + cls) * anchors + anchor] ?? 0)
+      const p = sigmoid(logit)
+      if (p > peak) peak = p
     }
-    if (classBest > bestConfidence) {
-      bestConfidence = classBest
-      bestClassIndex = classBestIdx
-      bestClassScores = classScores
+    anchorPeak[anchor] = peak
+  }
+
+  const ranked = []
+  for (let a = 0; a < anchors; a += 1) ranked.push(a)
+  ranked.sort((a, b) => anchorPeak[b] - anchorPeak[a])
+  const k = Math.min(DET_TOPK_ANCHORS, ranked.length)
+
+  const fused = new Float32Array(classCount)
+  for (let rank = 0; rank < k; rank += 1) {
+    const anchor = ranked[rank]
+    for (let cls = 0; cls < classCount; cls += 1) {
+      const logit = Number(values[(4 + cls) * anchors + anchor] ?? 0)
+      fused[cls] += sigmoid(logit)
+    }
+  }
+  for (let cls = 0; cls < classCount; cls += 1) fused[cls] /= k
+
+  let sum = 0
+  for (let cls = 0; cls < classCount; cls += 1) sum += fused[cls]
+  if (!sum) return null
+  for (let cls = 0; cls < classCount; cls += 1) fused[cls] /= sum
+
+  let bestClassIndex = 0
+  let bestConfidence = fused[0]
+  let secondBest = 0
+  for (let cls = 0; cls < classCount; cls += 1) {
+    const p = fused[cls]
+    if (p > bestConfidence) {
+      secondBest = bestConfidence
+      bestConfidence = p
+      bestClassIndex = cls
+    } else if (p > secondBest) {
+      secondBest = p
     }
   }
 
-  if (bestConfidence < DETECTION_SCORE_FLOOR || !bestClassScores) return null
+  if (bestConfidence < DETECTION_SCORE_FLOOR) return null
+
   return {
     classIndex: bestClassIndex,
     className: classNames[bestClassIndex] ?? `class-${bestClassIndex}`,
     confidence: Number(bestConfidence.toFixed(4)),
-    probabilities: bestClassScores,
+    probabilities: Array.from(fused),
+    margin: Number(Math.max(0, bestConfidence - secondBest).toFixed(4)),
   }
 }
 

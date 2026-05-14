@@ -27,8 +27,9 @@ frontend/.env.*
 !backend/.env.example
 !frontend/.env.example
 
-# Local backend state
+# Local backend state (SQLite)
 backend/archive.db
+backend/sulyap.db
 
 # OS files
 .DS_Store

@@ -15,7 +15,7 @@ class Settings(BaseSettings):
 
     app_name: str = "Sulyap Lasalyano API"
     app_env: str = "development"
-    database_url: str = "sqlite:///./archive.db"
+    database_url: str = "sqlite:///./sulyap.db"
 
     jwt_secret_key: str = ""
     jwt_algorithm: str = "HS256"

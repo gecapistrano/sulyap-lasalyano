@@ -4,12 +4,12 @@
  */
 /* Splash — glass gradient (masked), diagonal shine sweep, end pop/glow */
 
-.archive-splash-mount,
-.archive-splash-mount * {
+.sulyap-splash-mount,
+.sulyap-splash-mount * {
   box-sizing: border-box;
 }
 
-.archive-splash-mount {
+.sulyap-splash-mount {
   --forest-night: #675642;
   --heritage-green: #1a5c28;
   --sage-accent: #b7c68c;
@@ -34,7 +34,7 @@
   background-color: var(--forest-night);
 }
 
-.archive-splash-mount .splash-layer {
+.sulyap-splash-mount .splash-layer {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -45,7 +45,7 @@
   align-items: center;
 }
 
-.archive-splash-mount .splash-container {
+.sulyap-splash-mount .splash-container {
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -53,24 +53,24 @@
   gap: 14px;
 }
 
-.archive-splash-mount .icon-wrapper {
+.sulyap-splash-mount .icon-wrapper {
   position: relative;
   width: 228px;
   height: 228px;
   margin-bottom: 8px;
   overflow: hidden;
   opacity: 0;
-  animation: archive-detect-pop 760ms cubic-bezier(0.22, 1, 0.36, 1) 0s forwards;
+  animation: sulyap-splash-detect-pop 760ms cubic-bezier(0.22, 1, 0.36, 1) 0s forwards;
   will-change: transform, opacity;
   background-color: transparent;
 }
 
 /* Keep wrapper pseudo-layer disabled; use animated logo overlay for better cross-browser reliability. */
-.archive-splash-mount .icon-wrapper.glass::before {
+.sulyap-splash-mount .icon-wrapper.glass::before {
   content: none;
 }
 
-.archive-splash-mount .archive-logo {
+.sulyap-splash-mount .sulyap-splash-logo {
   position: relative;
   display: block;
   z-index: 1;
@@ -84,37 +84,37 @@
 
 /* Glass wipe traced by logo alpha (no square): moving white logo through a narrow gradient mask. */
 /* GIF is the sole splash visual; no overlay wipe layer. */
-.archive-splash-mount .logo-shine-pass {
+.sulyap-splash-mount .logo-shine-pass {
   display: none;
 }
 
-.archive-splash-mount .wordmark {
+.sulyap-splash-mount .wordmark {
   font-size: 42px;
   letter-spacing: -1.5px;
   line-height: 1;
 }
 
-.archive-splash-mount .wordmark .ar {
+.sulyap-splash-mount .wordmark .ar {
   font-weight: 700;
   color: var(--logo-green);
 }
 
-.archive-splash-mount .wordmark .chive {
+.sulyap-splash-mount .wordmark .chive {
   font-weight: 400;
   color: #f2efd6;
 }
 
-.archive-splash-mount .subtext {
+.sulyap-splash-mount .subtext {
   font-family: ui-monospace, 'Cascadia Code', 'Consolas', monospace;
   font-size: 10px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: #d7d2b8;
   margin-top: 5px;
-  animation: archive-fade-in 0.5s ease-out forwards;
+  animation: sulyap-splash-fade-in 0.5s ease-out forwards;
 }
 
-.archive-splash-mount .loading-bar {
+.sulyap-splash-mount .loading-bar {
   width: 170px;
   height: 3px;
   background: rgba(242, 239, 214, 0.22);
@@ -124,17 +124,17 @@
   position: relative;
 }
 
-.archive-splash-mount .loading-progress {
+.sulyap-splash-mount .loading-progress {
   position: absolute;
   height: 100%;
   width: 100%;
   background: var(--sage-accent);
   border-radius: 10px;
   transform-origin: left;
-  animation: archive-loading-pulse 2.4s ease-in-out infinite;
+  animation: sulyap-splash-loading-pulse 2.4s ease-in-out infinite;
 }
 
-@keyframes archive-detect-pop {
+@keyframes sulyap-splash-detect-pop {
   0% {
     transform: scale(0.96);
     opacity: 0;
@@ -145,7 +145,7 @@
   }
 }
 
-@keyframes archive-fade-in {
+@keyframes sulyap-splash-fade-in {
   from {
     opacity: 0;
   }
@@ -154,7 +154,7 @@
   }
 }
 
-@keyframes archive-loading-pulse {
+@keyframes sulyap-splash-loading-pulse {
   0% {
     transform: translateX(-100%);
     opacity: 0.72;
@@ -170,26 +170,26 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .archive-splash-mount .splash-layer {
+  .sulyap-splash-mount .splash-layer {
     opacity: 1 !important;
     visibility: visible !important;
   }
 
-  .archive-splash-mount .icon-wrapper,
-  .archive-splash-mount .archive-logo,
-  .archive-splash-mount .logo-shine-pass,
-  .archive-splash-mount .subtext,
-  .archive-splash-mount .loading-progress {
+  .sulyap-splash-mount .icon-wrapper,
+  .sulyap-splash-mount .sulyap-splash-logo,
+  .sulyap-splash-mount .logo-shine-pass,
+  .sulyap-splash-mount .subtext,
+  .sulyap-splash-mount .loading-progress {
     animation: none !important;
   }
 
-  .archive-splash-mount .icon-wrapper {
+  .sulyap-splash-mount .icon-wrapper {
     opacity: 1;
     transform: scale(1);
   }
 
   /* Static bar indicator when motion is reduced */
-  .archive-splash-mount .loading-progress {
+  .sulyap-splash-mount .loading-progress {
     transform: translateX(0%);
     opacity: 0.85;
   }

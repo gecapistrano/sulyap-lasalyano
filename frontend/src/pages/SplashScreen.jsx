@@ -54,14 +54,14 @@ export default function SplashScreen({ onComplete }) {
   }, [onComplete])
 
   return (
-    <div className="archive-splash-mount" role="presentation" aria-hidden="true">
+    <div className="sulyap-splash-mount" role="presentation" aria-hidden="true">
       <div className="splash-layer">
         <div className="splash-container">
           <div className="icon-wrapper glass">
             {reducedMotion ? (
-              <img className="archive-logo" src={splashPoster} alt="" />
+              <img className="sulyap-splash-logo" src={splashPoster} alt="" />
             ) : (
-              <img className="archive-logo" src={SPLASH_ICON_GIF_SRC} alt="" />
+              <img className="sulyap-splash-logo" src={SPLASH_ICON_GIF_SRC} alt="" />
             )}
           </div>
 

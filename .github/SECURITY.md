@@ -21,10 +21,7 @@ That keeps details private while we investigate and prepare a fix.
 
 ### Alternative: email
 
-If private reporting is unavailable or you need to attach encrypted details, contact the maintainers at:
-archive.clr3@gmail.com
-
-Use **“Sulyap Lasalyano security”** in the subject line.
+If private reporting is unavailable or you need to attach encrypted details, coordinate with the maintainers through the repository owner's GitHub profile: **[github.com/gecapistrano](https://github.com/gecapistrano)** (use **“Sulyap Lasalyano security”** in any subject line or DM context).
 
 ## What to include
 

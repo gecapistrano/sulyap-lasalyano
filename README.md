@@ -37,7 +37,10 @@ sulyap-lasalyano/
 ```bash
 git clone https://github.com/gecapistrano/sulyap-lasalyano.git
 cd sulyap-lasalyano
+npm install
 ```
+
+Running `npm install` at the repository root sets `core.hooksPath` to `.githooks/`. The `commit-msg` hook removes any line containing `cursoragent@cursor.com` from the final commit message so automated Cursor co-author trailers are not pushed to GitHub.
 
 ### 2) Frontend
 

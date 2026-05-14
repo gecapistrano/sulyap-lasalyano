@@ -1,0 +1,9 @@
+#!/bin/sh
+# Strip Cursor agent co-author lines so they are not recorded on commits (avoids pushing cursoragent@cursor.com trailers).
+msg_file=${1:-}
+[ -n "$msg_file" ] && [ -f "$msg_file" ] || exit 0
+if grep -q 'cursoragent@cursor.com' "$msg_file" 2>/dev/null; then
+  tmp="${msg_file}.strip.$$"
+  grep -v 'cursoragent@cursor.com' "$msg_file" > "$tmp" && mv "$tmp" "$msg_file" || rm -f "$tmp"
+fi
+exit 0

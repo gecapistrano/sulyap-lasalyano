@@ -277,9 +277,21 @@ export const MOCK_ARTIFACTS_RELATED_EXTENDED = [
 export const PLACEHOLDER_ARTIFACT_DESCRIPTION =
   'Curatorial description will appear here once this artifact is loaded from the database. Connections to presidents, dates, and related memorabilia will be available through the knowledge graph.'
 
+/** All browse + extended mock artifacts (single list for lookup). */
+export function getAllMockArtifacts() {
+  return [...MOCK_ARTIFACTS_BROWSE, ...MOCK_ARTIFACTS_RELATED_EXTENDED]
+}
+
+/** Resolve a mock artifact by numeric `id` (browser history / deep links). */
+export function findMockArtifactById(id) {
+  if (id == null || id === '') return null
+  const n = Number(id)
+  if (Number.isNaN(n)) return null
+  return getAllMockArtifacts().find((a) => a.id === n) ?? null
+}
+
 /** Mock: artifacts whose `owner` string matches the president's display name. */
 export function getMockArtifactsForPresident(presidentName) {
   if (typeof presidentName !== 'string' || !presidentName.trim()) return []
-  const all = [...MOCK_ARTIFACTS_BROWSE, ...MOCK_ARTIFACTS_RELATED_EXTENDED]
-  return all.filter((a) => a.owner === presidentName)
+  return getAllMockArtifacts().filter((a) => a.owner === presidentName)
 }

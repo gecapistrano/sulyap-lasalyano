@@ -1,16 +1,12 @@
 /**
-
  * App.jsx — root React shell for Sulyap Lasalyano.
-
  *
-
  * Flow: splash (brand intro) → in-app navigation between onboarding, live camera, and browse list.
-
  * State is intentionally simple (no router yet): `phase` gates splash vs app; `screen` picks the active full-page view.
-
+ * Browser history uses rich `history.state` so Back/Forward restores artifact / president / tag context (no blank detail).
  */
 
-import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 import Onboarding from './pages/Onboarding'
 import HomePage from './pages/HomePage'
@@ -26,6 +22,9 @@ import RelatedArtifacts from './pages/RelatedArtifacts'
 
 import SplashScreen from './pages/SplashScreen'
 import { preloadRdScanner } from './lib/rdClassifier'
+import { emptySnapshot, mergeSnapshot, sanitizeSnapshot } from './lib/navigationHistory'
+import { findMockArtifactById } from './data/artifactBrowseMocks'
+import { findPresidentById } from './data/presidentBrowseMocks'
 import darkModeLogo from '../images/logo/LOGO_Dark-Mode.png'
 import lightModeLogo from '../images/logo/LOGO_Light-Mode.png'
 
@@ -50,26 +49,12 @@ export default function App() {
     void preloadRdScanner()
   }, [])
 
-  useEffect(() => {
-    const setFavicon = (isDark) => {
-      const logo = isDark ? darkModeLogo : lightModeLogo
-      const iconLinks = document.querySelectorAll("link[rel='icon'], link[rel='apple-touch-icon']")
-      iconLinks.forEach((link) => {
-        link.setAttribute('href', logo)
-        if (link.getAttribute('rel') === 'icon') {
-          link.setAttribute('type', 'image/png')
-        }
-      })
-    }
+  const initialScreen = resolveBootScreen()
 
-    const mq = window.matchMedia('(prefers-color-scheme: dark)')
-    setFavicon(mq.matches)
-    const handler = (e) => setFavicon(e.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [])
+  /** Last pushed / popped navigation snapshot (aligned with `history.state`). */
+  const navRef = useRef(emptySnapshot(initialScreen))
 
-  const [screen, setScreenRaw] = useState(resolveBootScreen)
+  const [screen, setScreenRaw] = useState(initialScreen)
   const isPageRefresh = screen === 'home'
 
   const [showSplash, setShowSplash] = useState(isPageRefresh)
@@ -77,6 +62,24 @@ export default function App() {
   const [language, setLanguage] = useState('English')
   const [darkMode, setDarkMode] = useState(false)
   const toggleDarkMode = useCallback(() => setDarkMode((d) => !d), [])
+
+  useEffect(() => {
+    const applyFavicon = () => {
+      const osDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      const useDarkAsset = darkMode || osDark
+      const logo = useDarkAsset ? darkModeLogo : lightModeLogo
+      document.querySelectorAll("link[rel='icon'], link[rel='apple-touch-icon']").forEach((link) => {
+        link.setAttribute('href', logo)
+        if (link.getAttribute('rel') === 'icon') {
+          link.setAttribute('type', 'image/png')
+        }
+      })
+    }
+    applyFavicon()
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    mq.addEventListener('change', applyFavicon)
+    return () => mq.removeEventListener('change', applyFavicon)
+  }, [darkMode])
 
   const [browseArtifact, setBrowseArtifact] = useState(null)
 
@@ -106,30 +109,51 @@ export default function App() {
 
   const isPopstate = useRef(false)
 
-  const setScreen = useCallback((nextScreen) => {
-    setScreenRaw(nextScreen)
-    sessionStorage.setItem('sl_screen', nextScreen)
-    if (!isPopstate.current) {
-      window.history.pushState({ screen: nextScreen }, '', null)
+  const hydrateFromSnapshot = useCallback((candidate) => {
+    const s = sanitizeSnapshot(candidate)
+    navRef.current = s
+    setScreenRaw(s.screen)
+    setBrowseArtifact(s.screen === 'artifact-detail' && s.artifactId != null ? findMockArtifactById(s.artifactId) : null)
+    setSelectedPresident(s.presidentId != null ? findPresidentById(s.presidentId) : null)
+    setRelatedArtifactsTag(s.relatedArtifactsTag || '')
+    setArtifactDetailReturn(s.artifactDetailReturn)
+    setRelatedArtifactsReturn(s.relatedArtifactsReturn || 'artifact-detail')
+    setKgReturnScreen(s.kgReturnScreen || 'home')
+    setBrowseReturnScreen(s.browseReturnScreen || 'home')
+    try {
+      sessionStorage.setItem('sl_screen', s.screen)
+    } catch {
+      /* ignore */
     }
-    isPopstate.current = false
   }, [])
 
-  useEffect(() => {
-    const s = sessionStorage.getItem('sl_screen') || 'home'
-    window.history.replaceState({ screen: s }, '', null)
+  const setScreen = useCallback(
+    (next, patch = {}) => {
+      const merged = mergeSnapshot(navRef.current, next, patch)
+      hydrateFromSnapshot(merged)
+      if (!isPopstate.current) {
+        window.history.pushState(navRef.current, '', null)
+      }
+      isPopstate.current = false
+    },
+    [hydrateFromSnapshot],
+  )
 
+  useLayoutEffect(() => {
+    hydrateFromSnapshot(navRef.current)
+    window.history.replaceState(navRef.current, '', null)
+  }, [hydrateFromSnapshot])
+
+  useEffect(() => {
     const handlePopState = (e) => {
       if (e.state?.onbPage !== undefined) return
-      const target = e.state?.screen ?? 'home'
       isPopstate.current = true
-      setScreenRaw(target)
-      sessionStorage.setItem('sl_screen', target)
+      hydrateFromSnapshot(e.state ?? { screen: 'home' })
     }
 
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [hydrateFromSnapshot])
 
   const handleSplashDone = useCallback(() => {
     setShowApp(true)
@@ -138,18 +162,12 @@ export default function App() {
     }, 520)
   }, [])
 
-
-
   const renderAppScreen = () => {
-
     switch (screen) {
-
       case 'onboarding':
-
         return <Onboarding onFinish={() => setScreen('camera')} onBack={() => setScreen('home')} darkMode={darkMode} />
 
       case 'home':
-
         return (
           <HomePage
             language={language}
@@ -158,132 +176,83 @@ export default function App() {
             onToggleDarkMode={toggleDarkMode}
             onStartCamera={() => setScreen('onboarding')}
             onOpenKnowledgeGraph={() => {
-              setKgReturnScreen('home')
-              setScreen('knowledge-graph')
+              setScreen('knowledge-graph', { kgReturnScreen: 'home' })
             }}
             onBrowse={() => {
               setBrowseListView('presidents')
-              setBrowseReturnScreen('home')
-              setScreen('browse')
+              setScreen('browse', { browseReturnScreen: 'home' })
             }}
           />
         )
 
       case 'camera':
-
         return (
           <Suspense fallback={<div className="grid h-full place-items-center text-sm text-[#f2efd6]">Loading scanner…</div>}>
-            <ARCamera onBrowse={() => { setBrowseReturnScreen('camera'); setScreen('browse') }} onHome={() => setScreen('home')} darkMode={darkMode} />
+            <ARCamera
+              onBrowse={() => {
+                setScreen('browse', { browseReturnScreen: 'camera' })
+              }}
+              onHome={() => setScreen('home')}
+              darkMode={darkMode}
+            />
           </Suspense>
         )
 
       case 'browse':
-
         return (
-
           <BrowseMode
-
             onBack={() => setScreen(browseReturnScreen)}
-
             darkMode={darkMode}
-
             onOpenPresident={(president) => {
-
-              setSelectedPresident(president)
-
-              setScreen('president-artifacts')
-
+              setScreen('president-artifacts', { presidentId: president.id })
             }}
-
           />
-
         )
 
       case 'president-artifacts':
-
         return (
-
           <PresidentArtifacts
-
             president={selectedPresident}
-
             darkMode={darkMode}
-
             onBack={() => {
-
-              setSelectedPresident(null)
-
               setBrowseListView('presidents')
-
               setScreen('browse')
-
             }}
-
             onOpenArtifact={(artifact) => {
-
-              setArtifactDetailReturn('president-artifacts')
-
-              setBrowseArtifact(artifact)
-
-              setScreen('artifact-detail')
-
+              setScreen('artifact-detail', {
+                artifactId: artifact.id,
+                artifactDetailReturn: 'president-artifacts',
+                presidentId: selectedPresident?.id ?? undefined,
+              })
             }}
-
           />
-
         )
 
       case 'artifact-detail':
-
         return (
-
           <ArtifactDetail
-
             artifact={browseArtifact}
-
             darkMode={darkMode}
-
             onBack={() => {
-
-              setBrowseArtifact(null)
-
               if (artifactDetailReturn === 'president-artifacts') {
-
-                setScreen('president-artifacts')
-
+                setScreen('president-artifacts', { artifactId: null })
               } else if (artifactDetailReturn === 'related-artifacts') {
-
-                setScreen('related-artifacts')
-
+                setScreen('related-artifacts', {})
               } else {
-
                 setBrowseListView('artifacts')
-
                 setScreen('browse')
-
               }
-
-              setArtifactDetailReturn(null)
-
             }}
-
             onRelatedTag={(tagLabel) => {
-
-              setRelatedArtifactsTag(tagLabel)
-
-              setRelatedArtifactsReturn('artifact-detail')
-
-              setScreen('related-artifacts')
-
+              setScreen('related-artifacts', {
+                relatedArtifactsTag: tagLabel,
+                relatedArtifactsReturn: 'artifact-detail',
+              })
             }}
-
             onViewKnowledgeGraph={() => {
-              setKgReturnScreen('artifact-detail')
-              setScreen('knowledge-graph')
+              setScreen('knowledge-graph', { kgReturnScreen: 'artifact-detail' })
             }}
-
           />
-
         )
       case 'related-artifacts':
         return (
@@ -292,9 +261,11 @@ export default function App() {
             darkMode={darkMode}
             onBack={() => setScreen(relatedArtifactsReturn)}
             onOpenArtifact={(artifact) => {
-              setArtifactDetailReturn('related-artifacts')
-              setBrowseArtifact(artifact)
-              setScreen('artifact-detail')
+              setScreen('artifact-detail', {
+                artifactId: artifact.id,
+                artifactDetailReturn: 'related-artifacts',
+                presidentId: null,
+              })
             }}
           />
         )
@@ -308,7 +279,6 @@ export default function App() {
         )
 
       default:
-
         return (
           <HomePage
             language={language}
@@ -317,27 +287,19 @@ export default function App() {
             onToggleDarkMode={toggleDarkMode}
             onStartCamera={() => setScreen('onboarding')}
             onOpenKnowledgeGraph={() => {
-              setKgReturnScreen('home')
-              setScreen('knowledge-graph')
+              setScreen('knowledge-graph', { kgReturnScreen: 'home' })
             }}
             onBrowse={() => {
               setBrowseListView('presidents')
-              setBrowseReturnScreen('home')
-              setScreen('browse')
+              setScreen('browse', { browseReturnScreen: 'home' })
             }}
           />
         )
-
     }
-
   }
 
-
-
   return (
-
     <div className={`relative w-screen min-h-[100dvh] h-[100dvh] overflow-hidden bg-[#675642] text-[#f2efd6] ${darkMode ? 'app-dark' : ''}`}>
-
       <div className="relative z-10 h-full w-full">
         <div
           className={`absolute inset-0 z-20 transition-opacity duration-500 ease-out ${
@@ -351,11 +313,6 @@ export default function App() {
           {renderAppScreen()}
         </div>
       </div>
-
     </div>
-
   )
-
 }
-
-

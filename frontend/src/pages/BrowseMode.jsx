@@ -3,21 +3,9 @@
  * Shows the list of DLSU-D presidents; tapping a card opens their memorabilia.
  */
 import { useMemo, useState } from 'react'
+import { MOCK_PRESIDENTS } from '../data/presidentBrowseMocks'
 import { validateSearchQuery } from '../utils/security'
 import './BrowseMode.css'
-
-const PRESIDENTS = [
-  { id: 1, name: 'Br. Rafael S. Donato, FSC', service: '1987 - 1994', icon: '👤' },
-  { id: 2, name: 'Br. Gus Boquer, FSC', service: '1994 - 1999', icon: '👤' },
-  { id: 3, name: 'Br. Andrew B. Gonzalez, FSC', service: '1999 - 2001', icon: '👤' },
-  { id: 4, name: 'Br. Rolando V. Dizon, FSC', service: '2001 - 2004', icon: '👤' },
-  { id: 5, name: 'Br. Narciso S. Erguiza, FSC', service: '2004 - 2008', icon: '👤' },
-  { id: 6, name: 'Br. Armin A. Luistro, FSC', service: '2008 - 2010', icon: '👤' },
-  { id: 7, name: 'Dr. Carmelita R. Quebengco', service: '2010 - 2016', icon: '👤' },
-  { id: 8, name: 'Br. Geminiano M. Buenaventura, FSC', service: '2016 - 2019', icon: '👤' },
-  { id: 9, name: 'Br. Francisco "Sockie" dela Rosa VI, FSC', service: '2019 - 2024', icon: '👤' },
-  { id: 10, name: 'Br. Iñigo Riola, FSC', service: '2024 - present', icon: '👤' },
-]
 
 export default function BrowseMode({ onBack, onOpenPresident, darkMode }) {
   const [query, setQuery] = useState('')
@@ -25,9 +13,9 @@ export default function BrowseMode({ onBack, onOpenPresident, darkMode }) {
   const { sanitized: safeQuery } = validateSearchQuery(query)
 
   const filtered = useMemo(() => {
-    if (!safeQuery) return PRESIDENTS
+    if (!safeQuery) return MOCK_PRESIDENTS
     const q = safeQuery.toLowerCase()
-    return PRESIDENTS.filter((p) =>
+    return MOCK_PRESIDENTS.filter((p) =>
       [p.name, p.service].join(' ').toLowerCase().includes(q),
     )
   }, [safeQuery])

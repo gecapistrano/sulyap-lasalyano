@@ -73,6 +73,12 @@ Backend default URL: `http://localhost:8000`
 - Configure backend env in `backend/.env`
 - For split hosting (frontend + backend on different domains), keep secure cookie settings enabled in production
 
+## Vercel (project URL and domain)
+
+The deployment hostname `*.vercel.app` comes from the **Vercel project name** and your team slug (for example `archive-dlsud-…-gecapistranos-projects.vercel.app`). In the Vercel dashboard: open the project → **Settings → General → Project Name** and rename it to something like `sulyap-lasalyano` so the default URL becomes `sulyap-lasalyano-<team>.vercel.app`.
+
+For the short production domain **`sulyap-lasalyano.vercel.app`**: **Settings → Domains** → remove `archive-dlsud.vercel.app` if it is no longer needed → **Add** `sulyap-lasalyano.vercel.app` and set it as the primary production domain. The HTTP→HTTPS redirect in `frontend/vercel.json` already targets `https://sulyap-lasalyano.vercel.app`.
+
 ## Naming Update
 
 This repository has been updated to the Sulyap Lasalyano project identity.

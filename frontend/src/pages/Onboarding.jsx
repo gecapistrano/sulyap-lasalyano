@@ -2,8 +2,10 @@
  * Onboarding.jsx — two-step first-run instructions (camera + tap) with pager dots.
  * Pair with `Onboarding.css` for lens/finger illustrations and glass treatments.
  */
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import './Onboarding.css'
+import nameLogoDark from '../../images/logo/NAME_Dark-Mode.png'
+import nameLogoLight from '../../images/logo/NAME_Light-Mode.png'
 
 /** Realistic front-facing lens (pure CSS stacking, no images). */
 function LensIcon() {
@@ -52,8 +54,7 @@ const PAGES = [
     title: 'Point your camera',
     body: (
       <>
-        <span className="onb-body-line">Aim your camera at any artifact in the gallery.</span>
-        <span className="onb-body-line">ARchive will recognize it automatically.</span>
+        <span className="onb-body-line">Aim your camera at any artifact in the gallery. Sulyap Lasalyano will recognize it automatically.</span>
       </>
     ),
     Icon: LensIcon,
@@ -71,24 +72,51 @@ const PAGES = [
 ]
 
 /** `onFinish` advances App state to the camera screen (see `App.jsx`). */
-export default function Onboarding({ onFinish }) {
+export default function Onboarding({ onFinish, onBack, darkMode }) {
   const [page, setPage] = useState(0)
   const slide = PAGES[page]
   const Icon = slide.Icon
 
   const handleNext = () => {
-    if (page < PAGES.length - 1) setPage((p) => p + 1)
-    else onFinish()
+    if (page < PAGES.length - 1) {
+      window.history.pushState({ onbPage: page + 1 }, '', null)
+      setPage((p) => p + 1)
+    } else {
+      onFinish()
+    }
   }
 
+  const handleBack = useCallback(() => {
+    if (page > 0) {
+      setPage((p) => p - 1)
+    } else {
+      onBack?.()
+    }
+  }, [page, onBack])
+
+  useEffect(() => {
+    const onPopState = (e) => {
+      if (e.state?.onbPage !== undefined) {
+        setPage(e.state.onbPage)
+      } else {
+        handleBack()
+      }
+    }
+
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [handleBack])
+
   return (
-    <div className="onboarding-root">
+    <div className={`onboarding-root ${darkMode ? 'onb-dark' : ''}`}>
+      <button type="button" className="onb-back-btn" onClick={handleBack} aria-label="Go back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M15 18l-6-6 6-6" />
+        </svg>
+      </button>
+
       <header className="onb-header">
-        <div className="onb-wordmark">
-          <span className="onb-ar">AR</span>
-          <span className="onb-chive">chive</span>
-        </div>
-        <p className="onb-subtext">DLSU Presidents Memoribilia</p>
+        <img src={darkMode ? nameLogoDark : nameLogoLight} alt="Sulyap Lasalyano" className="onb-name-logo" />
       </header>
 
       <main className="onb-main" key={slide.id} aria-live="polite">

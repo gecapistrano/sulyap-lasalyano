@@ -1,6 +1,6 @@
-# Security policy — ARchive (archive-dlsud)
+# Security policy — Sulyap Lasalyano (sulyap-lasalyano)
 
-Thank you for helping keep **ARchive** and its users safe. This document explains how to report security vulnerabilities responsibly.
+Thank you for helping keep **Sulyap Lasalyano** and its users safe. This document explains how to report security vulnerabilities responsibly.
 
 ## Supported versions
 
@@ -24,7 +24,7 @@ That keeps details private while we investigate and prepare a fix.
 If private reporting is unavailable or you need to attach encrypted details, contact the maintainers at:
 archive.clr3@gmail.com
 
-Use **“ARchive security”** in the subject line.
+Use **“Sulyap Lasalyano security”** in the subject line.
 
 ## What to include
 
@@ -73,3 +73,5 @@ If you make a good-faith effort to avoid privacy violations, data destruction, a
 ---
 
 *Last updated: confirm private reporting is enabled, and review this text periodically.*
+
+

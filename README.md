@@ -1,206 +1,87 @@
-# ARchive 🏛️
+# Sulyap Lasalyano
 
-> **Web-based AR and ML system for interactive museum engagement at the DLSU-D AEA-IRC Presidents' Memorabilia Gallery.**
+Sulyap Lasalyano is a web-based AR + ML museum experience for the DLSU-D AEA-IRC Presidents' Memorabilia Gallery.
 
-A web-based intelligent Augmented Reality system that transforms the static memorabilia gallery of the **Aklatang Emilio Aguinaldo – Information Resource Center (AEA-IRC)** at De La Salle University-Dasmarinas (DLSU-D) into an immersive, interactive digital experience.
+Visitors can point a phone camera at supported memorabilia and the system attempts real-time recognition using a YOLO/ONNX pipeline, then presents contextual content in an interactive UI.
 
-Visitors point their phone camera at a physical artifact in the gallery. ARchive detects it in real-time using a YOLOv8 machine learning model, then overlays contextual historical information directly on top of the object — all through the mobile browser, with **no app download required**.
+## Core Features
 
----
+- Browser-based camera scanner with on-device model inference
+- Splash/onboarding/camera flow optimized for mobile web
+- Gesture-driven knowledge graph viewer (frontend module)
+- Secure FastAPI backend scaffold (auth, CSRF, rate limiting)
+- ML workspace under `ml/` for training, exports, and evaluation artifacts
 
-## ✨ Features
+## Tech Stack
 
-- 🔍 **Real-time artifact detection** — YOLOv8 object detection model trained on AEA-IRC memorabilia, running entirely in the browser via ONNX Runtime Web (WebAssembly)
-- 📱 **Web-based AR overlays** — MindAR.js image tracking + Three.js rendering anchors historical info panels on physical artifacts
-- 🕸️ **Knowledge graph** — D3.js force simulation visualizing relationships between artifacts, presidents, and historical events
-- 🔒 **Privacy-first** — no camera data ever leaves the visitor's device; all inference runs client-side
-- 📡 **No installation required** — accessible via QR code on any modern mobile browser
+- Frontend: React, Vite, Tailwind, onnxruntime-web
+- Backend: FastAPI, Pydantic, SQLAlchemy
+- ML: Ultralytics YOLOv8, PyTorch, ONNX
+- Deployment: Vercel (frontend), Render-compatible backend
 
----
+## Repository Structure
 
-## 🛠️ Technology Stack
-
-| Layer | Technology | Notes |
-|---|---|---|
-| ML Model | YOLOv8 (Ultralytics) + PyTorch | Transfer learning from COCO weights |
-| Annotation | Label Studio | Offline, private, locally hosted |
-| Augmentation | Albumentations | Applied post-annotation before training |
-| Browser Inference | ONNX Runtime Web | WebAssembly — fully client-side |
-| AR Tracking | MindAR.js | Image-target based |
-| 3D Rendering | Three.js | AR overlay panels |
-| Frontend | React + Vite + TailwindCSS | Deployed on Vercel |
-| Backend | FastAPI (Python) | REST API, deployed on Render |
-| Database | PostgreSQL via Supabase | Artifact content and relationships |
-| Graph Viz | D3.js | Knowledge graph (no Neo4j required) |
-| DevOps | Docker + GitHub Actions | Auto-deploy on push to main |
-
-All tools used are **free and open-source**. No paid licenses required.
-
----
-
-## 🗂️ Repository Structure
-
-```
-archive-dlsud/
-├── frontend/                  # React + Vite SPA (Vercel)
-│   ├── src/
-│   │   ├── pages/             # Full-screen views (splash, onboarding, camera, browse)
-│   │   ├── lib/               # API client + secure fetch
-│   │   ├── config/            # Env validation (VITE_*)
-│   │   └── utils/             # Shared security helpers
-│   ├── public/                # Static assets (LOGO.svg, etc.)
-│   ├── vercel.json            # Security headers for static hosting
-│   └── package.json
-│
-├── backend/                   # FastAPI API
-│   ├── app/
-│   │   ├── main.py
-│   │   ├── models.py
-│   │   ├── schemas.py
-│   │   ├── deps.py
-│   │   ├── routers/
-│   │   │   ├── auth.py
-│   │   │   └── artifacts.py
-│   │   └── core/              # config, database, security, rate limits
-│   ├── scripts/
-│   │   └── security_lint.py
-│   ├── requirements.txt
-│   └── .env.example
-│
-├── ml/                        # ML pipeline (Person 1)
-│   ├── scripts/
-│   │   ├── augment.py
-│   │   ├── train.py
-│   │   ├── export_onnx.py
-│   │   └── prepare_yolov8_cls_data.py
-│   ├── yolov8_cls_data/       # local classification dataset splits (train/val/test)
-│   ├── runs/                  # local training outputs/checkpoints
-│   ├── evaluation/            # local evaluation CSV outputs
-│   └── weights/
-│       ├── yolov8n-cls.pt     # base classifier checkpoint
-│       └── classes.txt
-│
-├── .github/
-│   └── workflows/
-│       └── deploy.yml         # auto-deploy on push to main
-├── .gitignore
-└── README.md
+```text
+sulyap-lasalyano/
++-- frontend/          # SPA (scanner, splash, onboarding, gesture modules)
++-- backend/           # FastAPI API and security middleware
++-- ml/                # Training scripts, datasets, runs, weights
++-- docs/              # Setup/deployment/API notes
++-- README.md
 ```
 
-> ⚠️ The `dataset/` folder (training images) is listed in `.gitignore` and is **never committed to this repository**. Training photos are private institutional data owned by DLSU-D AEA-IRC.
+## Local Development
 
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Python 3.10 or 3.11
-- Node.js 18+
-- Git
-
-### 1. Clone the repository
+### 1) Clone
 
 ```bash
-git clone git@github.com:your-username/archive-dlsud.git
-cd archive-dlsud
+git clone https://github.com/gecapistrano/sulyap-lasalyano.git
+cd sulyap-lasalyano
 ```
 
-### 2. Frontend setup
+### 2) Frontend
 
 ```bash
 cd frontend
 npm install
-cp .env.example .env.local
-# Optional: set VITE_API_BASE_URL to your backend URL in .env.local
 npm run dev
-# Opens at http://localhost:5173
 ```
 
-### 3. Backend setup
+Frontend default URL: `http://localhost:5173`
+
+### 3) Backend
 
 ```bash
 cd backend
-python -m venv venv
-source venv/bin/activate      # Windows: venv\Scripts\activate
+python -m venv .venv
+# Windows:
+.\.venv\Scripts\activate
+# macOS/Linux:
+# source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env
-# Set DATABASE_URL, JWT_SECRET_KEY, FRONTEND_ORIGINS in .env
-uvicorn app.main:app --reload
-# Opens at http://localhost:8000
-# API docs at http://localhost:8000/docs
+python -m uvicorn app.main:app --reload
 ```
 
-### 4. ML training (Person 1 only)
+Backend default URL: `http://localhost:8000`
 
-```bash
-cd ml
-pip install ultralytics albumentations label-studio
-# Optional: prepare classification split folders under ml/yolov8_cls_data
-python scripts/prepare_yolov8_cls_data.py
-# Train classifier (example)
-yolo classify train model=weights/yolov8n-cls.pt data=yolov8_cls_data epochs=30 imgsz=224 batch=16 name=rd_items_cls_gpu project=runs
-# Export to ONNX after training (example)
-yolo export model=runs/rd_items_cls_gpu/weights/best.pt format=onnx imgsz=224 opset=12
+## Environment Notes
+
+- Configure frontend env in `frontend/.env` (or `.env.local`)
+- Configure backend env in `backend/.env`
+- For split hosting (frontend + backend on different domains), keep secure cookie settings enabled in production
+
+## Naming Update
+
+This repository has been updated to the Sulyap Lasalyano project identity.
+
+If your local folder still uses the old project name, you can rename it manually:
+
+```powershell
+cd D:\projects
+Rename-Item "<old-folder-name>" "sulyap-lasalyano"
 ```
 
----
+## License
 
-## 🌐 Deployment
+Academic project for DLSU-D. Institutional assets (datasets, trained weights, media) remain subject to school/team ownership and sharing restrictions.
 
-| Service | Platform | URL |
-|---|---|---|
-| Frontend | Vercel | `https://archive-app.vercel.app` |
-| Backend API | Render | `https://archive-api.onrender.com` |
-| Database | Supabase | Managed PostgreSQL |
-
-Backend env for split hosting: set `FRONTEND_ORIGINS` to your Vercel URL and keep `COOKIE_SAMESITE=none` with `COOKIE_SECURE=true` so the browser sends HttpOnly auth cookies on cross-origin requests (see `backend/.env.example`). For local HTTP dev, use `COOKIE_SAMESITE=lax` and `COOKIE_SECURE=false` instead.
-
-Deployment is automated via GitHub Actions — every push to `main` triggers a redeploy of both frontend and backend.
-
----
-
-## 🔒 Privacy & Security
-
-- **Training images** are never uploaded to any cloud service — annotation is performed locally using Label Studio
-- **Camera data** from visitors never leaves their device — ONNX inference runs entirely in WebAssembly in the browser
-- **Database credentials** are stored as environment variables and never committed to this repository
-- **Visitor data** is not collected — the system requires no login and tracks no individual users
-
----
-
-## 📊 ML Model Performance
-
-| Metric | Value |
-|---|---|
-| Model | YOLOv8n (nano) |
-| Training method | Transfer learning from COCO weights |
-| Dataset | Custom AEA-IRC memorabilia images |
-| mAP50 | _to be updated after training_ |
-| Precision | _to be updated after training_ |
-| Recall | _to be updated after training_ |
-
----
-
-## 🌍 SDG Alignment
-
-This project directly contributes to **SDG 11.4** — *Strengthen efforts to protect and safeguard the world's cultural and natural heritage* — by leveraging intelligent systems to make DLSU-D's institutional heritage accessible and engaging for a digitally-native student population.
-
----
-
-## 👥 Team
-
-| Role | Responsibility |
-|---|---|
-| Person 1 | ML pipeline — annotation, training, ONNX export |
-| Person 2 | AR frontend — React app, MindAR.js, Three.js |
-| Person 3 | Backend — FastAPI, PostgreSQL, D3.js, deployment |
-
-**Institution:** De La Salle University-Dasmarinas (DLSU-D)
-**Gallery:** Aklatang Emilio Aguinaldo – Information Resource Center (AEA-IRC)
-
----
-
-## 📄 License
-
-This project is developed as an academic thesis at DLSU-D. All rights reserved. The trained model and annotated dataset are proprietary assets of DLSU-D AEA-IRC and may not be redistributed.

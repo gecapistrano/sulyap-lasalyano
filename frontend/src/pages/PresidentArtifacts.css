@@ -1,36 +1,59 @@
 /* PresidentArtifacts.jsx — layout tweaks on top of BrowseMode.css */
 
-.president-artifacts-root .browse-header {
-  align-items: flex-start;
+/* ── President profile section — centered, big photo ── */
+
+.pa-profile {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 1.25rem 1rem;
 }
 
-.president-artifacts-title-wrap {
-  min-width: 0;
-  text-align: center;
-}
-
-.president-artifacts-title {
-  font-size: clamp(1rem, 2vw + 0.65rem, 1.35rem);
-  line-height: 1.2;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
+.pa-profile-photo {
+  width: 13rem;
+  height: 13rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--brw-card-bg, rgba(242, 239, 214, 0.4));
+  border: 2.5px solid var(--brw-card-border, rgba(58, 46, 31, 0.1));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.5rem;
   overflow: hidden;
 }
 
-.president-artifacts-eyebrow {
-  margin: 0.35rem 0 0;
-  font-family: var(--ff-mono, 'DM Mono', ui-monospace, monospace);
-  font-size: 0.65rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--lichen, #7a8a72);
+.pa-profile-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.president-artifacts-spacer {
-  width: 4.5rem;
-  flex-shrink: 0;
+.pa-profile-name {
+  font-family: var(--ff-serif, 'Cormorant Garamond', Georgia, serif);
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: var(--brw-text, #3a2e1f);
+  line-height: 1.25;
+  margin: 0.3rem 0 0;
+  text-align: center;
 }
+
+.pa-profile-years {
+  margin: -0.2rem 0 0;
+  font-family: var(--ff-mono, 'DM Mono', ui-monospace, monospace);
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--brw-text-soft, #5a4a38);
+  opacity: 0.7;
+}
+
+/* ── Item count ── */
 
 .president-artifacts-count {
   position: relative;
@@ -39,15 +62,20 @@
   margin: 0 1.25rem 0.5rem;
   font-family: var(--ff-mono, 'DM Mono', ui-monospace, monospace);
   font-size: 0.7rem;
+  font-weight: 500;
   letter-spacing: 0.06em;
-  color: var(--lichen, #7a8a72);
+  color: var(--brw-text-soft, #5a4a38);
+  opacity: 0.65;
 }
+
+/* ── Empty state ── */
 
 .president-artifacts-empty {
   padding: 2rem 1.25rem;
   text-align: center;
   font-size: 0.9rem;
-  color: var(--lichen, #7a8a72);
-  border: 1px dashed var(--bdr-d, #2a3a24);
+  color: var(--brw-text-soft, #5a4a38);
+  border: 1px dashed var(--brw-card-border, rgba(58, 46, 31, 0.1));
   border-radius: 1rem;
+  opacity: 0.7;
 }

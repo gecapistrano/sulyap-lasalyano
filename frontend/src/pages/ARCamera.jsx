@@ -6,7 +6,13 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import InfoSheet from '../components/ar/InfoSheet'
 import ModelViewer from '../components/ar/ModelViewer'
 import { env } from '../config/env'
-import { analyzeFrameSignals, classifyRdItemsFrame, getRdModelClasses } from '../lib/rdClassifier'
+import {
+  analyzeFrameSignals,
+  classifyRdItemsFrame,
+  getRdModelClasses,
+  getRdScannerReadyPromise,
+  preloadRdScanner,
+} from '../lib/rdClassifier'
 import { fetchRecognitionCandidates } from '../lib/recognitionApi'
 import './ARCamera.css'
 
@@ -17,10 +23,13 @@ const MOCK_ARTIFACT = {
     name: 'Presidential Achievement Trophy',
     president: 'Dr. Emilio Aguinaldo',
     year: '1998',
+    origin: 'Japan',
+    category: 'Trophy',
+    tags: ['Award', 'Brass', 'Ceremonial'],
     description:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Curabitur pretium tincidunt lacus, nec dignissim erat posuere sit amet. Maecenas vel nisl at urna vestibulum pharetra.',
     historical_context:
-      'Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.',
+      'Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur. Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur.',
   },
 }
 
@@ -36,7 +45,13 @@ const HAND_REJECT_MAX_CONFIDENCE = 0.72
 const HANDLIKE_SKIN_RATIO = 0.38
 const HANDLIKE_EDGE_DENSITY = 0.1
 
-export default function ARCamera({ onBrowse }) {
+const SCAN_TIPS = [
+  'Center the artifact within the scanner frame.',
+  'Ensure good lighting for better detection.',
+  'Try a different angle if not recognized.',
+]
+
+export default function ARCamera({ onBrowse, onHome, darkMode }) {
   const streamRef = useRef(null)
   const videoRef = useRef(null)
   const frameCanvasRef = useRef(null)
@@ -46,13 +61,34 @@ export default function ARCamera({ onBrowse }) {
   const hybridAvailableRef = useRef(env.recognitionHybridEnabled)
   const labelsOrderedRef = useRef([])
   const probEmaRef = useRef(null)
+  const dragProgressRef = useRef(0)
   /** UI state machine for permission + device errors. */
-  const [cameraState, setCameraState] = useState('idle') // idle | requesting | granted | denied | unsupported | error
+  const [cameraState, setCameraState] = useState('requesting') // idle | requesting | granted | denied | unsupported | error
   const [cameraMessage, setCameraMessage] = useState('')
   const [mode, setMode] = useState('SCANNING') // SCANNING | VIEWING_3D | INFO_OPEN
   const [artifact, setArtifact] = useState(null)
   const [livePrediction, setLivePrediction] = useState(null)
   const [supportedClassSet, setSupportedClassSet] = useState(() => new Set())
+  const [scannerModelReady, setScannerModelReady] = useState(false)
+  const [tipIndex, setTipIndex] = useState(0)
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setTipIndex((i) => (i + 1) % SCAN_TIPS.length)
+    }, 3500)
+    return () => window.clearInterval(id)
+  }, [])
+
+  useEffect(() => {
+    void preloadRdScanner()
+    let cancelled = false
+    void getRdScannerReadyPromise().finally(() => {
+      if (!cancelled) setScannerModelReady(true)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -194,6 +230,9 @@ export default function ARCamera({ onBrowse }) {
       if (name === 'NotAllowedError' || name === 'SecurityError') {
         setCameraState('denied')
         setCameraMessage('Please allow camera access to scan artifacts.')
+      } else if (name === 'NotReadableError' || name === 'AbortError') {
+        setCameraState('idle')
+        setCameraMessage('Camera may be in use by another tab. Close other tabs and try again.')
       } else {
         setCameraState('error')
         setCameraMessage('Camera access failed. Try again.')
@@ -201,13 +240,10 @@ export default function ARCamera({ onBrowse }) {
     }
   }, [attachStreamToVideo, stopStream])
 
-  // Best-effort auto-start so users who already granted permission
-  // see the live camera feed immediately.
+  // Auto-start camera immediately — initial state is 'requesting' so
+  // no permission prompt flashes for users who already granted access.
   useEffect(() => {
-    const id = window.setTimeout(() => {
-      requestCamera()
-    }, 0)
-    return () => window.clearTimeout(id)
+    requestCamera()
   }, [requestCamera])
 
   // Temporary mock popup (3D + info) now triggered by classifier match.
@@ -223,10 +259,12 @@ export default function ARCamera({ onBrowse }) {
 
   const handleOpenInfo = useCallback(() => {
     if (!artifact) return
+    dragProgressRef.current = 0
     setMode('INFO_OPEN')
   }, [artifact])
 
   const handleCloseInfo = useCallback(() => {
+    dragProgressRef.current = 0
     setMode('VIEWING_3D')
   }, [])
 
@@ -363,10 +401,12 @@ export default function ARCamera({ onBrowse }) {
   const liveClass = livePrediction?.className ?? 'scanning...'
   const liveConfidence = livePrediction?.confidence ?? 0
   const liveKnownClass = livePrediction ? supportedClassSet.has(livePrediction.className) : false
+  const scanningUiLoadingModel = cameraState === 'granted' && !scannerModelReady
+  const livePillLabel = scanningUiLoadingModel ? 'Loading model...' : liveClass
+  const livePillPercent = scanningUiLoadingModel ? '--' : `${Math.round(liveConfidence * 100)}%`
 
   return (
-    <div className="ar-camera">
-      <div className="ar-camera__bg" aria-hidden />
+    <div className={`ar-camera ${darkMode ? 'ar-dark' : ''}`}>
       <video
         ref={videoRef}
         className="ar-camera__video-bg"
@@ -375,27 +415,14 @@ export default function ARCamera({ onBrowse }) {
         autoPlay
         aria-hidden
       />
-      {/* Single uniform dim over the feed (replaces viewport-only gradient so footer matches). */}
-      <div className="ar-camera__feed-overlay" aria-hidden />
-
       <header className="ar-camera__top">
-        <div className="ar-camera__brand">
-          <div className="ar-camera__logo-wrap">
-            <img className="ar-camera__logo" src="/LOGO.svg" alt="" />
-          </div>
-          <div>
-            <div className="ar-camera__wordmark">
-              <span className="ar-camera__ar">AR</span>
-              <span className="ar-camera__chive">chive</span>
-            </div>
-            <p className="ar-camera__sub">DLSU Presidents Memoribilia</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button type="button" className="ar-camera__browse" onClick={onBrowse}>
-            Browse All
-          </button>
-        </div>
+        <button type="button" className="ar-camera__nav-btn" onClick={onHome} aria-label="Back to Home">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ar-camera__nav-icon"><path d="M19 12H5" /><path d="M12 19l-7-7 7-7" /></svg>
+        </button>
+        <h1 className="ar-camera__page-title">Scan Artifact</h1>
+        <button type="button" className="ar-camera__nav-btn" onClick={onBrowse} aria-label="Browse Artifacts">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ar-camera__nav-icon"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /><path d="M8 3h8" /><path d="M6 1h12" /></svg>
+        </button>
       </header>
 
       <div className="ar-camera__viewport">
@@ -403,98 +430,66 @@ export default function ARCamera({ onBrowse }) {
           <div className="ar-camera__viewer-stage">
             <ModelViewer
               artifactLabel={artifact?.label ?? 'Artifact'}
+              showArtifactLabel={false}
               dimmed={showInfo}
+              dragProgressRef={dragProgressRef}
               onTap={showInfo ? handleCloseInfo : handleOpenInfo}
             />
           </div>
-        ) : (
+        ) : cameraState === 'granted' ? (
           <>
+            <div className="ar-camera__live-pill" aria-live="polite">
+              <span>{livePillLabel}</span>
+              <span>{livePillPercent}</span>
+            </div>
             <div className="ar-camera__viewport-inner">
               <div className="ar-camera__scan" aria-hidden />
-              <div
-                className={`ar-camera__live-box ${
-                  livePrediction
-                    ? liveKnownClass
-                      ? 'ar-camera__live-box--known'
-                      : 'ar-camera__live-box--unknown'
-                    : ''
-                }`}
-                style={{
-                  transform: `scale(${0.88 + Math.min(0.12, liveConfidence * 0.12)})`,
-                  opacity: 0.55 + Math.min(0.4, liveConfidence * 0.4),
-                }}
-                aria-hidden
-              >
-                <div className="ar-camera__live-box-line ar-camera__live-box-line--h" />
-                <div className="ar-camera__live-box-line ar-camera__live-box-line--v" />
-                <div className="ar-camera__live-box-sweep" />
-              </div>
-              <div className="ar-camera__live-pill" aria-live="polite">
-                <span>{liveClass}</span>
-                <span>{Math.round(liveConfidence * 100)}%</span>
-              </div>
+              <div className="ar-camera__crosshair" aria-hidden />
               <div className="ar-camera__frame" aria-hidden>
                 <span className="ar-camera__corner ar-camera__corner--tl" />
                 <span className="ar-camera__corner ar-camera__corner--tr" />
                 <span className="ar-camera__corner ar-camera__corner--bl" />
                 <span className="ar-camera__corner ar-camera__corner--br" />
               </div>
-
-              {(cameraState !== 'granted' || cameraState === 'requesting') && (
-                <div className="ar-camera__permission" role="status" aria-live="polite">
-                  <div className="ar-camera__permission-title">
-                    {cameraState === 'requesting'
-                      ? 'Requesting camera access...'
-                      : cameraState === 'denied'
-                        ? 'Camera access needed'
-                        : cameraState === 'unsupported'
-                          ? 'Camera unavailable'
-                          : 'Enable camera to scan'}
-                  </div>
-                  <div className="ar-camera__permission-sub">
-                    {cameraMessage ||
-                      'Tap “Enable Camera” to let your browser access the camera for scanning.'}
-                  </div>
-                  <button
-                    type="button"
-                    className="ar-camera__permission-btn"
-                    onClick={requestCamera}
-                    disabled={cameraState === 'requesting'}
-                  >
-                    Enable Camera
-                  </button>
-                </div>
-              )}
             </div>
             <p className="ar-camera__frame-hint">Point at an artifact</p>
-          </>
-        )}
-      </div>
-
-      {!show3D && (
-        <footer className="ar-camera__bottom">
-          {cameraState === 'granted' && mode === 'SCANNING' && (
-            <div className="ar-camera__simulate-wrap">
+            {mode === 'SCANNING' && (
               <button type="button" className="ar-camera__simulate" onClick={() => handleTemporaryDetection()}>
                 Simulate Detection
               </button>
-            </div>
-          )}
-          <div className="ar-camera__status">
-            <p className="ar-camera__status-title">
-              {cameraState === 'granted'
-                ? 'No artifact detected yet'
-                : cameraState === 'denied'
-                  ? 'Camera permission required'
+            )}
+          </>
+        ) : cameraState === 'requesting' ? null : (
+          <div className="ar-camera__permission" role="status" aria-live="polite">
+            <div className="ar-camera__permission-title">
+              {cameraState === 'denied'
+                  ? 'Camera access needed'
                   : cameraState === 'unsupported'
-                    ? 'Camera not supported'
-                    : 'Camera access required'}
-            </p>
-            <p className="ar-camera__status-sub">
-              {cameraState === 'granted'
-                ? 'Move closer or improve lighting'
-                : cameraMessage || 'Tap “Enable Camera” to continue.'}
-            </p>
+                    ? 'Camera unavailable'
+                    : 'Enable camera to scan'}
+            </div>
+            <div className="ar-camera__permission-sub">
+              {cameraMessage ||
+                'Tap “Enable Camera” to let your browser access the camera for scanning.'}
+            </div>
+            <div className="ar-camera__permission-actions">
+              <button
+                type="button"
+                className="ar-camera__permission-btn"
+                onClick={requestCamera}
+                disabled={cameraState === 'requesting'}
+              >
+                Grant Camera Access
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {!show3D && cameraState === 'granted' && (
+        <footer className="ar-camera__bottom">
+          <div className="ar-camera__status">
+            <p className="ar-camera__status-sub ar-camera__tip" key={tipIndex}>Tip: {SCAN_TIPS[tipIndex]}</p>
           </div>
         </footer>
       )}
@@ -502,14 +497,17 @@ export default function ARCamera({ onBrowse }) {
       {showInfo && (
         <>
           <div className="fixed inset-0 z-40 bg-transparent" onClick={handleCloseInfo} />
-          <InfoSheet artifact={artifact} onClose={handleCloseInfo} />
+          <InfoSheet artifact={artifact} darkMode={darkMode} onClose={handleCloseInfo} onDragProgress={(p) => { dragProgressRef.current = p }} />
         </>
       )}
 
       {(show3D || showInfo) && (
-        <button type="button" onClick={handleExit} className="ar-camera__exit" aria-label="Exit">
-          ✕
-        </button>
+        <div className="ar-camera__detect-bar">
+          <span className="ar-camera__detect-label">{artifact?.label ?? 'Artifact'}</span>
+          <button type="button" onClick={handleExit} className="ar-camera__exit" aria-label="Exit">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+          </button>
+        </div>
       )}
     </div>
   )

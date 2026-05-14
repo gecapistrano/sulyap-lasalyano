@@ -10,10 +10,10 @@
 }
 
 .archive-splash-mount {
-  --forest-night: #0d1a0a;
+  --forest-night: #675642;
   --heritage-green: #1a5c28;
-  --sage-accent: #7cb87a;
-  --parchment: #f5edd4;
+  --sage-accent: #b7c68c;
+  --parchment: #f2efd6;
   --logo-green: #458f4d;
   --logo-filter-normal: brightness(0) saturate(100%) invert(44%) sepia(34%) saturate(704%) hue-rotate(66deg)
     brightness(86%) contrast(92%);
@@ -43,7 +43,6 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  animation: archive-exit-splash 0.5s ease-in 1.8s forwards;
 }
 
 .archive-splash-mount .splash-container {
@@ -51,74 +50,42 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 14px;
 }
 
 .archive-splash-mount .icon-wrapper {
   position: relative;
-  width: 152px;
-  height: 152px;
-  margin-bottom: 10px;
+  width: 228px;
+  height: 228px;
+  margin-bottom: 8px;
   overflow: hidden;
-  animation: archive-detect-pop 2s cubic-bezier(0.175, 0.885, 0.32, 1.275) 1.2s forwards;
+  opacity: 0;
+  animation: archive-detect-pop 760ms cubic-bezier(0.22, 1, 0.36, 1) 0s forwards;
+  will-change: transform, opacity;
+  background-color: transparent;
 }
 
-/* Glass sheen: gradient clipped to logo shape (softer than original — no whiteout) */
+/* Keep wrapper pseudo-layer disabled; use animated logo overlay for better cross-browser reliability. */
 .archive-splash-mount .icon-wrapper.glass::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  -webkit-mask-image: url('/LOGO.svg');
-  mask-image: url('/LOGO.svg');
-  -webkit-mask-size: contain;
-  mask-size: contain;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  mask-position: center;
-  background:
-    linear-gradient(
-      152deg,
-      rgba(255, 255, 255, 0.22) 0%,
-      rgba(255, 255, 255, 0.08) 28%,
-      rgba(255, 255, 255, 0) 48%,
-      rgba(255, 255, 255, 0.03) 72%,
-      rgba(255, 255, 255, 0.14) 100%
-    ),
-    radial-gradient(95% 72% at 50% 6%, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0) 55%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, transparent 42%);
-  mix-blend-mode: soft-light;
-  opacity: 0.88;
-}
-
-/* Single diagonal light sweep — sits above glass */
-.archive-splash-mount .logo-shine-pass {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 2;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  filter: brightness(0) saturate(100%) invert(100%);
-  opacity: 0.50;
-  mix-blend-mode:lighten;
-  clip-path: polygon(-40% 100%, -15% 100%, -50% 0%, -75% 0%);
-  animation: archive-logo-shine-pass 1400ms cubic-bezier(0.35, 0, 0.2, 1) 1 forwards;
+  content: none;
 }
 
 .archive-splash-mount .archive-logo {
   position: relative;
-  z-index: 0;
+  display: block;
+  z-index: 1;
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  filter: var(--logo-filter-normal);
-  /* ease-in-out: smooth filter interpolation (avoid bounce easing — it overshoots and “twitches” filter values). */
-  animation: archive-logo-pop-tone 2s ease-in-out 1.2s forwards;
+  object-fit: cover;
+  filter: none;
   backface-visibility: hidden;
+  pointer-events: none;
+}
+
+/* Glass wipe traced by logo alpha (no square): moving white logo through a narrow gradient mask. */
+/* GIF is the sole splash visual; no overlay wipe layer. */
+.archive-splash-mount .logo-shine-pass {
+  display: none;
 }
 
 .archive-splash-mount .wordmark {
@@ -134,7 +101,7 @@
 
 .archive-splash-mount .wordmark .chive {
   font-weight: 400;
-  color: #ffffff;
+  color: #f2efd6;
 }
 
 .archive-splash-mount .subtext {
@@ -142,16 +109,16 @@
   font-size: 10px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: #5a6a50;
+  color: #d7d2b8;
   margin-top: 5px;
   animation: archive-fade-in 0.5s ease-out forwards;
 }
 
 .archive-splash-mount .loading-bar {
-  width: 120px;
-  height: 2px;
-  background: rgba(124, 184, 122, 0.1);
-  margin-top: 30px;
+  width: 170px;
+  height: 3px;
+  background: rgba(242, 239, 214, 0.22);
+  margin-top: 4px;
   border-radius: 10px;
   overflow: hidden;
   position: relative;
@@ -164,55 +131,17 @@
   background: var(--sage-accent);
   border-radius: 10px;
   transform-origin: left;
-  animation: archive-loading-fill 1s linear forwards;
-}
-
-@keyframes archive-logo-shine-pass {
-  0% {
-    clip-path: polygon(-40% 100%, -15% 100%, -50% 0%, -75% 0%);
-  }
-  100% {
-    clip-path: polygon(140% 100%, 165% 100%, 130% 0%, 105% 0%);
-  }
+  animation: archive-loading-pulse 2.4s ease-in-out infinite;
 }
 
 @keyframes archive-detect-pop {
   0% {
-    transform: scale(1);
-    filter: drop-shadow(0 0 0 rgba(124, 184, 122, 0));
-  }
-  50% {
-    transform: scale(1.15);
-    filter: drop-shadow(0 0 22px rgba(198, 238, 196, 0.95));
-  }
-  100% {
-    transform: scale(1.1);
-    filter: drop-shadow(0 0 16px rgba(218, 248, 216, 0.95));
-  }
-}
-
-/*
- * Three stops only: browser interpolates filter smoothly between them.
- * 50% aligns with glow peak in archive-detect-pop; second half eases to settled dark.
- */
-@keyframes archive-logo-pop-tone {
-  0% {
-    filter: var(--logo-filter-normal);
-  }
-  50% {
-    filter: var(--logo-filter-pop-peak);
-  }
-  100% {
-    filter: var(--logo-filter-dark);
-  }
-}
-
-@keyframes archive-exit-splash {
-  to {
+    transform: scale(0.96);
     opacity: 0;
-    visibility: hidden;
-    filter: blur(20px);
-    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
   }
 }
 
@@ -225,17 +154,27 @@
   }
 }
 
-@keyframes archive-loading-fill {
-  from {
-    transform: scaleX(0);
+@keyframes archive-loading-pulse {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0.72;
   }
-  to {
-    transform: scaleX(1);
+  55% {
+    transform: translateX(0%);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0.72;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .archive-splash-mount .splash-layer,
+  .archive-splash-mount .splash-layer {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
   .archive-splash-mount .icon-wrapper,
   .archive-splash-mount .archive-logo,
   .archive-splash-mount .logo-shine-pass,
@@ -244,8 +183,14 @@
     animation: none !important;
   }
 
-  .archive-splash-mount .splash-layer {
-    opacity: 0;
-    visibility: hidden;
+  .archive-splash-mount .icon-wrapper {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  /* Static bar indicator when motion is reduced */
+  .archive-splash-mount .loading-progress {
+    transform: translateX(0%);
+    opacity: 0.85;
   }
 }

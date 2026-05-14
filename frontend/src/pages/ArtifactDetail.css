@@ -1,141 +1,147 @@
 /*
- * ArtifactDetail.css — aligned with vision board tokens & cabinet (“glass on walnut”).
- * Reference: REFERENCES/VISION BOARD - THEME - REFERENCE.html (:root, .cabinet-*, .btn-*)
+ * ArtifactDetail.css — warm brown/parchment palette matching Browse pages.
+ * Light mode default, .ad-dark for dark mode.
  */
 
-.artifact-detail-root {
-  /* ── Vision board palette (dark mode) ── */
-  --night: #0a1508;
-  --grove: #111b0d;
-  --felt: #192612;
-  --moss: #3e6b30;
-  --sage: #6aab68;
-  --sage-lt: #9dcb9b;
-  --walnut: #6b4c2a;
-  --brass: #b8a878;
-  --parch: #f0e8d0;
-  --gold: #d4c48a;
-  --lichen: #7a8a72;
-  --bdr-d: #2a3a24;
-  --bdr-l: #3a5230;
-  --glass-bg: rgba(255, 255, 255, 0.038);
-  --glass-bd: rgba(255, 255, 255, 0.09);
-  --glass-hi: rgba(255, 255, 255, 0.14);
+/* ═══════════════════════════════════════════
+   Root — Light mode (default)
+   ═══════════════════════════════════════════ */
+
+.ad-root {
+  --ad-bg: #d4c8a8;
+  --ad-text: #3a2e1f;
+  --ad-text-soft: #5a4a38;
+  --ad-accent: #f2efd6;
+  --ad-card-bg: rgba(242, 239, 214, 0.4);
+  --ad-card-border: rgba(58, 46, 31, 0.1);
+  --ad-divider: rgba(58, 46, 31, 0.15);
   --ff-serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
   --ff-mono: 'DM Mono', ui-monospace, monospace;
   --ff-sans: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  /* Wood-pattern PNG — sourced from TransparentTextures “wood-pattern”, stored in /public for offline builds. */
-  --wood-texture: url('/textures/wood-pattern.png');
 
   position: relative;
   display: flex;
   flex-direction: column;
   min-height: 100%;
   height: 100%;
-  color: var(--parch);
+  color: var(--ad-text);
   font-family: var(--ff-sans);
-  background-color: var(--night);
+  background: var(--ad-bg);
   overflow: hidden;
+  transition: background 0.5s ease, color 0.5s ease;
 }
 
-/* Ambient background — matches reference `body::before` */
+/* ── Header ── */
 
-.artifact-detail-root::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(62, 107, 48, 0.18) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 80% at 80% 90%, rgba(107, 76, 42, 0.1) 0%, transparent 55%),
-    radial-gradient(ellipse 50% 50% at 50% 50%, rgba(26, 60, 16, 0.08) 0%, transparent 70%);
-}
-
-.artifact-detail-vignette {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.35);
-}
-
-.artifact-detail-header {
+.ad-header {
   position: relative;
   z-index: 2;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: max(0.65rem, env(safe-area-inset-top)) 1.25rem 0.75rem;
+  padding: max(0.75rem, env(safe-area-inset-top)) 1.25rem 0.85rem;
+  background: rgba(212, 200, 168, 0.08);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   flex-shrink: 0;
 }
 
-.artifact-detail-back {
+.ad-back {
   background: none;
   border: none;
   cursor: pointer;
-  font-family: var(--ff-sans);
-  font-size: 0.875rem;
-  color: var(--sage);
-  padding: 0.35rem 0.25rem;
-  transition: color 0.2s ease;
-}
-
-.artifact-detail-back:hover {
-  color: var(--parch);
-}
-
-.artifact-detail-back:focus-visible,
-.artifact-detail-root .btn:focus-visible {
-  outline: 2px solid var(--sage);
-  outline-offset: 3px;
-}
-
-/* ── Buttons (reference: .btn, .btn-secondary = “View Collection”) ── */
-.artifact-detail-root .btn {
-  display: inline-flex;
+  padding: 0.4rem;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
-  border: none;
-  cursor: pointer;
-  font-family: var(--ff-serif);
-  letter-spacing: 0.04em;
-  transition:
-    transform 0.28s cubic-bezier(0.22, 0.68, 0, 1.2),
-    box-shadow 0.28s ease,
-    border-color 0.2s ease,
-    color 0.2s ease;
-  position: relative;
-  overflow: hidden;
+  color: var(--ad-text-soft);
+  transition: color 0.2s ease, opacity 0.2s ease;
 }
 
-.artifact-detail-root .btn-secondary {
-  background: var(--glass-bg);
-  border: 1px solid rgba(58, 82, 48, 0.55);
-  color: var(--brass);
-  border-radius: 100px;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+.ad-back:hover {
+  color: var(--ad-text);
 }
 
-.artifact-detail-root .btn-secondary:hover {
-  border-color: rgba(184, 168, 120, 0.48);
-  color: var(--gold);
-  transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+.ad-back svg {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
-.artifact-detail-graph-btn {
+.ad-back:focus-visible {
+  outline: 2px solid var(--ad-text-soft);
+  outline-offset: 2px;
+}
+
+.ad-kg {
   flex-shrink: 0;
-  max-width: min(13.5rem, 46vw);
-  padding: 0.45rem 0.85rem;
-  font-size: 0.68rem;
-  line-height: 1.25;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--ad-card-border);
+  background: var(--ad-card-bg);
+  box-shadow: 0 1px 3px rgba(58, 46, 31, 0.08);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ad-text-soft);
+  transition:
+    color 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
-.artifact-detail-main {
+.ad-kg:hover {
+  color: var(--ad-text);
+  border-color: rgba(58, 46, 31, 0.22);
+  background: rgba(242, 239, 214, 0.62);
+  box-shadow: 0 2px 6px rgba(58, 46, 31, 0.1);
+}
+
+.ad-kg svg {
+  width: 1.65rem;
+  height: 1.65rem;
+}
+
+.ad-kg:focus-visible {
+  outline: 2px solid var(--ad-text-soft);
+  outline-offset: 2px;
+}
+
+.ad-header-trailing-spacer {
+  flex-shrink: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+}
+
+.ad-dark .ad-kg {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+.ad-dark .ad-kg:hover {
+  border-color: rgba(212, 200, 168, 0.32);
+  background: rgba(212, 200, 168, 0.14);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
+}
+
+.ad-header-title {
+  flex: 1;
+  font-family: var(--ff-serif);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ad-text-soft);
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  margin: 0;
+}
+
+/* ── Main layout ── */
+
+.ad-main {
   position: relative;
   z-index: 1;
   flex: 1;
@@ -145,12 +151,11 @@
   align-items: stretch;
   gap: 1.5rem;
   padding: 0.5rem 1.25rem max(1rem, env(safe-area-inset-bottom));
-  /* Solid base so green ambient (::before) doesn’t show through gaps/padding. */
-  background-color: var(--night);
 }
 
-/* ── Cabinet column + vision-board cabinet stack ── */
-.artifact-detail-cabinet-column {
+/* ── 3D model section ── */
+
+.ad-model-section {
   flex: 1 1 48%;
   max-width: 52%;
   min-width: 0;
@@ -161,123 +166,48 @@
   gap: 0.5rem;
 }
 
-/* Reference: .cabinet-wrap — walnut frame + wood texture */
-.artifact-detail-root .cabinet-wrap {
+.ad-model-frame {
   position: relative;
-  z-index: 0;
   flex: 1;
   min-height: 0;
-  display: flex;
-  flex-direction: column;
-  isolation: isolate;
-  border-radius: 28px;
+  border-radius: 1.25rem;
   overflow: hidden;
-  /* Wider frame so grain/plank detail is readable (was 6px — texture vanished). */
-  padding: 12px;
-  box-shadow:
-    0 24px 80px rgba(0, 0, 0, 0.6),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    inset 0 -3px 10px rgba(0, 0, 0, 0.45);
-  /*
-   * Wood sits on the padding ring only (.cabinet-glass covers the content box).
-   * First list item = top layer. Bottom = stain; textures use multiply so grain reads clearly.
-   */
-  background-color: #3d2614;
-  background-image:
-    linear-gradient(180deg, rgba(255, 236, 210, 0.38) 0%, transparent 40%),
-    repeating-linear-gradient(
-      88deg,
-      rgba(0, 0, 0, 0.14) 0px,
-      transparent 1px,
-      transparent 4px,
-      rgba(0, 0, 0, 0.11) 5px
-    ),
-    var(--wood-texture),
-    var(--wood-texture),
-    linear-gradient(155deg, #1c1008 0%, #4a2e18 28%, #7a4f2a 52%, #3d2614 78%, #26180c 100%);
-  background-size: auto, auto, 52px 52px, 100px 100px, auto;
-  background-repeat: no-repeat, repeat, repeat, repeat, no-repeat;
-  background-position: center, center, 20px 16px, center, center;
-  background-blend-mode: soft-light, multiply, color-burn, multiply, normal;
+  background: var(--ad-card-bg);
+  border: 1px solid var(--ad-card-border);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
-.artifact-detail-root .cabinet-wrap::after {
-  content: '';
+.ad-model-slot {
   position: absolute;
   inset: 0;
-  border-radius: 28px;
-  pointer-events: none;
-  z-index: 0;
-  box-shadow:
-    inset 0 0 0 1px rgba(0, 0, 0, 0.5),
-    inset 0 2px 4px rgba(255, 255, 255, 0.14),
-    inset 0 -4px 12px rgba(0, 0, 0, 0.55);
-}
-
-/* Reference: .cabinet-glass — brown interior + frosted glass; sits directly inside wood frame. */
-.artifact-detail-root .cabinet-glass {
-  position: relative;
-  z-index: 1;
-  flex: 1;
-  min-height: 200px;
-  display: flex;
-  flex-direction: column;
-  padding: 10px 12px;
-  border-radius: 16px;
-  box-shadow: inset 0 2px 12px rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  background:
-    rgba(255, 255, 255, 0.025),
-    linear-gradient(165deg, #1a1410 0%, #12100c 45%, #0e0c09 100%);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   overflow: hidden;
 }
 
-.artifact-detail-root .cabinet-glass::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 44%;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.055) 0%, transparent 100%);
-  pointer-events: none;
-  z-index: 2;
-}
-
-.artifact-detail-model-slot {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  overflow: hidden;
-  background:
-    radial-gradient(ellipse 85% 65% at 50% 100%, rgba(40, 28, 18, 0.45) 0%, transparent 55%),
-    linear-gradient(180deg, #1a1510 0%, #0f0c09 100%);
-}
-
-.artifact-detail-model-slot > * {
+.ad-model-slot > * {
   position: relative;
   z-index: 1;
 }
 
-.artifact-detail-model-slot .relative {
+.ad-model-slot .relative {
   height: 100%;
 }
 
-.artifact-detail-cabinet-caption {
+.ad-model-caption {
   margin: 0;
   text-align: center;
   font-family: var(--ff-mono);
   font-size: 0.62rem;
+  font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--lichen);
-  opacity: 0.9;
+  color: var(--ad-text-soft);
+  opacity: 0.6;
 }
 
-/* Right: typography — reference hierarchy */
-.artifact-detail-copy {
+/* ── Info / copy section ── */
+
+.ad-info {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -287,7 +217,7 @@
   overflow: hidden;
 }
 
-.artifact-detail-copy-scroll {
+.ad-info-scroll {
   flex: 1;
   min-height: 0;
   overflow-x: hidden;
@@ -298,12 +228,47 @@
   -ms-overflow-style: none;
 }
 
-.artifact-detail-copy-scroll::-webkit-scrollbar {
+.ad-info-scroll::-webkit-scrollbar {
   display: none;
 }
 
-/* Gradient hints when content is scrollable (scrollbar hidden for a cleaner look). */
-.artifact-detail-copy-fade {
+/* Title + meta row — president photo upper right */
+.ad-info-head {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.85rem 1rem;
+  margin-bottom: 0.65rem;
+}
+
+.ad-info-head-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.ad-president-photo {
+  flex-shrink: 0;
+  width: 7.75rem;
+  height: 7.75rem;
+  border-radius: 0.95rem;
+  background: var(--ad-card-bg);
+  border: 1px solid var(--ad-card-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.85rem;
+  overflow: hidden;
+  align-self: flex-start;
+}
+
+.ad-president-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Scroll fade hints */
+.ad-fade {
   position: absolute;
   left: 0;
   right: 0;
@@ -314,89 +279,200 @@
   transition: opacity 0.22s ease;
 }
 
-.artifact-detail-copy-fade.is-visible {
+.ad-fade.is-visible {
   opacity: 1;
 }
 
-.artifact-detail-copy-fade--top {
+.ad-fade--top {
   top: 0;
-  background: linear-gradient(to bottom, var(--night) 0%, transparent 100%);
+  background: linear-gradient(to bottom, var(--ad-bg) 0%, transparent 100%);
 }
 
-.artifact-detail-copy-fade--bottom {
+.ad-fade--bottom {
   bottom: 0;
-  background: linear-gradient(to top, var(--night) 0%, transparent 100%);
+  background: linear-gradient(to top, var(--ad-bg) 0%, transparent 100%);
 }
 
-.artifact-detail-title {
+/* ── Typography ── */
+
+.ad-title {
   font-family: var(--ff-serif);
-  font-size: clamp(1.5rem, 2.2vw + 1rem, 2.25rem);
-  font-weight: 300;
-  letter-spacing: -0.03em;
+  font-size: clamp(1.4rem, 2.2vw + 1rem, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 1.15;
-  color: var(--parch);
+  color: var(--ad-text);
   margin: 0 0 1.25rem;
 }
 
-.artifact-detail-label {
+.ad-label {
   font-family: var(--ff-mono);
   font-size: 0.62rem;
+  font-weight: 600;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--lichen);
+  color: var(--ad-text-soft);
+  opacity: 0.65;
   margin: 0 0 0.2rem;
 }
 
-.artifact-detail-owner {
+.ad-owner {
   font-family: var(--ff-serif);
-  font-size: 1.125rem;
-  font-weight: 500;
-  color: var(--parch);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--ad-text);
   margin: 0 0 1rem;
   line-height: 1.35;
 }
 
-.artifact-detail-year {
+.ad-year {
   font-family: var(--ff-mono);
-  font-size: 1rem;
-  font-weight: 500;
+  font-size: 0.95rem;
+  font-weight: 600;
   letter-spacing: 0.04em;
-  color: var(--brass);
-  margin: 0 0 1rem;
+  color: var(--ad-text-soft);
+  margin: 0;
 }
 
-.artifact-detail-divider {
+.ad-divider {
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--bdr-d), transparent);
+  background: linear-gradient(90deg, transparent, var(--ad-divider), transparent);
   margin: 0.25rem 0 1rem;
 }
 
-.artifact-detail-desc-heading {
+.ad-desc-heading {
   font-family: var(--ff-serif);
   font-size: 1rem;
   font-weight: 600;
   font-style: italic;
-  color: var(--gold);
+  color: var(--ad-text-soft);
   margin: 0 0 0.5rem;
 }
 
-.artifact-detail-description {
+.ad-description {
   font-family: var(--ff-sans);
-  font-size: 0.94rem;
-  font-weight: 400;
+  font-size: 0.9rem;
+  font-weight: 500;
   line-height: 1.65;
-  color: rgba(240, 232, 208, 0.88);
+  color: var(--ad-text);
+  opacity: 0.85;
   margin: 0;
   max-width: 42rem;
 }
 
+/* Related tags */
+.ad-related {
+  margin-top: 1.75rem;
+  padding-top: 0.25rem;
+}
+
+.ad-related-heading {
+  font-family: var(--ff-mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ad-text-soft);
+  opacity: 0.65;
+  margin: 0 0 0.65rem;
+}
+
+.ad-related-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.ad-related-tag {
+  cursor: pointer;
+  font-family: var(--ff-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--ad-text);
+  padding: 0.45rem 0.85rem;
+  border-radius: 9999px;
+  border: 1px solid var(--ad-card-border);
+  background: var(--ad-card-bg);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.15s ease;
+}
+
+.ad-related-tag:hover {
+  border-color: rgba(58, 46, 31, 0.22);
+  background: rgba(242, 239, 214, 0.65);
+}
+
+.ad-related-tag:active {
+  transform: scale(0.97);
+}
+
+.ad-related-tag:focus-visible {
+  outline: 2px solid var(--ad-text-soft);
+  outline-offset: 2px;
+}
+
+/* ═══════════════════════════════════════════
+   Dark mode overrides
+   ═══════════════════════════════════════════ */
+
+.ad-dark {
+  --ad-bg: #3a2e1f;
+  --ad-text: #d4c8a8;
+  --ad-text-soft: #b8a88a;
+  --ad-accent: #d4c8a8;
+  --ad-card-bg: rgba(212, 200, 168, 0.08);
+  --ad-card-border: rgba(212, 200, 168, 0.12);
+  --ad-divider: rgba(212, 200, 168, 0.15);
+}
+
+.ad-dark .ad-header {
+  background: rgba(58, 46, 31, 0.35);
+}
+
+.ad-dark .ad-title {
+  font-weight: 600;
+}
+
+.ad-dark .ad-label {
+  font-weight: 500;
+}
+
+.ad-dark .ad-owner,
+.ad-dark .ad-year {
+  font-weight: 500;
+}
+
+.ad-dark .ad-description {
+  font-weight: 400;
+}
+
+.ad-dark .ad-related-tag {
+  color: var(--ad-text);
+  border-color: rgba(212, 200, 168, 0.2);
+  background: rgba(212, 200, 168, 0.1);
+}
+
+.ad-dark .ad-related-tag:hover {
+  border-color: rgba(212, 200, 168, 0.35);
+  background: rgba(212, 200, 168, 0.16);
+}
+
+/* ═══════════════════════════════════════════
+   Responsive — stack vertically on portrait/mobile
+   ═══════════════════════════════════════════ */
+
 @media (orientation: portrait) {
-  .artifact-detail-main {
+  .ad-main {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .artifact-detail-cabinet-column {
+  .ad-model-section {
     max-width: none;
     flex: 0 0 auto;
     min-height: 42vh;
@@ -404,11 +480,11 @@
 }
 
 @media (max-width: 700px) {
-  .artifact-detail-main {
+  .ad-main {
     flex-direction: column;
   }
 
-  .artifact-detail-cabinet-column {
+  .ad-model-section {
     max-width: none;
     min-height: 40vh;
   }

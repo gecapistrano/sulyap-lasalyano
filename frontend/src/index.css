@@ -1,7 +1,83 @@
 /*
- * Global styles for the ARchive frontend.
+ * Global styles for the Sulyap Lasalyano frontend.
  * Tailwind layers + any app-wide tokens/overrides belong here; page-specific layout lives next to each page under `src/pages/`.
  */
+@font-face {
+  font-family: 'Roca Two';
+  src: url('../fonts/Roca_Two_Font/fonts/fonnts.com-Roca_Two_Thin.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Roca Two';
+  src: url('../fonts/Roca_Two_Font/fonts/fonnts.com-Roca_Two_Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+html,
+body,
+#root,
+button,
+input,
+textarea,
+select,
+option,
+label,
+span,
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+a,
+li,
+div {
+  font-family: 'Roca Two', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+}
+
+/* Thin modern scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(58, 46, 31, 0.8) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 5px;
+  background: transparent;
+}
+
+*::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(58, 46, 31, 0.5);
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(58, 46, 31, 0.7);
+}
+
+/* Dark mode scrollbar */
+.app-dark * {
+  scrollbar-color: rgba(212, 200, 168, 0.45) transparent;
+}
+
+.app-dark *::-webkit-scrollbar-thumb {
+  background: rgba(212, 200, 168, 0.4);
+}
+
+.app-dark *::-webkit-scrollbar-thumb:hover {
+  background: rgba(212, 200, 168, 0.6);
+}

@@ -1,15 +1,32 @@
 /**
- * ArtifactDetail — landscape-first “museum cabinet” layout for an artifact opened from Browse.
- * Data is mock- or API-shaped; wire fields when the backend is integrated.
- *
- * `onViewKnowledgeGraph` opens the in-app gesture-controlled 3D explorer (same UI as `/gesture-demo`);
- * graph data and models will follow when the database is wired.
+ * ArtifactDetail — detail view for a single artifact opened from the president's memorabilia list.
+ * Styled to match the Browse page warm palette.
  */
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ModelViewer from '../components/ar/ModelViewer'
+import { getRelatedTagsForArtifact } from '../lib/relatedTags'
 import './ArtifactDetail.css'
 
-export default function ArtifactDetail({ artifact, onBack, onViewKnowledgeGraph }) {
+/** Center header: catalog RD code (e.g. RD204) from artifact fields or embedded in title. */
+function getArtifactRdHeaderLabel(artifact) {
+  if (!artifact) return 'Artifact'
+  const raw =
+    artifact.rdCode ??
+    artifact.rd_code ??
+    artifact.catalog_code ??
+    artifact.class_label ??
+    artifact.detection_label
+  if (typeof raw === 'string' && raw.trim()) {
+    const t = raw.trim()
+    return /^RD\d+/i.test(t) ? t.replace(/^rd/i, 'RD') : t
+  }
+  const name = String(artifact.name ?? '')
+  const m = name.match(/\bRD\d{2,}\b/i)
+  if (m) return m[0].toUpperCase()
+  return 'Artifact'
+}
+
+export default function ArtifactDetail({ artifact, onBack, onViewKnowledgeGraph, onRelatedTag, darkMode }) {
   const copyScrollRef = useRef(null)
   const [copyFadeTop, setCopyFadeTop] = useState(false)
   const [copyFadeBottom, setCopyFadeBottom] = useState(false)
@@ -24,10 +41,8 @@ export default function ArtifactDetail({ artifact, onBack, onViewKnowledgeGraph 
       setCopyFadeBottom(false)
       return
     }
-    const atTop = scrollTop <= 6
-    const atBottom = scrollTop + clientHeight >= scrollHeight - 6
-    setCopyFadeTop(!atTop)
-    setCopyFadeBottom(!atBottom)
+    setCopyFadeTop(scrollTop > 6)
+    setCopyFadeBottom(scrollTop + clientHeight < scrollHeight - 6)
   }, [])
 
   useEffect(() => {
@@ -48,68 +63,101 @@ export default function ArtifactDetail({ artifact, onBack, onViewKnowledgeGraph 
   if (!artifact) return null
 
   const title = artifact.name ?? 'Artifact'
-  const owner = artifact.owner ?? '—'
-  const year = artifact.year ?? '—'
+  const owner = artifact.owner ?? '\u2014'
+  const year = artifact.year ?? '\u2014'
+  const headerRdLabel = getArtifactRdHeaderLabel(artifact)
   const description =
     typeof artifact.description === 'string' && artifact.description.trim()
       ? artifact.description
       : 'Description will appear here when this record is loaded from the database.'
 
+  const relatedTags = useMemo(() => getRelatedTagsForArtifact(artifact), [artifact])
+
   return (
-    <div className="artifact-detail-root">
-      <div className="artifact-detail-vignette" aria-hidden />
-
-      <header className="artifact-detail-header">
-        <button type="button" className="artifact-detail-back" onClick={onBack}>
-          ← Back
+    <div className={`ad-root${darkMode ? ' ad-dark' : ''}`}>
+      <header className="ad-header">
+        <button type="button" className="ad-back" onClick={onBack} aria-label="Back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
         </button>
 
-        {/* Vision board: same control family as “View Collection” (btn-secondary) — see REFERENCES/VISION BOARD - THEME - REFERENCE.html */}
-        <button
-          type="button"
-          className="btn btn-secondary artifact-detail-graph-btn"
-          onClick={() => onViewKnowledgeGraph?.(artifact)}
-          aria-label="Open gesture-controlled 3D view (knowledge graph preview)"
-        >
-          View Knowledge Graph
-        </button>
+        <h1 className="ad-header-title">{headerRdLabel}</h1>
+
+        {typeof onViewKnowledgeGraph === 'function' ? (
+          <button
+            type="button"
+            className="ad-kg"
+            onClick={onViewKnowledgeGraph}
+            aria-label="Open knowledge graph"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden>
+              <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
+              <ellipse cx="12" cy="12" rx="8" ry="3.25" />
+              <ellipse cx="12" cy="12" rx="8" ry="3.25" transform="rotate(60 12 12)" />
+              <ellipse cx="12" cy="12" rx="8" ry="3.25" transform="rotate(-60 12 12)" />
+            </svg>
+          </button>
+        ) : (
+          <div className="ad-header-trailing-spacer" aria-hidden />
+        )}
       </header>
 
-      <div className="artifact-detail-main">
-        <section className="artifact-detail-cabinet-column" aria-label="3D artifact preview">
-          <div className="cabinet-wrap">
-            <div className="cabinet-glass">
-              <div className="artifact-detail-model-slot">
-                <ModelViewer showArtifactLabel={false} showTapHint={false} />
-              </div>
+      <div className="ad-main">
+        <section className="ad-model-section" aria-label="3D artifact preview">
+          <div className="ad-model-frame">
+            <div className="ad-model-slot">
+              <ModelViewer showArtifactLabel={false} showTapHint={false} />
             </div>
           </div>
-          <p className="artifact-detail-cabinet-caption">Rotate or zoom to view</p>
+          <p className="ad-model-caption">Rotate or zoom to view</p>
         </section>
 
-        <section className="artifact-detail-copy" aria-label="Artifact information">
-          <div className="artifact-detail-copy-scroll" ref={copyScrollRef}>
-            <h1 className="artifact-detail-title">{title}</h1>
+        <section className="ad-info" aria-label="Artifact information">
+          <div className="ad-info-scroll" ref={copyScrollRef}>
+            <div className="ad-info-head">
+              <div className="ad-info-head-text">
+                <h2 className="ad-title">{title}</h2>
 
-            <p className="artifact-detail-label">DLSU President</p>
-            <p className="artifact-detail-owner">{owner}</p>
+                <p className="ad-label">DLSU President</p>
+                <p className="ad-owner">{owner}</p>
 
-            <p className="artifact-detail-label">Year acquired</p>
-            <p className="artifact-detail-year">{year}</p>
+                <p className="ad-label">Year acquired</p>
+                <p className="ad-year">{year}</p>
+              </div>
 
-            <div className="artifact-detail-divider" aria-hidden />
+              <div className="ad-president-photo" role="img" aria-label="President portrait (placeholder)">
+                <span aria-hidden>👤</span>
+              </div>
+            </div>
 
-            <h2 className="artifact-detail-desc-heading">Description</h2>
-            <p className="artifact-detail-description">{description}</p>
+            <div className="ad-divider" aria-hidden />
+
+            <h3 className="ad-desc-heading">Description</h3>
+            <p className="ad-description">{description}</p>
+
+            {relatedTags.length > 0 && (
+              <section className="ad-related" aria-labelledby="ad-related-heading">
+                <h3 id="ad-related-heading" className="ad-related-heading">
+                  Related
+                </h3>
+                <div className="ad-related-tags">
+                  {relatedTags.map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      className="ad-related-tag"
+                      onClick={() => onRelatedTag?.(tag)}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
-          <div
-            className={`artifact-detail-copy-fade artifact-detail-copy-fade--top${copyFadeTop ? ' is-visible' : ''}`}
-            aria-hidden
-          />
-          <div
-            className={`artifact-detail-copy-fade artifact-detail-copy-fade--bottom${copyFadeBottom ? ' is-visible' : ''}`}
-            aria-hidden
-          />
+          <div className={`ad-fade ad-fade--top${copyFadeTop ? ' is-visible' : ''}`} aria-hidden />
+          <div className={`ad-fade ad-fade--bottom${copyFadeBottom ? ' is-visible' : ''}`} aria-hidden />
         </section>
       </div>
     </div>

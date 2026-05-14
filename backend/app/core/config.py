@@ -13,7 +13,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    app_name: str = "ARchive API"
+    app_name: str = "Sulyap Lasalyano API"
     app_env: str = "development"
     database_url: str = "sqlite:///./archive.db"
 

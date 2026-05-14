@@ -23,11 +23,20 @@
           "value": "http"
         }
       ],
-      "destination": "https://archive-dlsud.vercel.app/$1",
+      "destination": "https://sulyap-lasalyano.vercel.app/$1",
       "permanent": true
     }
   ],
   "headers": [
+    {
+      "source": "/models/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
     {
       "source": "/(.*)",
       "headers": [
@@ -71,3 +80,4 @@
     }
   ]
 }
+

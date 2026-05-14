@@ -1,7 +1,12 @@
-import * as ort from 'onnxruntime-web'
+import { assertSecureHttpUrl } from '../utils/security'
 
-const MODEL_URL = '/models/model.onnx'
-const LABELS_URL = '/models/labels.txt'
+const MODEL_ASSET_BASE_URL = (import.meta.env.VITE_MODEL_ASSET_BASE_URL || '').trim()
+if (MODEL_ASSET_BASE_URL) {
+  assertSecureHttpUrl(MODEL_ASSET_BASE_URL)
+}
+const MODEL_BASE = MODEL_ASSET_BASE_URL.replace(/\/+$/, '')
+const MODEL_URL = MODEL_BASE ? `${MODEL_BASE}/model.onnx` : '/models/model.onnx'
+const LABELS_URL = MODEL_BASE ? `${MODEL_BASE}/labels.txt` : '/models/labels.txt'
 const MODEL_INPUT_SIZE = 640
 const SIGNAL_INPUT_SIZE = 224
 /** Discard degenerate ensembles below this peak probability (post calibration). */
@@ -14,6 +19,16 @@ let sessionPromise = null
 let modelCanvas = null
 let signalCanvas = null
 let classNamesPromise = null
+/** Single flight: ONNX WASM + weights download + labels + optional warmup overlap with splash. */
+let preloadPromise = null
+let ortPromise = null
+
+async function getOrt() {
+  if (!ortPromise) {
+    ortPromise = import('onnxruntime-web')
+  }
+  return ortPromise
+}
 
 function ensureCanvas(kind = 'model') {
   if (kind === 'signal') {
@@ -32,11 +47,46 @@ function ensureCanvas(kind = 'model') {
 
 async function getSession() {
   if (sessionPromise) return sessionPromise
-  sessionPromise = ort.InferenceSession.create(MODEL_URL, {
-    executionProviders: ['wasm'],
-    graphOptimizationLevel: 'all',
-  })
+  sessionPromise = getOrt().then((ort) =>
+    ort.InferenceSession.create(MODEL_URL, {
+      executionProviders: ['wasm'],
+      graphOptimizationLevel: 'all',
+    }),
+  )
   return sessionPromise
+}
+
+async function warmupSession(session) {
+  const ort = await getOrt()
+  const inputName = session.inputNames[0]
+  if (!inputName) return
+  const size = MODEL_INPUT_SIZE
+  const hw = size * size
+  const zeros = new Float32Array(3 * hw)
+  const inputTensor = new ort.Tensor('float32', zeros, [1, 3, size, size])
+  await session.run({ [inputName]: inputTensor })
+}
+
+/**
+ * Start loading labels + ONNX session + one dummy inference ASAP (call from App splash phase).
+ * Idempotent — safe to call from multiple components.
+ */
+export function preloadRdScanner() {
+  if (!preloadPromise) {
+    preloadPromise = (async () => {
+      const [session] = await Promise.all([getSession(), getClassNames()])
+      try {
+        await warmupSession(session)
+      } catch {
+        // Warmup is best-effort; first real frame may still JIT WASM paths on some browsers.
+      }
+    })()
+  }
+  return preloadPromise
+}
+
+export function getRdScannerReadyPromise() {
+  return preloadRdScanner()
 }
 
 async function getClassNames() {
@@ -96,7 +146,7 @@ function toInputTensorFromVideo(videoEl) {
     chw[hw + i] = data[j + 1] / 255
     chw[hw * 2 + i] = data[j + 2] / 255
   }
-  return new ort.Tensor('float32', chw, [1, 3, MODEL_INPUT_SIZE, MODEL_INPUT_SIZE])
+  return chw
 }
 
 function parseDetectionOutput(outputTensor, classNames) {
@@ -224,11 +274,11 @@ export function analyzeFrameSignals(videoEl) {
  */
 export async function classifyRdItemsFrame(videoEl) {
   if (!videoEl || videoEl.readyState < 2) return null
-  const inputTensor = toInputTensorFromVideo(videoEl)
-  if (!inputTensor) return null
+  const chw = toInputTensorFromVideo(videoEl)
+  if (!chw) return null
 
-  const classNames = await getClassNames()
-  const session = await getSession()
+  const [ort, classNames, session] = await Promise.all([getOrt(), getClassNames(), getSession()])
+  const inputTensor = new ort.Tensor('float32', chw, [1, 3, MODEL_INPUT_SIZE, MODEL_INPUT_SIZE])
   const inputName = session.inputNames[0]
   const outputName = session.outputNames[0]
   const feeds = { [inputName]: inputTensor }

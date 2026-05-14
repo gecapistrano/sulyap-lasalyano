@@ -1,18 +1,27 @@
 /*
  * BrowseMode.css — list/grid for presidents and artifacts (`BrowseMode.jsx`).
- * Header actions, search field, card hover glow; scrollable list; two columns in landscape or wide portrait.
+ * Warm brown/parchment palette matching HomePage + ARCamera.
+ * Light mode default, .browse-dark for dark mode.
  */
-/* Browse list — vision board palette (REFERENCE) */
+
+/* ═══════════════════════════════════════════
+   Root — Light mode (default)
+   ═══════════════════════════════════════════ */
 
 .browse-root {
-  --night: #0a1508;
-  --moss: #3e6b30;
-  --sage: #6aab68;
-  --lichen: #7a8a72;
-  --parch: #f0e8d0;
-  --bdr-d: #2a3a24;
-  --bdr-l: #3a5230;
-  --felt: #192612;
+  --brw-bg: #d4c8a8;
+  --brw-text: #3a2e1f;
+  --brw-text-soft: #5a4a38;
+  --brw-accent: #f2efd6;
+  --brw-glass: rgba(58, 46, 31, 0.06);
+  --brw-glass-border: rgba(58, 46, 31, 0.12);
+  --brw-card-bg: rgba(242, 239, 214, 0.4);
+  --brw-card-border: rgba(58, 46, 31, 0.1);
+  --brw-card-hover: rgba(58, 46, 31, 0.18);
+  --brw-input-bg: rgba(242, 239, 214, 0.45);
+  --brw-input-border: rgba(58, 46, 31, 0.12);
+  --brw-input-focus: rgba(58, 46, 31, 0.25);
+  --brw-chevron: rgba(58, 46, 31, 0.35);
   --ff-serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
   --ff-mono: 'DM Mono', ui-monospace, monospace;
   --ff-sans: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -21,21 +30,13 @@
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  background: var(--night);
-  color: var(--parch);
+  background: var(--brw-bg);
+  color: var(--brw-text);
   font-family: var(--ff-sans);
+  transition: background 0.5s ease, color 0.5s ease;
 }
 
-.browse-root::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background:
-    radial-gradient(ellipse 70% 50% at 15% 0%, rgba(62, 107, 48, 0.12) 0%, transparent 55%),
-    radial-gradient(ellipse 50% 60% at 90% 100%, rgba(107, 76, 42, 0.06) 0%, transparent 50%);
-}
+/* ── Header ── */
 
 .browse-header,
 .browse-search-wrap,
@@ -50,94 +51,92 @@
 }
 
 .browse-header {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
+  display: flex;
   align-items: center;
-  gap: 0.75rem;
   padding: max(0.75rem, env(safe-area-inset-top)) 1.25rem 0.85rem;
+  background: rgba(212, 200, 168, 0.08);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .browse-back {
   background: none;
   border: none;
   cursor: pointer;
-  font-family: var(--ff-sans);
-  font-size: 0.875rem;
-  color: var(--sage);
-  padding: 0.35rem 0.25rem;
-  transition: color 0.2s ease;
+  padding: 0.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--brw-text-soft);
+  transition: color 0.2s ease, opacity 0.2s ease;
 }
 
 .browse-back:hover {
-  color: var(--parch);
+  color: var(--brw-text);
 }
 
-.browse-back:focus-visible,
-.browse-switch:focus-visible,
-.browse-card-button:focus-visible {
-  outline: 2px solid var(--sage);
-  outline-offset: 3px;
+.browse-back svg {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .browse-title {
+  flex: 1;
   font-family: var(--ff-serif);
-  font-size: 1.25rem;
+  font-size: 1.05rem;
   font-weight: 600;
-  letter-spacing: -0.02em;
-  color: var(--parch);
+  letter-spacing: 0.04em;
+  color: var(--brw-text-soft);
   text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
-.browse-switch {
-  cursor: pointer;
-  font-family: var(--ff-serif);
-  font-size: 0.8125rem;
-  letter-spacing: 0.03em;
-  color: var(--parch);
-  padding: 0.5rem 0.95rem;
-  border-radius: 9999px;
-  border: 1px solid rgba(106, 171, 104, 0.28);
-  background: linear-gradient(160deg, #4e7a3c 0%, #3a6028 100%);
-  box-shadow:
-    0 3px 16px rgba(62, 107, 48, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.browse-switch:hover {
-  transform: translateY(-1px);
-  box-shadow:
-    0 6px 22px rgba(62, 107, 48, 0.32),
-    inset 0 1px 0 rgba(255, 255, 255, 0.16);
-}
+/* ── Search ── */
 
 .browse-search-wrap {
-  padding: 0 1.25rem 1rem;
+  position: relative;
+  padding: 0.5rem 1.25rem 0.85rem;
+}
+
+.browse-search-icon {
+  position: absolute;
+  right: 2.35rem;
+  top: 50%;
+  transform: translateY(-65%);
+  width: 0.95rem;
+  height: 0.95rem;
+  color: var(--brw-text-soft);
+  opacity: 0.4;
+  pointer-events: none;
 }
 
 .browse-search {
   width: 100%;
   box-sizing: border-box;
-  background: rgba(17, 27, 13, 0.65);
-  border: 1px solid var(--bdr-d);
+  background: var(--brw-input-bg);
+  border: 1px solid var(--brw-input-border);
   border-radius: 0.875rem;
-  padding: 0.8rem 1rem;
+  padding: 0.75rem 2.5rem 0.75rem 1rem;
   font-family: var(--ff-sans);
-  font-size: 0.9rem;
-  color: var(--parch);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--brw-text);
   outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
 .browse-search::placeholder {
-  color: var(--lichen);
-  opacity: 0.75;
+  color: var(--brw-text-soft);
+  opacity: 0.6;
 }
 
 .browse-search:focus {
-  border-color: rgba(106, 171, 104, 0.45);
-  box-shadow: 0 0 0 1px rgba(106, 171, 104, 0.2);
+  border-color: var(--brw-input-focus);
+  box-shadow: 0 0 0 2px rgba(58, 46, 31, 0.08);
+  background: rgba(242, 239, 214, 0.6);
 }
+
+/* ── List ── */
 
 .browse-list {
   flex: 1;
@@ -147,50 +146,59 @@
   padding: 0 1.25rem max(2rem, env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 0.65rem;
   -webkit-overflow-scrolling: touch;
 }
+
+/* ── Card ── */
 
 .browse-card-button {
   position: relative;
   overflow: hidden;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.85rem;
   flex-shrink: 0;
   width: 100%;
   text-align: left;
-  padding: 0.9rem 1rem;
-  color: var(--parch);
+  padding: 0.85rem 1rem;
+  color: var(--brw-text);
   cursor: pointer;
   border-radius: 1rem;
-  border: 1px solid var(--bdr-d);
-  background: rgba(17, 27, 13, 0.72);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  transition:
-    border-color 0.25s ease,
-    box-shadow 0.25s ease;
+  border: 1px solid var(--brw-card-border);
+  background: var(--brw-card-bg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
 }
 
 .browse-card-button:hover {
-  border-color: rgba(106, 171, 104, 0.45);
-  box-shadow:
-    0 0 0 1px rgba(106, 171, 104, 0.18),
-    0 0 18px rgba(106, 171, 104, 0.18);
+  border-color: var(--brw-card-hover);
+  box-shadow: 0 2px 12px rgba(58, 46, 31, 0.1);
+  background: rgba(242, 239, 214, 0.55);
+}
+
+.browse-card-button:focus-visible {
+  outline: 2px solid var(--brw-text-soft);
+  outline-offset: 2px;
+}
+
+.browse-back:focus-visible {
+  outline: 2px solid var(--brw-text-soft);
+  outline-offset: 2px;
 }
 
 .browse-card-thumb {
-  width: 3.75rem;
-  height: 3.75rem;
+  width: 3.25rem;
+  height: 3.25rem;
   flex-shrink: 0;
-  border-radius: 0.9rem;
-  background: rgba(62, 107, 48, 0.2);
-  border: 1px solid rgba(106, 171, 104, 0.2);
+  border-radius: 0.85rem;
+  background: rgba(58, 46, 31, 0.06);
+  border: 1px solid rgba(58, 46, 31, 0.06);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.45rem;
+  font-size: 1.35rem;
 }
 
 .browse-card-body {
@@ -200,66 +208,113 @@
 
 .browse-card-name {
   font-family: var(--ff-serif);
-  font-size: 1.04rem;
-  font-weight: 600;
-  color: var(--parch);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--brw-text);
   line-height: 1.3;
 }
 
 .browse-card-meta {
   font-family: var(--ff-sans);
-  font-size: 0.87rem;
-  color: var(--lichen);
-  margin-top: 0.32rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--brw-text-soft);
+  margin-top: 0.25rem;
   line-height: 1.35;
 }
 
 .browse-card-meta-wrap {
   display: flex;
   flex-direction: column;
-  gap: 0.22rem;
-  margin-top: 0.32rem;
+  gap: 0.18rem;
+  margin-top: 0.25rem;
 }
 
 .browse-card-desc {
   font-family: var(--ff-sans);
-  font-size: 0.87rem;
-  color: var(--lichen);
+  font-size: 0.82rem;
+  color: var(--brw-text-soft);
   line-height: 1.35;
 }
 
 .browse-card-year {
   font-family: var(--ff-mono);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 600;
   letter-spacing: 0.06em;
-  color: #5a6a50;
+  color: var(--brw-text-soft);
+  opacity: 0.65;
   line-height: 1.25;
 }
 
 .browse-card-owner {
   font-family: var(--ff-mono);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 500;
   letter-spacing: 0.04em;
-  color: var(--lichen);
+  color: var(--brw-text-soft);
   line-height: 1.25;
 }
 
 .browse-card-chevron {
   flex-shrink: 0;
-  color: var(--lichen);
+  color: var(--brw-text-soft);
   font-size: 1.35rem;
+  font-weight: 700;
   opacity: 0.7;
 }
 
-/*
- * Two columns: landscape (phones/tablets sideways) or wide portrait (desktop).
- * Grid + align-content: start keeps row height natural; list scrolls as a whole.
- */
+/* ═══════════════════════════════════════════
+   Dark mode overrides
+   ═══════════════════════════════════════════ */
+
+.browse-dark {
+  --brw-bg: #3a2e1f;
+  --brw-text: #d4c8a8;
+  --brw-text-soft: #b8a88a;
+  --brw-accent: #d4c8a8;
+  --brw-glass: rgba(212, 200, 168, 0.04);
+  --brw-glass-border: rgba(212, 200, 168, 0.1);
+  --brw-card-bg: rgba(212, 200, 168, 0.08);
+  --brw-card-border: rgba(212, 200, 168, 0.12);
+  --brw-card-hover: rgba(212, 200, 168, 0.16);
+  --brw-input-bg: rgba(212, 200, 168, 0.1);
+  --brw-input-border: rgba(212, 200, 168, 0.15);
+  --brw-input-focus: rgba(212, 200, 168, 0.3);
+  --brw-chevron: rgba(212, 200, 168, 0.4);
+}
+
+.browse-dark .browse-header {
+  background: rgba(58, 46, 31, 0.35);
+}
+
+.browse-dark .browse-card-thumb {
+  background: rgba(212, 200, 168, 0.1);
+  border-color: rgba(212, 200, 168, 0.1);
+}
+
+.browse-dark .browse-card-button:hover {
+  background: rgba(212, 200, 168, 0.14);
+}
+
+.browse-dark .browse-search:focus {
+  box-shadow: 0 0 0 2px rgba(212, 200, 168, 0.12);
+  background: rgba(212, 200, 168, 0.15);
+}
+
+.browse-dark .browse-card-name {
+  font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════
+   Responsive — two columns in landscape/wide
+   ═══════════════════════════════════════════ */
+
 @media (orientation: landscape), (min-width: 1100px) {
   .browse-list {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.85rem;
+    gap: 0.65rem;
     align-content: start;
   }
 }

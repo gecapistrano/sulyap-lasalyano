@@ -17,6 +17,7 @@ const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3)
 export default function ModelViewer({
   artifactLabel,
   dimmed = false,
+  dragProgressRef,
   onTap,
   showTapHint = true,
   showArtifactLabel = true,
@@ -33,11 +34,12 @@ export default function ModelViewer({
   const infoScaleFinal = 0.48
 
   const dimmedRef = useRef(dimmed)
+  const scaleTargetRef = useRef(dimmed ? infoScaleFinal : viewScaleFinal)
+  const scaleCurrentRef = useRef(0)
+  const yOffsetCurrentRef = useRef(0)
   useEffect(() => {
     dimmedRef.current = dimmed
-    const mesh = meshRef.current
-    if (!mesh) return
-    mesh.scale.setScalar(dimmed ? infoScaleFinal : viewScaleFinal)
+    scaleTargetRef.current = dimmed ? infoScaleFinal : viewScaleFinal
   }, [dimmed])
 
   const placeholderMaterial = useMemo(() => {
@@ -54,6 +56,7 @@ export default function ModelViewer({
     startY: 0,
     startTs: 0,
     moved: false,
+    activePointers: 0,
   })
 
   const resetTapGesture = () => {
@@ -62,12 +65,18 @@ export default function ModelViewer({
   }
 
   const handlePointerDown = (e) => {
+    const st = tapGestureRef.current
+    st.activePointers += 1
     if (e.pointerType === 'mouse' && e.button !== 0) return
-    tapGestureRef.current.pointerId = e.pointerId
-    tapGestureRef.current.startX = e.clientX
-    tapGestureRef.current.startY = e.clientY
-    tapGestureRef.current.startTs = Date.now()
-    tapGestureRef.current.moved = false
+    if (st.activePointers > 1) {
+      st.moved = true
+      return
+    }
+    st.pointerId = e.pointerId
+    st.startX = e.clientX
+    st.startY = e.clientY
+    st.startTs = Date.now()
+    st.moved = false
   }
 
   const handlePointerMove = (e) => {
@@ -76,20 +85,23 @@ export default function ModelViewer({
     const dx = e.clientX - st.startX
     const dy = e.clientY - st.startY
     const dist = Math.hypot(dx, dy)
-    // Distance threshold avoids treating rotate/swipe gestures as taps.
     if (dist > 18) st.moved = true
   }
 
   const handlePointerUp = (e) => {
     const st = tapGestureRef.current
+    st.activePointers = Math.max(0, st.activePointers - 1)
     if (st.pointerId === null || e.pointerId !== st.pointerId) return
     const durationMs = Date.now() - st.startTs
-    const shouldTap = !st.moved && durationMs < 380
+    const shouldTap = !st.moved && durationMs < 380 && st.activePointers === 0
     resetTapGesture()
     if (shouldTap) onTap?.()
   }
 
-  const handlePointerCancel = () => resetTapGesture()
+  const handlePointerCancel = (e) => {
+    tapGestureRef.current.activePointers = Math.max(0, tapGestureRef.current.activePointers - 1)
+    if (tapGestureRef.current.pointerId === e.pointerId) resetTapGesture()
+  }
 
   useEffect(() => {
     const container = containerRef.current
@@ -144,9 +156,26 @@ export default function ModelViewer({
       const clamped = Math.min(1, Math.max(0, t))
       const eased = easeOutCubic(clamped)
 
-      const targetScale = dimmedRef.current ? infoScaleFinal : viewScaleFinal
+      const dp = dragProgressRef?.current ?? 0
+      const baseTarget = dimmedRef.current
+        ? infoScaleFinal + dp * (viewScaleFinal - infoScaleFinal)
+        : scaleTargetRef.current
       const popFactor = hasPoppedIn ? 1 : eased
-      mesh.scale.setScalar(targetScale * popFactor)
+      const desired = baseTarget * popFactor
+      const current = scaleCurrentRef.current
+      const lerped = current + (desired - current) * 0.12
+      scaleCurrentRef.current = lerped
+      mesh.scale.setScalar(lerped)
+
+      const maxYOffset = -20
+      const yTarget = dimmedRef.current ? maxYOffset * (1 - dp) : 0
+      const yCurrent = yOffsetCurrentRef.current
+      const yLerped = yCurrent + (yTarget - yCurrent) * 0.12
+      yOffsetCurrentRef.current = yLerped
+      const canvasEl = canvasRef.current
+      if (canvasEl) {
+        canvasEl.style.transform = `translateY(${yLerped}vh)`
+      }
 
       controls.update()
       renderer.render(scene, camera)
@@ -185,9 +214,7 @@ export default function ModelViewer({
     const canvas = canvasRef.current
     if (!canvas) return
     canvas.style.filter = dimmed ? 'brightness(0.85)' : 'brightness(1)'
-    // Shift only the 3D render layer; keep UI overlays (title/hints) fixed in place.
-    canvas.style.transform = dimmed ? 'translateY(-20vh)' : 'translateY(0)'
-    canvas.style.transition = 'transform 0.35s cubic-bezier(0.32, 0.72, 0, 1)'
+    canvas.style.transition = 'filter 0.5s ease'
   }, [dimmed])
 
   const viewerRole = onTap ? 'button' : 'application'

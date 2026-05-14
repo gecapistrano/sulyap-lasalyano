@@ -5,19 +5,19 @@
 /* Onboarding — splash wordmark + vision board dark theme (REFERENCE) */
 
 .onboarding-root {
-  --night: #0a1508;
-  --grove: #111b0d;
-  --moss: #3e6b30;
-  --sage: #6aab68;
-  --sage-lt: #9dcb9b;
-  --lichen: #7a8a72;
-  --parch: #f0e8d0;
-  --logo-green: #458f4d;
-  --bdr-d: #2a3a24;
-  --bdr-l: #3a5230;
-  --glass-bg: rgba(255, 255, 255, 0.038);
-  --glass-bd: rgba(255, 255, 255, 0.09);
-  --glass-hi: rgba(255, 255, 255, 0.14);
+  --night: #d4c8a8;
+  --grove: #c4b898;
+  --moss: #7a6854;
+  --sage: #6b5a48;
+  --sage-lt: #8a7a68;
+  --lichen: #5a4a38;
+  --parch: #3a2e1f;
+  --logo-green: #3a6b2a;
+  --bdr-d: #b8a888;
+  --bdr-l: #a89878;
+  --glass-bg: rgba(58, 46, 31, 0.06);
+  --glass-bd: rgba(58, 46, 31, 0.14);
+  --glass-hi: rgba(58, 46, 31, 0.08);
   --ff-serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
   --ff-mono: 'DM Mono', ui-monospace, monospace;
   /* Vision board uses serif + mono only; DM Sans pairs with DM Mono for readable UI copy */
@@ -35,6 +35,33 @@
   color: var(--parch);
   font-family: var(--ff-serif);
   overflow: hidden;
+  transition: background 0.5s ease, color 0.5s ease;
+}
+
+/* Back button — top-left chevron icon */
+.onb-back-btn {
+  position: absolute;
+  top: max(1rem, env(safe-area-inset-top));
+  left: 1.25rem;
+  z-index: 5;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--lichen);
+  padding: 0.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s, opacity 0.2s;
+}
+
+.onb-back-btn svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.onb-back-btn:hover {
+  color: var(--parch);
 }
 
 .onboarding-root::before {
@@ -44,48 +71,30 @@
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(62, 107, 48, 0.18) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 80% at 80% 90%, rgba(107, 76, 42, 0.1) 0%, transparent 55%),
-    radial-gradient(ellipse 50% 50% at 50% 50%, rgba(26, 60, 16, 0.08) 0%, transparent 70%);
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(58, 46, 31, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 80% 90%, rgba(58, 46, 31, 0.04) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 50% at 50% 50%, rgba(58, 46, 31, 0.03) 0%, transparent 70%);
 }
 
-.onboarding-root > * {
+.onboarding-root > *:not(.onb-back-btn) {
   position: relative;
   z-index: 1;
 }
 
-/* Upper — same structure as SPLASHSCREEN wordmark */
+/* Upper — logo image */
 .onb-header {
-  text-align: center;
+  display: flex;
+  justify-content: center;
   width: 100%;
-  max-width: 22rem;
-  padding-top: 0.25rem;
+  padding-top: 0.5rem;
 }
 
-.onb-wordmark {
-  font-size: 2.625rem;
-  letter-spacing: -0.09375rem;
-  line-height: 1;
-  font-family: Georgia, 'Times New Roman', serif;
-}
-
-.onb-wordmark .onb-ar {
-  font-weight: 700;
-  color: var(--logo-green);
-}
-
-.onb-wordmark .onb-chive {
-  font-weight: 400;
-  color: #ffffff;
-}
-
-.onb-subtext {
-  font-family: var(--ff-mono);
-  font-size: 10px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: #5a6a50;
-  margin-top: 0.35rem;
+.onb-name-logo {
+  max-width: min(280px, 65vw);
+  height: auto;
+  display: block;
+  filter: none;
+  transition: filter 0.3s ease;
 }
 
 /* Middle */
@@ -116,6 +125,7 @@
   -webkit-backdrop-filter: blur(18px) saturate(1.4);
   position: relative;
   overflow: visible;
+  transition: background 0.5s ease, border-color 0.5s ease;
 }
 
 .onb-glass-icon::before {
@@ -334,7 +344,7 @@
 .onb-title {
   font-family: var(--ff-serif);
   font-size: 2.000rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--parch);
 }
@@ -342,7 +352,7 @@
 .onb-body {
   font-family: var(--ff-sans);
   font-size: 0.875rem;
-  font-weight: 400;
+  font-weight: 600;
   letter-spacing: 0.01em;
   line-height: 1.6;
   color: var(--lichen);
@@ -372,18 +382,19 @@
   height: 0.5rem;
   flex-shrink: 0;
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(58, 46, 31, 0.25);
   box-shadow: none;
   transition:
     width 0.62s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    box-shadow 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    background 0.5s ease;
   will-change: width;
 }
 
 .onb-dot--active {
   width: 2rem;
-  background: linear-gradient(90deg, var(--sage) 0%, var(--moss) 100%);
-  box-shadow: 0 0 16px rgba(106, 171, 104, 0.35);
+  background: linear-gradient(90deg, #6b5a48 0%, #5a4a38 100%);
+  box-shadow: 0 0 14px rgba(90, 74, 56, 0.35);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -414,7 +425,6 @@
 
 .onb-btn-next {
   width: 100%;
-  border: none;
   cursor: pointer;
   position: relative;
   overflow: hidden;
@@ -422,24 +432,32 @@
   padding: 0.9rem 1.5rem;
   font-family: var(--ff-serif);
   font-size: 0.9375rem;
-  letter-spacing: 0.04em;
-  color: var(--parch);
-  background: linear-gradient(160deg, #4e7a3c 0%, #3a6028 100%);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #f2efd6;
+  background: linear-gradient(160deg, #6b5a48 0%, #5a4a38 100%);
+  border: 1.5px solid rgba(90, 74, 56, 0.6);
   box-shadow:
-    0 4px 20px rgba(62, 107, 48, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.14);
-  border: 1px solid transparent;
+    0 4px 20px rgba(58, 46, 31, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   transition:
     transform 0.28s cubic-bezier(0.22, 0.68, 0, 1.2),
-    box-shadow 0.28s ease;
+    box-shadow 0.28s ease,
+    background 0.5s ease,
+    border-color 0.5s ease,
+    color 0.5s ease;
 }
 
 .onb-btn-next:hover {
   transform: translateY(-2px);
+  background: linear-gradient(160deg, #7a6854 0%, #6b5a48 100%);
+  border-color: rgba(90, 74, 56, 0.9);
   box-shadow:
-    0 10px 32px rgba(62, 107, 48, 0.32),
-    inset 0 1px 0 rgba(255, 255, 255, 0.18);
-  border-color: rgba(106, 171, 104, 0.28);
+    0 10px 32px rgba(58, 46, 31, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
 
 .onb-btn-next:active {
@@ -457,7 +475,7 @@
     105deg,
     transparent 0%,
     rgba(255, 255, 255, 0) 35%,
-    rgba(255, 255, 255, 0.18) 50%,
+    rgba(255, 255, 255, 0.15) 50%,
     rgba(255, 255, 255, 0) 65%,
     transparent 100%
   );
@@ -474,20 +492,24 @@
   border: none;
   cursor: pointer;
   font-family: var(--ff-serif);
-  font-size: 0.875rem;
-  letter-spacing: 0.03em;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--lichen);
-  padding: 0.25rem 0.5rem;
-  transition: color 0.2s ease;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  transition: color 0.3s ease, background 0.3s ease;
 }
 
 .onb-btn-skip:hover {
   color: var(--parch);
+  background: rgba(58, 46, 31, 0.06);
 }
 
 .onb-btn-skip:focus-visible,
 .onb-btn-next:focus-visible {
-  outline: 2px solid var(--sage);
+  outline: 2px solid var(--lichen);
   outline-offset: 3px;
 }
 
@@ -499,4 +521,86 @@
   .onb-btn-next::after {
     display: none;
   }
+}
+
+/* ═══════════════════════════════════════════
+   Dark mode — restore original dark palette
+   ═══════════════════════════════════════════ */
+
+.onb-dark {
+  --night: #3a2e1f;
+  --grove: #2e2316;
+  --lichen: #d4c8a8;
+  --parch: #f2efd6;
+  --bdr-d: #2a3a24;
+  --bdr-l: #3a5230;
+  --glass-bg: rgba(242, 239, 214, 0.06);
+  --glass-bd: rgba(242, 239, 214, 0.14);
+  --glass-hi: rgba(255, 255, 255, 0.12);
+  transition: background 0.5s ease, color 0.5s ease;
+}
+
+.onb-dark::before {
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(212, 200, 168, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 80% 90%, rgba(212, 200, 168, 0.05) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 50% at 50% 50%, rgba(212, 200, 168, 0.04) 0%, transparent 70%);
+}
+
+.onb-dark .onb-dot {
+  background: rgba(242, 239, 214, 0.28);
+}
+
+.onb-dark .onb-dot--active {
+  background: linear-gradient(90deg, #d4c8a8 0%, #c4b898 100%);
+  box-shadow: 0 0 14px rgba(212, 200, 168, 0.3);
+}
+
+.onb-dark .onb-btn-next {
+  background: rgba(242, 239, 214, 0.08);
+  border: 1.5px solid rgba(242, 239, 214, 0.4);
+  color: #f2efd6;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.onb-dark .onb-btn-next:hover {
+  background: rgba(242, 239, 214, 0.15);
+  border-color: rgba(242, 239, 214, 0.7);
+  box-shadow:
+    0 10px 32px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.onb-dark .onb-back-btn:hover {
+  color: #f2efd6;
+}
+
+.onb-dark .onb-title {
+  font-weight: 600;
+}
+
+.onb-dark .onb-body {
+  font-weight: 400;
+}
+
+.onb-dark .onb-back-btn {
+  color: var(--lichen);
+}
+
+.onb-dark .onb-btn-skip {
+  font-weight: 400;
+}
+
+.onb-dark .onb-btn-skip:hover {
+  background: rgba(242, 239, 214, 0.06);
+}
+
+.onb-dark .onb-name-logo {
+  filter: brightness(1.05);
+}
+
+.onb-dark .onb-finger__emoji {
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
 }

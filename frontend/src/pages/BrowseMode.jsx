@@ -1,128 +1,60 @@
 /**
- * BrowseMode.jsx — searchable list of presidents or artifacts; optional merge with API when the user is authenticated.
- * Mock rows keep the UI usable offline or before login; successful `listArtifacts` replaces artifact rows.
+ * BrowseMode.jsx — "DLSU Presidents" browsing page.
+ * Shows the list of DLSU-D presidents; tapping a card opens their memorabilia.
  */
-import { useEffect, useMemo, useState } from 'react'
-import { MOCK_ARTIFACTS_BROWSE, PLACEHOLDER_ARTIFACT_DESCRIPTION } from '../data/artifactBrowseMocks'
-import { listArtifacts } from '../lib/archiveApi'
-import { sanitizeText, validateSearchQuery } from '../utils/security'
+import { useMemo, useState } from 'react'
+import { validateSearchQuery } from '../utils/security'
 import './BrowseMode.css'
 
-const mockPresidents = [
-  { id: 1, name: 'Br. Andrew B. Gonzalez, FSC', service: '1975 - 1987', icon: '👤' },
-  { id: 2, name: 'Br. Rolando V. Dizon, FSC', service: '1988 - 1998', icon: '👤' },
-  { id: 3, name: 'Br. Narciso S. Erguiza, FSC', service: '1998 - 2004', icon: '👤' },
-  { id: 4, name: 'Dr. Carmelita R. Quebengco', service: '2004 - 2008', icon: '👤' },
-  { id: 5, name: 'Br. Armin A. Luistro, FSC', service: '2008 - 2010', icon: '👤' },
+const PRESIDENTS = [
+  { id: 1, name: 'Br. Rafael S. Donato, FSC', service: '1987 - 1994', icon: '👤' },
+  { id: 2, name: 'Br. Gus Boquer, FSC', service: '1994 - 1999', icon: '👤' },
+  { id: 3, name: 'Br. Andrew B. Gonzalez, FSC', service: '1999 - 2001', icon: '👤' },
+  { id: 4, name: 'Br. Rolando V. Dizon, FSC', service: '2001 - 2004', icon: '👤' },
+  { id: 5, name: 'Br. Narciso S. Erguiza, FSC', service: '2004 - 2008', icon: '👤' },
+  { id: 6, name: 'Br. Armin A. Luistro, FSC', service: '2008 - 2010', icon: '👤' },
+  { id: 7, name: 'Dr. Carmelita R. Quebengco', service: '2010 - 2016', icon: '👤' },
+  { id: 8, name: 'Br. Geminiano M. Buenaventura, FSC', service: '2016 - 2019', icon: '👤' },
+  { id: 9, name: 'Br. Francisco "Sockie" dela Rosa VI, FSC', service: '2019 - 2024', icon: '👤' },
+  { id: 10, name: 'Br. Iñigo Riola, FSC', service: '2024 - present', icon: '👤' },
 ]
 
-export default function BrowseMode({
-  onBack,
-  onOpenArtifact,
-  onOpenPresident,
-  listView: listViewProp,
-  onListViewChange,
-}) {
+export default function BrowseMode({ onBack, onOpenPresident, darkMode }) {
   const [query, setQuery] = useState('')
-  const [artifacts, setArtifacts] = useState(MOCK_ARTIFACTS_BROWSE)
-  const [internalView, setInternalView] = useState('presidents')
-
-  const controlled = typeof onListViewChange === 'function'
-  const view =
-    controlled && (listViewProp === 'artifacts' || listViewProp === 'presidents')
-      ? listViewProp
-      : internalView
-  const setView = controlled ? onListViewChange : setInternalView
-
-  // Try to hydrate artifacts from the backend; on failure (401, network) we keep `mockArtifacts`.
-  useEffect(() => {
-    let isMounted = true
-    listArtifacts()
-      .then((items) => {
-        if (!isMounted || !Array.isArray(items)) return
-        setArtifacts(
-          items.map((item, idx) => {
-            const fallbackOwner =
-              mockPresidents[idx % mockPresidents.length]?.name ?? 'DLSU President'
-            const rawOwner = item.owner_name
-            const ownerName =
-              typeof rawOwner === 'string' ? (rawOwner.trim() ? rawOwner : fallbackOwner) : fallbackOwner
-            return {
-              id: Number(item.id) || idx + 1,
-              name: sanitizeText(item.title ?? 'Untitled Artifact'),
-              subtitle: sanitizeText(item.category ?? 'Artifact entry'),
-              year: String(item.created_at ?? '').slice(0, 4) || 'N/A',
-              owner: sanitizeText(ownerName),
-              icon: '🏺',
-              description: sanitizeText(
-                typeof item.description === 'string' && item.description.trim()
-                  ? item.description
-                  : PLACEHOLDER_ARTIFACT_DESCRIPTION,
-              ),
-            }
-          }),
-        )
-      })
-      .catch(() => {
-        // Keep local mock data when the authenticated API is unavailable.
-      })
-
-    return () => {
-      isMounted = false
-    }
-  }, [])
 
   const { sanitized: safeQuery } = validateSearchQuery(query)
 
-  /** Client-side filter over president name + service years. */
-  const filteredPresidents = useMemo(() => {
-    if (!safeQuery) return mockPresidents
-    const normalizedQuery = safeQuery.toLowerCase()
-    return mockPresidents.filter((president) =>
-      [president.name, president.service].join(' ').toLowerCase().includes(normalizedQuery),
+  const filtered = useMemo(() => {
+    if (!safeQuery) return PRESIDENTS
+    const q = safeQuery.toLowerCase()
+    return PRESIDENTS.filter((p) =>
+      [p.name, p.service].join(' ').toLowerCase().includes(q),
     )
   }, [safeQuery])
 
-  /** Includes owner line so search matches president names shown on artifact cards. */
-  const filteredArtifacts = useMemo(() => {
-    if (!safeQuery) return artifacts
-    const normalizedQuery = safeQuery.toLowerCase()
-    return artifacts.filter((artifact) =>
-      [artifact.name, artifact.subtitle, artifact.year, artifact.owner].join(' ').toLowerCase().includes(
-        normalizedQuery,
-      ),
-    )
-  }, [artifacts, safeQuery])
-
-  const isPresidentView = view === 'presidents'
-  const list = isPresidentView ? filteredPresidents : filteredArtifacts
-
   return (
-    <div className="browse-root">
+    <div className={`browse-root${darkMode ? ' browse-dark' : ''}`}>
       <header className="browse-header">
-        <button type="button" className="browse-back" onClick={onBack}>
-          ← Back
+        <button type="button" className="browse-back" onClick={onBack} aria-label="Back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
         </button>
 
-        <h1 className="browse-title">{isPresidentView ? 'All DLSU Presidents' : 'All Artifacts'}</h1>
+        <h1 className="browse-title">DLSU Presidents</h1>
 
-        <button
-          type="button"
-          className="browse-switch"
-          onClick={() => {
-            setView(view === 'presidents' ? 'artifacts' : 'presidents')
-            setQuery('')
-          }}
-        >
-          {isPresidentView ? 'All Artifacts' : 'All Presidents'}
-        </button>
+        <div style={{ width: '1.25rem' }} />
       </header>
 
       <div className="browse-search-wrap">
+        <svg className="browse-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <circle cx="11" cy="11" r="8" />
+          <path d="M21 21l-4.35-4.35" />
+        </svg>
         <input
           type="text"
           className="browse-search"
-          placeholder={isPresidentView ? 'Search presidents...' : 'Search artifacts...'}
+          placeholder="Search presidents..."
           value={query}
           onChange={(event) => {
             const { sanitized, isValid } = validateSearchQuery(event.target.value)
@@ -132,34 +64,20 @@ export default function BrowseMode({
       </div>
 
       <div className="browse-list">
-        {list.map((entry) => (
+        {filtered.map((president) => (
           <button
-            key={entry.id}
+            key={president.id}
             type="button"
             className="browse-card-button"
-            onClick={() => {
-              if (isPresidentView && typeof onOpenPresident === 'function') {
-                onOpenPresident(entry)
-              } else if (!isPresidentView && typeof onOpenArtifact === 'function') {
-                onOpenArtifact(entry)
-              }
-            }}
+            onClick={() => onOpenPresident?.(president)}
           >
             <div className="browse-card-thumb" aria-hidden>
-              <span>{entry.icon}</span>
+              <span>{president.icon}</span>
             </div>
 
             <div className="browse-card-body">
-              <div className="browse-card-name">{entry.name}</div>
-
-              {isPresidentView ? (
-                <div className="browse-card-meta">{entry.service}</div>
-              ) : (
-                <div className="browse-card-meta-wrap">
-                  <div className="browse-card-year">{entry.year}</div>
-                  <div className="browse-card-owner">{entry.owner}</div>
-                </div>
-              )}
+              <div className="browse-card-name">{president.name}</div>
+              <div className="browse-card-meta">{president.service}</div>
             </div>
 
             <div className="browse-card-chevron" aria-hidden>

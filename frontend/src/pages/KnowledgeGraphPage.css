@@ -1,0 +1,253 @@
+/*
+ * KnowledgeGraphPage.css — warm palette aligned with HomePage features/footer.
+ * Light: #d4c8a8 bg, #3a2e1f text. Dark: #3a2e1f bg, #d4c8a8 text.
+ */
+
+.kg-root {
+  --kg-bg: #d4c8a8;
+  --kg-text: #3a2e1f;
+  --kg-text-soft: #5a4a38;
+  --kg-accent: #f2efd6;
+  --kg-card: rgba(242, 239, 214, 0.45);
+  --kg-card-border: rgba(58, 46, 31, 0.12);
+  --kg-viewport-bg: rgba(242, 239, 214, 0.35);
+  --kg-edge: rgba(58, 46, 31, 0.28);
+  --kg-node-fill: rgba(242, 239, 214, 0.92);
+  --kg-node-stroke: rgba(58, 46, 31, 0.2);
+  --kg-svg-inner: rgba(212, 200, 168, 0.25);
+  --ff-serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --ff-sans: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --ff-mono: 'DM Mono', ui-monospace, monospace;
+
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--kg-bg);
+  color: var(--kg-text);
+  font-family: var(--ff-sans);
+  transition: background 0.45s ease, color 0.45s ease;
+}
+
+.kg-dark {
+  --kg-bg: #3a2e1f;
+  --kg-text: #d4c8a8;
+  --kg-text-soft: #b8a88a;
+  --kg-accent: #d4c8a8;
+  --kg-card: rgba(212, 200, 168, 0.08);
+  --kg-card-border: rgba(212, 200, 168, 0.14);
+  --kg-viewport-bg: rgba(26, 20, 12, 0.35);
+  --kg-edge: rgba(212, 200, 168, 0.22);
+  --kg-node-fill: rgba(212, 200, 168, 0.18);
+  --kg-node-stroke: rgba(212, 200, 168, 0.28);
+  --kg-svg-inner: rgba(58, 46, 31, 0.5);
+}
+
+/* Header — matches Browse */
+.kg-header {
+  display: flex;
+  align-items: center;
+  padding: max(0.75rem, env(safe-area-inset-top)) 1.25rem 0.5rem;
+  background: rgba(212, 200, 168, 0.08);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  flex-shrink: 0;
+}
+
+.kg-dark .kg-header {
+  background: rgba(58, 46, 31, 0.35);
+}
+
+.kg-back {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--kg-text-soft);
+  transition: color 0.2s ease;
+}
+
+.kg-back:hover {
+  color: var(--kg-text);
+}
+
+.kg-back svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.kg-back:focus-visible {
+  outline: 2px solid var(--kg-text-soft);
+  outline-offset: 2px;
+}
+
+.kg-header-title {
+  flex: 1;
+  margin: 0;
+  font-family: var(--ff-serif);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--kg-text-soft);
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.kg-header-spacer {
+  width: 1.25rem;
+  flex-shrink: 0;
+}
+
+.kg-sub {
+  margin: 0;
+  padding: 0 1.25rem 0.65rem;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--kg-text-soft);
+  opacity: 0.75;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* Viewport */
+.kg-viewport-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  margin: 0 1rem 0.5rem;
+  border-radius: 1rem;
+  border: 1px solid var(--kg-card-border);
+  background: var(--kg-viewport-bg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  overflow: hidden;
+}
+
+.kg-viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.kg-viewport:active {
+  cursor: grabbing;
+}
+
+.kg-canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+.kg-svg {
+  display: block;
+  border-radius: 12px;
+}
+
+.kg-svg-bg {
+  fill: var(--kg-svg-inner);
+  stroke: var(--kg-card-border);
+  stroke-width: 1;
+}
+
+.kg-edge {
+  stroke: var(--kg-edge);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.kg-node {
+  fill: var(--kg-node-fill);
+  stroke: var(--kg-node-stroke);
+  stroke-width: 1.5;
+  pointer-events: none;
+}
+
+.kg-node-label {
+  font-family: var(--ff-sans);
+  font-size: 13px;
+  font-weight: 700;
+  fill: var(--kg-text);
+  pointer-events: none;
+}
+
+.kg-dark .kg-node-label {
+  font-weight: 600;
+}
+
+/* Zoom buttons — mobile / trackpad assist */
+.kg-zoom-tools {
+  position: absolute;
+  right: 0.65rem;
+  bottom: 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  z-index: 3;
+}
+
+.kg-zoom-btn {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--kg-card-border);
+  background: var(--kg-card);
+  color: var(--kg-text);
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.kg-zoom-btn:hover {
+  background: var(--kg-accent);
+  border-color: rgba(58, 46, 31, 0.18);
+}
+
+.kg-dark .kg-zoom-btn:hover {
+  background: rgba(212, 200, 168, 0.15);
+  border-color: rgba(212, 200, 168, 0.28);
+}
+
+.kg-zoom-btn:focus-visible {
+  outline: 2px solid var(--kg-text-soft);
+  outline-offset: 2px;
+}
+
+.kg-footer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem 1.25rem max(0.85rem, env(safe-area-inset-bottom));
+  font-size: 0.68rem;
+  font-family: var(--ff-mono);
+  letter-spacing: 0.06em;
+  color: var(--kg-text-soft);
+  opacity: 0.7;
+}
+
+.kg-footer-lang {
+  font-weight: 600;
+}
+
+.kg-footer-note {
+  text-align: right;
+}

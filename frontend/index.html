@@ -5,6 +5,9 @@
     <link rel="icon" type="image/svg+xml" href="/LOGO.svg" />
     <link rel="apple-touch-icon" href="/LOGO.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- Scanner: start downloading before React mounts so post-splash camera feels responsive -->
+    <link rel="preload" href="/models/model.onnx" as="fetch" crossorigin="anonymous" />
+    <link rel="preload" href="/models/labels.txt" as="fetch" crossorigin="anonymous" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -14,9 +17,9 @@
     <meta name="theme-color" content="#0a1508" />
     <meta
       name="description"
-      content="ARchive — explore the AEA-IRC Presidents' Memorabilia Gallery at DLSU-D."
+      content="Sulyap Lasalyano — explore the AEA-IRC Presidents' Memorabilia Gallery at DLSU-D."
     />
-    <title>ARchive · AEA-IRC</title>
+    <title>Sulyap Lasalyano · AEA-IRC</title>
   </head>
   <body>
     <div id="root"></div>

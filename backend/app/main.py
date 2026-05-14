@@ -18,7 +18,7 @@ from .core.rate_limit import limiter
 from .routers import artifacts, auth, recognition
 
 settings = get_settings()
-logger = logging.getLogger("archive.security")
+logger = logging.getLogger("sulyap.security")
 logging.basicConfig(level=logging.INFO)
 
 Base.metadata.create_all(bind=engine)
@@ -91,3 +91,4 @@ def healthcheck():
 app.include_router(auth.router)
 app.include_router(artifacts.router)
 app.include_router(recognition.router)
+

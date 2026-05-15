@@ -75,9 +75,11 @@ Backend default URL: `http://localhost:8000`
 
 ## Vercel (project URL and domain)
 
-The default `*.vercel.app` hostname comes from the **Vercel project name** and your team slug (for example `sulyap-lasalyano-<team>.vercel.app`). In the Vercel dashboard: open the project → **Settings → General → Project Name** and set it to **`sulyap-lasalyano`** (or similar) so the preview URL matches the product name.
+**Free `vercel.app` URL (team projects):** Vercel assigns a stable production hostname in the form **`https://<project-name>-<team-slug>.vercel.app`**. For this repo’s redirect and CORS examples we use **`https://sulyap-lasalyano-gecapistranos-projects.vercel.app`**. Longer URLs (with `-git-main-` or a deployment id) also appear in the dashboard; see [Generated deployment URLs](https://vercel.com/docs/deployments/generated-urls).
 
-Under **Settings → Domains**, keep production on **`sulyap-lasalyano.vercel.app`** (or your custom domain) and **remove any old preview or production hostnames** that belong to a previous project name so only **Sulyap Lasalyano** URLs remain. The HTTP→HTTPS redirect in `frontend/vercel.json` targets `https://sulyap-lasalyano.vercel.app`.
+**Shorter `https://sulyap-lasalyano.vercel.app`:** That hostname is **not** guaranteed for every team/project. To try to attach it: **Project → Settings → Domains → Add** `sulyap-lasalyano.vercel.app`. If Vercel accepts it, it will show as verified with no DNS changes. If it is unavailable or not offered, use the **`…-gecapistranos-projects.vercel.app`** URL above for links and backend `FRONTEND_ORIGINS`.
+
+Under **Settings → Domains**, remove broken custom domains you are not using. The HTTP→HTTPS redirect in `frontend/vercel.json` targets the stable team hostname above.
 
 ## Naming Update
 

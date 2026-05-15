@@ -23,7 +23,7 @@
           "value": "http"
         }
       ],
-      "destination": "https://sulyap-lasalyano.vercel.app/$1",
+      "destination": "https://sulyap-lasalyano-gecapistranos-projects.vercel.app/$1",
       "permanent": true
     }
   ],

@@ -69,14 +69,23 @@ function ensureCanvas(kind = 'model') {
   return modelCanvas
 }
 
-async function getSession() {
-  if (sessionPromise) return sessionPromise
-  sessionPromise = getOrt().then((ort) =>
-    ort.InferenceSession.create(MODEL_URL, {
+async function createInferenceSession(ort) {
+  try {
+    return await ort.InferenceSession.create(MODEL_URL, {
+      executionProviders: ['webgpu', 'wasm'],
+      graphOptimizationLevel: 'all',
+    })
+  } catch {
+    return ort.InferenceSession.create(MODEL_URL, {
       executionProviders: ['wasm'],
       graphOptimizationLevel: 'all',
-    }),
-  )
+    })
+  }
+}
+
+async function getSession() {
+  if (sessionPromise) return sessionPromise
+  sessionPromise = getOrt().then((ort) => createInferenceSession(ort))
   return sessionPromise
 }
 
@@ -193,8 +202,7 @@ function parseDetectionOutput(outputTensor, classNames) {
 
   for (let anchor = 0; anchor < anchors; anchor += 1) {
     for (let cls = 0; cls < classCount; cls += 1) {
-      const logit = Number(values[(4 + cls) * anchors + anchor] ?? 0)
-      const p = sigmoid(logit)
+      const p = sigmoid(values[(4 + cls) * anchors + anchor])
       if (p > bestConfidence) {
         bestConfidence = p
         bestClassIndex = cls
@@ -206,9 +214,9 @@ function parseDetectionOutput(outputTensor, classNames) {
   if (bestConfidence < DETECTION_SCORE_FLOOR) return null
 
   const anchorProbs = new Float32Array(classCount)
+  const anchorBase = bestAnchor
   for (let cls = 0; cls < classCount; cls += 1) {
-    const logit = Number(values[(4 + cls) * anchors + bestAnchor] ?? 0)
-    anchorProbs[cls] = sigmoid(logit)
+    anchorProbs[cls] = sigmoid(values[(4 + cls) * anchors + anchorBase])
   }
 
   let secondBest = 0

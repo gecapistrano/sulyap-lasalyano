@@ -39,13 +39,17 @@ const MOCK_ARTIFACT = {
   },
 }
 
-// Gates use YOLO per-anchor class sigmoids (peak score + margin), smoothed with EMA on this page.
+// Gates use instantaneous YOLO scores; EMA only smooths the live pill label.
 const MIN_DETECTION_CONFIDENCE = 0.62
 const MIN_CONFIDENCE_MARGIN = 0.17
-const MIN_STABLE_HITS = 3
-const INFERENCE_EVERY_MS = 480
-/** Higher = smoother / fewer flips between similar classes (e.g. RD336 vs RD374). */
-const PROB_EMA_ALPHA = 0.4
+const MIN_STABLE_HITS = 2
+/** One strong frame can lock immediately (clear artifact, good light). */
+const FAST_LOCK_CONFIDENCE = 0.76
+const FAST_LOCK_MARGIN = 0.2
+/** Minimum gap after each ONNX run before the next (inference is chained, not stacked). */
+const INFERENCE_GAP_MS = 48
+/** Higher = smoother live pill; does not delay AR lock for YOLO scores. */
+const PROB_EMA_ALPHA = 0.45
 /** Only suppress obvious hand close-ups while confidence is still weak (wooden/warm relics skew “skin”). */
 const HAND_REJECT_MAX_CONFIDENCE = 0.72
 const HANDLIKE_SKIN_RATIO = 0.38
@@ -62,7 +66,8 @@ export default function ARCamera({ onBrowse, onHome, darkMode }) {
   const streamRef = useRef(null)
   const videoRef = useRef(null)
   const frameCanvasRef = useRef(null)
-  const detectIntervalRef = useRef(null)
+  const detectTimerRef = useRef(null)
+  const inferenceBusyRef = useRef(false)
   const detectionLockRef = useRef(false)
   const stableMatchRef = useRef({ className: null, hits: 0 })
   const hybridAvailableRef = useRef(env.recognitionHybridEnabled)
@@ -229,11 +234,12 @@ export default function ARCamera({ onBrowse, onHome, darkMode }) {
 
   const clearDetectionWatchers = useCallback(() => {
     detectionLockRef.current = false
+    inferenceBusyRef.current = false
     stableMatchRef.current = { className: null, hits: 0 }
     probEmaRef.current = null
-    if (detectIntervalRef.current) {
-      window.clearInterval(detectIntervalRef.current)
-      detectIntervalRef.current = null
+    if (detectTimerRef.current) {
+      window.clearTimeout(detectTimerRef.current)
+      detectTimerRef.current = null
     }
   }, [])
 
@@ -427,17 +433,34 @@ export default function ARCamera({ onBrowse, onHome, darkMode }) {
     setLivePrediction(null)
     detectionLockRef.current = false
 
+    let loopCancelled = false
+
+    const scheduleNextInference = (delayMs = INFERENCE_GAP_MS) => {
+      if (loopCancelled || detectionLockRef.current) return
+      if (detectTimerRef.current) window.clearTimeout(detectTimerRef.current)
+      detectTimerRef.current = window.setTimeout(() => {
+        detectTimerRef.current = null
+        void runInference()
+      }, delayMs)
+    }
+
     const runInference = async () => {
-      if (detectionLockRef.current) return
+      if (detectionLockRef.current || inferenceBusyRef.current) return
       const video = videoRef.current
-      if (!video) return
+      if (!video) {
+        scheduleNextInference()
+        return
+      }
+      inferenceBusyRef.current = true
       try {
         const pred = await classifyFrameHybridOrLocal()
         if (!pred) return
-        const frameSignals = analyzeFrameSignals(
-          video,
-          hardwareZoomRef.current ? 1 : previewZoomRef.current,
-        )
+        const yoloDetScores = pred.scoreKind === 'yolo-det'
+        const needsHandCheck =
+          !yoloDetScores || Number(pred.confidence ?? 0) < HAND_REJECT_MAX_CONFIDENCE
+        const frameSignals = needsHandCheck
+          ? analyzeFrameSignals(video, hardwareZoomRef.current ? 1 : previewZoomRef.current)
+          : null
         const looksHandLike =
           frameSignals &&
           frameSignals.skinRatio >= HANDLIKE_SKIN_RATIO &&
@@ -445,7 +468,6 @@ export default function ARCamera({ onBrowse, onHome, darkMode }) {
 
         let gated = pred
         const rawProbs = pred.probabilities
-        const yoloDetScores = pred.scoreKind === 'yolo-det'
         if (Array.isArray(rawProbs) && rawProbs.length > 0) {
           const n = rawProbs.length
           let ema = probEmaRef.current
@@ -499,40 +521,65 @@ export default function ARCamera({ onBrowse, onHome, darkMode }) {
         }
         const margin = gated.margin ?? Math.max(0, gated.confidence - secondBest)
         setLivePrediction({ ...gated, margin: Number(margin.toFixed(4)) })
+
+        const trigger = yoloDetScores ? pred : gated
+        const triggerMargin =
+          trigger.margin ??
+          Math.max(
+            0,
+            Number(trigger.confidence ?? 0) -
+              (() => {
+                const tp = trigger.probabilities ?? []
+                let sec = 0
+                for (let i = 0; i < tp.length; i += 1) {
+                  if (i === trigger.classIndex) continue
+                  if (tp[i] > sec) sec = tp[i]
+                }
+                return sec
+              })(),
+          )
+
         const hasSupportedLabels = supportedClassSet.size > 0
-        const isKnown = hasSupportedLabels && supportedClassSet.has(gated.className)
+        const isKnown = hasSupportedLabels && supportedClassSet.has(trigger.className)
         const strongOpenSetMatch =
-          gated.confidence >= MIN_DETECTION_CONFIDENCE && margin >= MIN_CONFIDENCE_MARGIN
+          Number(trigger.confidence ?? 0) >= MIN_DETECTION_CONFIDENCE &&
+          triggerMargin >= MIN_CONFIDENCE_MARGIN
+        const fastConfirm =
+          yoloDetScores &&
+          Number(trigger.confidence ?? 0) >= FAST_LOCK_CONFIDENCE &&
+          triggerMargin >= FAST_LOCK_MARGIN
         const handBlocks =
           looksHandLike &&
           HAND_REJECT_MAX_CONFIDENCE > 0 &&
-          gated.confidence < HAND_REJECT_MAX_CONFIDENCE
+          Number(trigger.confidence ?? 0) < HAND_REJECT_MAX_CONFIDENCE
         if (!isKnown || !strongOpenSetMatch || handBlocks) {
           stableMatchRef.current = { className: null, hits: 0 }
           return
         }
 
-        if (stableMatchRef.current.className === gated.className) {
+        if (stableMatchRef.current.className === trigger.className) {
           stableMatchRef.current.hits += 1
         } else {
-          stableMatchRef.current = { className: gated.className, hits: 1 }
+          stableMatchRef.current = { className: trigger.className, hits: 1 }
         }
-        if (stableMatchRef.current.hits < MIN_STABLE_HITS) return
+        if (!fastConfirm && stableMatchRef.current.hits < MIN_STABLE_HITS) return
 
         detectionLockRef.current = true
+        loopCancelled = true
         clearDetectionWatchers()
-        handleTemporaryDetection(gated.className, gated.confidence)
+        handleTemporaryDetection(trigger.className, trigger.confidence)
       } catch {
         // Keep scanning if one frame fails.
+      } finally {
+        inferenceBusyRef.current = false
+        scheduleNextInference()
       }
     }
 
-    detectIntervalRef.current = window.setInterval(() => {
-      void runInference()
-    }, INFERENCE_EVERY_MS)
     void runInference()
 
     return () => {
+      loopCancelled = true
       clearDetectionWatchers()
     }
   }, [

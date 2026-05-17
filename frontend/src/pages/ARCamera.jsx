@@ -8,11 +8,17 @@ import ModelViewer from '../components/ar/ModelViewer'
 import { env } from '../config/env'
 import {
   analyzeFrameSignals,
+  clampPreviewZoom,
   classifyRdItemsFrame,
   getRdModelClasses,
   getRdScannerReadyPromise,
+  PREVIEW_ZOOM_MAX,
   preloadRdScanner,
 } from '../lib/rdClassifier'
+import {
+  findMockArtifactByRdCode,
+  PLACEHOLDER_ARTIFACT_DESCRIPTION,
+} from '../data/artifactBrowseMocks'
 import { fetchRecognitionCandidates } from '../lib/recognitionApi'
 import './ARCamera.css'
 
@@ -33,7 +39,7 @@ const MOCK_ARTIFACT = {
   },
 }
 
-// Gates use probability-calibrated scores (YOLO logits → sigmoid + anchor fusion + EMA in this page).
+// Gates use YOLO per-anchor class sigmoids (peak score + margin), smoothed with EMA on this page.
 const MIN_DETECTION_CONFIDENCE = 0.62
 const MIN_CONFIDENCE_MARGIN = 0.17
 const MIN_STABLE_HITS = 3
@@ -47,6 +53,7 @@ const HANDLIKE_EDGE_DENSITY = 0.1
 
 const SCAN_TIPS = [
   'Center the artifact within the scanner frame.',
+  'Pinch screen with two fingers to zoom camera.',
   'Ensure good lighting for better detection.',
   'Try a different angle if not recognized.',
 ]
@@ -62,6 +69,10 @@ export default function ARCamera({ onBrowse, onHome, darkMode }) {
   const labelsOrderedRef = useRef([])
   const probEmaRef = useRef(null)
   const dragProgressRef = useRef(0)
+  const viewportRef = useRef(null)
+  const previewZoomRef = useRef(1)
+  const pinchGestureRef = useRef(null)
+  const hardwareZoomRef = useRef(false)
   /** UI state machine for permission + device errors. */
   const [cameraState, setCameraState] = useState('requesting') // idle | requesting | granted | denied | unsupported | error
   const [cameraMessage, setCameraMessage] = useState('')
@@ -71,6 +82,35 @@ export default function ARCamera({ onBrowse, onHome, darkMode }) {
   const [supportedClassSet, setSupportedClassSet] = useState(() => new Set())
   const [scannerModelReady, setScannerModelReady] = useState(false)
   const [tipIndex, setTipIndex] = useState(0)
+  const [previewZoom, setPreviewZoom] = useState(1)
+  const [useHardwareZoom, setUseHardwareZoom] = useState(false)
+
+  const setPreviewZoomLevel = useCallback((nextZoom) => {
+    const clamped = clampPreviewZoom(nextZoom)
+    previewZoomRef.current = clamped
+    setPreviewZoom(clamped)
+    if (!hardwareZoomRef.current) return
+    const stream = streamRef.current
+    const track = stream?.getVideoTracks?.()?.[0]
+    const caps = track?.getCapabilities?.()
+    if (!track || !caps?.zoom) return
+    const { min, max } = caps.zoom
+    const span = PREVIEW_ZOOM_MAX - 1
+    const t = span > 0 ? (clamped - 1) / span : 0
+    const deviceZoom = min + t * (max - min)
+    track.applyConstraints({ advanced: [{ zoom: deviceZoom }] }).catch(() => {})
+  }, [])
+
+  const resetPreviewZoom = useCallback(() => {
+    setPreviewZoomLevel(1)
+  }, [setPreviewZoomLevel])
+
+  const pinchSpan = useCallback((touches) => {
+    if (touches.length < 2) return 0
+    const dx = touches[0].clientX - touches[1].clientX
+    const dy = touches[0].clientY - touches[1].clientY
+    return Math.hypot(dx, dy)
+  }, [])
 
   useEffect(() => {
     const id = window.setInterval(() => {
@@ -118,7 +158,20 @@ export default function ARCamera({ onBrowse, onHome, darkMode }) {
     canvas.height = side
     const ctx = canvas.getContext('2d')
     if (!ctx) return null
-    ctx.drawImage(video, 0, 0, side, side)
+    const zoom = hardwareZoomRef.current ? 1 : previewZoomRef.current
+    const vw = video.videoWidth
+    const vh = video.videoHeight
+    if (!vw || !vh) return null
+    const z = clampPreviewZoom(zoom)
+    if (z <= 1.001) {
+      ctx.drawImage(video, 0, 0, side, side)
+    } else {
+      const sw = vw / z
+      const sh = vh / z
+      const sx = (vw - sw) / 2
+      const sy = (vh - sh) / 2
+      ctx.drawImage(video, sx, sy, sw, sh, 0, 0, side, side)
+    }
     return canvas.toDataURL('image/jpeg', 0.72)
   }, [])
 
@@ -155,7 +208,9 @@ export default function ARCamera({ onBrowse, onHome, darkMode }) {
       }
     }
 
-    const local = await classifyRdItemsFrame(video)
+    const local = await classifyRdItemsFrame(video, {
+      zoom: hardwareZoomRef.current ? 1 : previewZoomRef.current,
+    })
     if (!local) return null
     return { ...local, source: 'local' }
   }, [captureFrameDataUrl])
@@ -221,6 +276,14 @@ export default function ARCamera({ onBrowse, onHome, darkMode }) {
 
       stopStream()
       streamRef.current = stream
+      const track = stream.getVideoTracks?.()?.[0]
+      const caps = track?.getCapabilities?.()
+      const hasHardwareZoom = Boolean(caps?.zoom && caps.zoom.max > caps.zoom.min)
+      hardwareZoomRef.current = hasHardwareZoom
+      setUseHardwareZoom(hasHardwareZoom)
+      if (!hasHardwareZoom) {
+        resetPreviewZoom()
+      }
       attachStreamToVideo(stream)
       setCameraState('granted')
       setCameraMessage('')
@@ -238,7 +301,7 @@ export default function ARCamera({ onBrowse, onHome, darkMode }) {
         setCameraMessage('Camera access failed. Try again.')
       }
     }
-  }, [attachStreamToVideo, stopStream])
+  }, [attachStreamToVideo, resetPreviewZoom, stopStream])
 
   // Auto-start camera immediately — initial state is 'requesting' so
   // no permission prompt flashes for users who already granted access.
@@ -248,12 +311,45 @@ export default function ARCamera({ onBrowse, onHome, darkMode }) {
 
   // Temporary mock popup (3D + info) now triggered by classifier match.
   const handleTemporaryDetection = useCallback((detectedClass, confidence) => {
-    const prettyConf = typeof confidence === 'number' ? Math.round(confidence * 100) / 100 : MOCK_ARTIFACT.confidence
-    setArtifact({
-      ...MOCK_ARTIFACT,
-      label: detectedClass || MOCK_ARTIFACT.label,
-      confidence: prettyConf,
-    })
+    const prettyConf =
+      typeof confidence === 'number' ? Math.round(confidence * 100) / 100 : MOCK_ARTIFACT.confidence
+    const rdCode = typeof detectedClass === 'string' ? detectedClass.trim() : ''
+    const mock = rdCode ? findMockArtifactByRdCode(rdCode) : null
+    if (mock) {
+      const body = mock.description || PLACEHOLDER_ARTIFACT_DESCRIPTION
+      setArtifact({
+        label: mock.rdCode,
+        confidence: prettyConf,
+        artifactInfo: {
+          name: mock.name,
+          president: mock.owner,
+          year: mock.year,
+          origin: mock.subtitle ?? '',
+          category: mock.rdCode,
+          tags: [mock.rdCode, mock.subtitle].filter(Boolean),
+          description: body,
+          historical_context: body,
+        },
+      })
+    } else {
+      setArtifact({
+        ...MOCK_ARTIFACT,
+        label: rdCode || MOCK_ARTIFACT.label,
+        confidence: prettyConf,
+        artifactInfo: {
+          ...MOCK_ARTIFACT.artifactInfo,
+          name: rdCode ? `${rdCode} — memorabilia item` : MOCK_ARTIFACT.artifactInfo.name,
+          category: rdCode || MOCK_ARTIFACT.artifactInfo.category,
+          tags: rdCode ? [rdCode] : MOCK_ARTIFACT.artifactInfo.tags,
+          description: rdCode
+            ? `Detected class ${rdCode}. ${PLACEHOLDER_ARTIFACT_DESCRIPTION}`
+            : MOCK_ARTIFACT.artifactInfo.description,
+          historical_context: rdCode
+            ? `Scanner matched ${rdCode}. Full curatorial record will load when the collections API is connected.`
+            : MOCK_ARTIFACT.artifactInfo.historical_context,
+        },
+      })
+    }
     setMode('VIEWING_3D')
   }, [])
 
@@ -278,6 +374,52 @@ export default function ARCamera({ onBrowse, onHome, darkMode }) {
     setLivePrediction(null)
   }, [handleCloseInfo, mode])
 
+  const canAdjustPreviewZoom = cameraState === 'granted' && mode === 'SCANNING'
+
+  useEffect(() => {
+    if (!canAdjustPreviewZoom) resetPreviewZoom()
+  }, [canAdjustPreviewZoom, resetPreviewZoom])
+
+  useEffect(() => {
+    const el = viewportRef.current
+    if (!el || !canAdjustPreviewZoom) return undefined
+    const onWheel = (event) => {
+      event.preventDefault()
+      const factor = 1 - event.deltaY * 0.0015
+      setPreviewZoomLevel(previewZoomRef.current * factor)
+    }
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onWheel)
+  }, [canAdjustPreviewZoom, setPreviewZoomLevel])
+
+  const onZoomTouchStart = useCallback(
+    (event) => {
+      if (!canAdjustPreviewZoom || event.touches.length < 2) return
+      pinchGestureRef.current = {
+        startSpan: pinchSpan(event.touches),
+        startZoom: previewZoomRef.current,
+      }
+      event.preventDefault()
+    },
+    [canAdjustPreviewZoom, pinchSpan],
+  )
+
+  const onZoomTouchMove = useCallback(
+    (event) => {
+      const pinch = pinchGestureRef.current
+      if (!pinch || event.touches.length < 2) return
+      const span = pinchSpan(event.touches)
+      if (!pinch.startSpan || span <= 0) return
+      setPreviewZoomLevel(pinch.startZoom * (span / pinch.startSpan))
+      event.preventDefault()
+    },
+    [pinchSpan, setPreviewZoomLevel],
+  )
+
+  const onZoomTouchEnd = useCallback((event) => {
+    if (event.touches.length < 2) pinchGestureRef.current = null
+  }, [])
+
   useEffect(() => {
     clearDetectionWatchers()
     if (cameraState !== 'granted' || mode !== 'SCANNING') return
@@ -292,7 +434,10 @@ export default function ARCamera({ onBrowse, onHome, darkMode }) {
       try {
         const pred = await classifyFrameHybridOrLocal()
         if (!pred) return
-        const frameSignals = analyzeFrameSignals(video)
+        const frameSignals = analyzeFrameSignals(
+          video,
+          hardwareZoomRef.current ? 1 : previewZoomRef.current,
+        )
         const looksHandLike =
           frameSignals &&
           frameSignals.skinRatio >= HANDLIKE_SKIN_RATIO &&
@@ -300,6 +445,7 @@ export default function ARCamera({ onBrowse, onHome, darkMode }) {
 
         let gated = pred
         const rawProbs = pred.probabilities
+        const yoloDetScores = pred.scoreKind === 'yolo-det'
         if (Array.isArray(rawProbs) && rawProbs.length > 0) {
           const n = rawProbs.length
           let ema = probEmaRef.current
@@ -312,14 +458,16 @@ export default function ARCamera({ onBrowse, onHome, darkMode }) {
               ema[i] = (1 - a) * ema[i] + a * rawProbs[i]
             }
           }
-          let norm = 0
-          for (let i = 0; i < n; i += 1) norm += ema[i]
-          if (norm > 0) {
-            for (let i = 0; i < n; i += 1) ema[i] /= norm
-          }
           let bestIdx = 0
           let best = ema[0] ?? 0
           let second = 0
+          if (!yoloDetScores) {
+            let norm = 0
+            for (let i = 0; i < n; i += 1) norm += ema[i]
+            if (norm > 0) {
+              for (let i = 0; i < n; i += 1) ema[i] /= norm
+            }
+          }
           for (let i = 0; i < n; i += 1) {
             const p = ema[i] ?? 0
             if (p > best) {
@@ -404,9 +552,17 @@ export default function ARCamera({ onBrowse, onHome, darkMode }) {
   const scanningUiLoadingModel = cameraState === 'granted' && !scannerModelReady
   const livePillLabel = scanningUiLoadingModel ? 'Loading model...' : liveClass
   const livePillPercent = scanningUiLoadingModel ? '--' : `${Math.round(liveConfidence * 100)}%`
+  const showZoomIndicator = canAdjustPreviewZoom && previewZoom > 1.02
 
   return (
-    <div className={`ar-camera ${darkMode ? 'ar-dark' : ''}`}>
+    <div
+      className={`ar-camera ${darkMode ? 'ar-dark' : ''}`}
+      style={
+        !useHardwareZoom && canAdjustPreviewZoom
+          ? { '--ar-camera-zoom': String(previewZoom) }
+          : undefined
+      }
+    >
       <video
         ref={videoRef}
         className="ar-camera__video-bg"
@@ -425,7 +581,22 @@ export default function ARCamera({ onBrowse, onHome, darkMode }) {
         </button>
       </header>
 
-      <div className="ar-camera__viewport">
+      <div ref={viewportRef} className="ar-camera__viewport">
+        {canAdjustPreviewZoom && (
+          <div
+            className="ar-camera__zoom-layer"
+            aria-hidden
+            onTouchStart={onZoomTouchStart}
+            onTouchMove={onZoomTouchMove}
+            onTouchEnd={onZoomTouchEnd}
+            onTouchCancel={onZoomTouchEnd}
+          />
+        )}
+        {showZoomIndicator && (
+          <span className="ar-camera__zoom-indicator" aria-live="polite">
+            {previewZoom.toFixed(1)}×
+          </span>
+        )}
         {show3D ? (
           <div className="ar-camera__viewer-stage">
             <ModelViewer

@@ -9,11 +9,35 @@ const MODEL_URL = MODEL_BASE ? `${MODEL_BASE}/model.onnx` : '/models/model.onnx'
 const LABELS_URL = MODEL_BASE ? `${MODEL_BASE}/labels.txt` : '/models/labels.txt'
 const MODEL_INPUT_SIZE = 640
 const SIGNAL_INPUT_SIZE = 224
-/** Discard degenerate ensembles below this peak probability (post calibration). */
+/** Discard degenerate frames below this peak class probability on the best anchor. */
 const DETECTION_SCORE_FLOOR = 0.04
-/** How many highest-scoring anchors to fuse (reduces single-cell noise / class flips). */
-const DET_TOPK_ANCHORS = 12
 const DEFAULT_CLASS_NAMES = ['RD244', 'RD246']
+
+export const PREVIEW_ZOOM_MIN = 1
+export const PREVIEW_ZOOM_MAX = 4
+
+export function clampPreviewZoom(zoom) {
+  const z = Number(zoom)
+  if (!Number.isFinite(z)) return PREVIEW_ZOOM_MIN
+  return Math.min(PREVIEW_ZOOM_MAX, Math.max(PREVIEW_ZOOM_MIN, z))
+}
+
+function drawVideoToCanvas(ctx, videoEl, destW, destH, zoom = 1) {
+  const vw = videoEl.videoWidth
+  const vh = videoEl.videoHeight
+  if (!vw || !vh) return false
+  const z = clampPreviewZoom(zoom)
+  if (z <= 1.001) {
+    ctx.drawImage(videoEl, 0, 0, destW, destH)
+    return true
+  }
+  const sw = vw / z
+  const sh = vh / z
+  const sx = (vw - sw) / 2
+  const sy = (vh - sh) / 2
+  ctx.drawImage(videoEl, sx, sy, sw, sh, 0, 0, destW, destH)
+  return true
+}
 
 let sessionPromise = null
 let modelCanvas = null
@@ -132,11 +156,11 @@ function softmax(values) {
   return out
 }
 
-function toInputTensorFromVideo(videoEl) {
+function toInputTensorFromVideo(videoEl, zoom = 1) {
   const canvas = ensureCanvas('model')
   const ctx = canvas.getContext('2d')
   if (!ctx) return null
-  ctx.drawImage(videoEl, 0, 0, MODEL_INPUT_SIZE, MODEL_INPUT_SIZE)
+  if (!drawVideoToCanvas(ctx, videoEl, MODEL_INPUT_SIZE, MODEL_INPUT_SIZE, zoom)) return null
   const { data } = ctx.getImageData(0, 0, MODEL_INPUT_SIZE, MODEL_INPUT_SIZE)
   const hw = MODEL_INPUT_SIZE * MODEL_INPUT_SIZE
   const chw = new Float32Array(3 * hw)
@@ -149,6 +173,10 @@ function toInputTensorFromVideo(videoEl) {
   return chw
 }
 
+/**
+ * YOLOv8 detection ONNX: [1, 4+nc, anchors]. Ultralytics uses per-anchor class sigmoids;
+ * take the global best (anchor, class) pair, then read that anchor's class vector for EMA.
+ */
 function parseDetectionOutput(outputTensor, classNames) {
   const values = outputTensor?.data
   const dims = outputTensor?.dims
@@ -159,59 +187,44 @@ function parseDetectionOutput(outputTensor, classNames) {
   const classCount = channels - 4
   if (channels <= 4 || anchors <= 0 || classCount <= 0) return null
 
-  const anchorPeak = new Float32Array(anchors)
+  let bestAnchor = 0
+  let bestClassIndex = 0
+  let bestConfidence = 0
+
   for (let anchor = 0; anchor < anchors; anchor += 1) {
-    let peak = 0
     for (let cls = 0; cls < classCount; cls += 1) {
       const logit = Number(values[(4 + cls) * anchors + anchor] ?? 0)
       const p = sigmoid(logit)
-      if (p > peak) peak = p
-    }
-    anchorPeak[anchor] = peak
-  }
-
-  const ranked = []
-  for (let a = 0; a < anchors; a += 1) ranked.push(a)
-  ranked.sort((a, b) => anchorPeak[b] - anchorPeak[a])
-  const k = Math.min(DET_TOPK_ANCHORS, ranked.length)
-
-  const fused = new Float32Array(classCount)
-  for (let rank = 0; rank < k; rank += 1) {
-    const anchor = ranked[rank]
-    for (let cls = 0; cls < classCount; cls += 1) {
-      const logit = Number(values[(4 + cls) * anchors + anchor] ?? 0)
-      fused[cls] += sigmoid(logit)
-    }
-  }
-  for (let cls = 0; cls < classCount; cls += 1) fused[cls] /= k
-
-  let sum = 0
-  for (let cls = 0; cls < classCount; cls += 1) sum += fused[cls]
-  if (!sum) return null
-  for (let cls = 0; cls < classCount; cls += 1) fused[cls] /= sum
-
-  let bestClassIndex = 0
-  let bestConfidence = fused[0]
-  let secondBest = 0
-  for (let cls = 0; cls < classCount; cls += 1) {
-    const p = fused[cls]
-    if (p > bestConfidence) {
-      secondBest = bestConfidence
-      bestConfidence = p
-      bestClassIndex = cls
-    } else if (p > secondBest) {
-      secondBest = p
+      if (p > bestConfidence) {
+        bestConfidence = p
+        bestClassIndex = cls
+        bestAnchor = anchor
+      }
     }
   }
 
   if (bestConfidence < DETECTION_SCORE_FLOOR) return null
 
+  const anchorProbs = new Float32Array(classCount)
+  for (let cls = 0; cls < classCount; cls += 1) {
+    const logit = Number(values[(4 + cls) * anchors + bestAnchor] ?? 0)
+    anchorProbs[cls] = sigmoid(logit)
+  }
+
+  let secondBest = 0
+  for (let cls = 0; cls < classCount; cls += 1) {
+    if (cls === bestClassIndex) continue
+    const p = anchorProbs[cls]
+    if (p > secondBest) secondBest = p
+  }
+
   return {
     classIndex: bestClassIndex,
     className: classNames[bestClassIndex] ?? `class-${bestClassIndex}`,
     confidence: Number(bestConfidence.toFixed(4)),
-    probabilities: Array.from(fused),
+    probabilities: Array.from(anchorProbs),
     margin: Number(Math.max(0, bestConfidence - secondBest).toFixed(4)),
+    scoreKind: 'yolo-det',
   }
 }
 
@@ -220,12 +233,12 @@ function parseDetectionOutput(outputTensor, classNames) {
  * - `skinRatio`: fraction of pixels that fit broad skin-tone ranges in YCbCr.
  * - `edgeDensity`: fraction of pixels with noticeable local luminance gradients.
  */
-export function analyzeFrameSignals(videoEl) {
+export function analyzeFrameSignals(videoEl, zoom = 1) {
   if (!videoEl || videoEl.readyState < 2) return null
   const canvas = ensureCanvas('signal')
   const ctx = canvas.getContext('2d')
   if (!ctx) return null
-  ctx.drawImage(videoEl, 0, 0, SIGNAL_INPUT_SIZE, SIGNAL_INPUT_SIZE)
+  if (!drawVideoToCanvas(ctx, videoEl, SIGNAL_INPUT_SIZE, SIGNAL_INPUT_SIZE, zoom)) return null
   const { data } = ctx.getImageData(0, 0, SIGNAL_INPUT_SIZE, SIGNAL_INPUT_SIZE)
   const width = SIGNAL_INPUT_SIZE
   const height = SIGNAL_INPUT_SIZE
@@ -272,9 +285,10 @@ export function analyzeFrameSignals(videoEl) {
  * Classifies a single camera frame from a <video> element.
  * Returns null if the frame/session is not ready.
  */
-export async function classifyRdItemsFrame(videoEl) {
+export async function classifyRdItemsFrame(videoEl, options = {}) {
   if (!videoEl || videoEl.readyState < 2) return null
-  const chw = toInputTensorFromVideo(videoEl)
+  const zoom = options.zoom ?? 1
+  const chw = toInputTensorFromVideo(videoEl, zoom)
   if (!chw) return null
 
   const [ort, classNames, session] = await Promise.all([getOrt(), getClassNames(), getSession()])

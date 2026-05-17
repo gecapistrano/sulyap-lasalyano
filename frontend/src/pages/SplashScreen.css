@@ -1,8 +1,6 @@
 /*
- * SplashScreen.css — styles for the first-load splash only (`SplashScreen.jsx`).
- * Sections: mount layer, glass logo stack + shine animation, wordmark, loading bar, reduced-motion tweaks.
+ * SplashScreen.css — GPU-friendly shell; motion comes from encoded splash video (same as GIF).
  */
-/* Splash — glass gradient (masked), diagonal shine sweep, end pop/glow */
 
 .sulyap-splash-mount,
 .sulyap-splash-mount * {
@@ -11,17 +9,7 @@
 
 .sulyap-splash-mount {
   --forest-night: #675642;
-  --heritage-green: #1a5c28;
   --sage-accent: #b7c68c;
-  --parchment: #f2efd6;
-  --logo-green: #458f4d;
-  --logo-filter-normal: brightness(0) saturate(100%) invert(44%) sepia(34%) saturate(704%) hue-rotate(66deg)
-    brightness(86%) contrast(92%);
-  /* Darker greens for contrast when the icon pops + background glows (readable on bright halo). */
-  --logo-filter-dark: brightness(0) saturate(100%) invert(26%) sepia(44%) saturate(780%) hue-rotate(66deg)
-    brightness(62%) contrast(100%);
-  --logo-filter-pop-peak: brightness(0) saturate(100%) invert(21%) sepia(48%) saturate(820%) hue-rotate(66deg)
-    brightness(54%) contrast(106%);
 
   position: fixed;
   inset: 0;
@@ -30,6 +18,9 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  contain: strict;
+  isolation: isolate;
+  touch-action: none;
   font-family: Georgia, 'Times New Roman', serif;
   background-color: var(--forest-night);
 }
@@ -37,12 +28,11 @@
 .sulyap-splash-mount .splash-layer {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  background: var(--forest-night);
   display: flex;
   justify-content: center;
   align-items: center;
+  background: var(--forest-night);
+  transform: translateZ(0);
 }
 
 .sulyap-splash-mount .splash-container {
@@ -58,60 +48,28 @@
   width: 228px;
   height: 228px;
   margin-bottom: 8px;
-  overflow: hidden;
   opacity: 0;
-  animation: sulyap-splash-detect-pop 760ms cubic-bezier(0.22, 1, 0.36, 1) 0s forwards;
-  will-change: transform, opacity;
-  background-color: transparent;
-}
-
-/* Keep wrapper pseudo-layer disabled; use animated logo overlay for better cross-browser reliability. */
-.sulyap-splash-mount .icon-wrapper.glass::before {
-  content: none;
+  transform: scale(0.96) translateZ(0);
+  animation: sulyap-splash-detect-pop 760ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .sulyap-splash-mount .sulyap-splash-logo {
   position: relative;
-  display: block;
   z-index: 1;
+  display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  filter: none;
+  object-fit: contain;
+  transform: translateZ(0);
   backface-visibility: hidden;
   pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
-/* Glass wipe traced by logo alpha (no square): moving white logo through a narrow gradient mask. */
-/* GIF is the sole splash visual; no overlay wipe layer. */
-.sulyap-splash-mount .logo-shine-pass {
-  display: none;
-}
-
-.sulyap-splash-mount .wordmark {
-  font-size: 42px;
-  letter-spacing: -1.5px;
-  line-height: 1;
-}
-
-.sulyap-splash-mount .wordmark .ar {
-  font-weight: 700;
-  color: var(--logo-green);
-}
-
-.sulyap-splash-mount .wordmark .chive {
-  font-weight: 400;
-  color: #f2efd6;
-}
-
-.sulyap-splash-mount .subtext {
-  font-family: ui-monospace, 'Cascadia Code', 'Consolas', monospace;
-  font-size: 10px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: #d7d2b8;
-  margin-top: 5px;
-  animation: sulyap-splash-fade-in 0.5s ease-out forwards;
+.sulyap-splash-mount .sulyap-splash-logo--video {
+  object-fit: contain;
+  background: transparent;
 }
 
 .sulyap-splash-mount .loading-bar {
@@ -122,75 +80,61 @@
   border-radius: 10px;
   overflow: hidden;
   position: relative;
+  transform: translateZ(0);
 }
 
 .sulyap-splash-mount .loading-progress {
   position: absolute;
+  inset: 0 auto 0 0;
+  width: 42%;
   height: 100%;
-  width: 100%;
   background: var(--sage-accent);
   border-radius: 10px;
-  transform-origin: left;
-  animation: sulyap-splash-loading-pulse 2.4s ease-in-out infinite;
+  transform: translate3d(-120%, 0, 0);
+  animation: sulyap-splash-loading-sweep 2s ease-in-out infinite;
+  will-change: transform;
 }
 
 @keyframes sulyap-splash-detect-pop {
   0% {
-    transform: scale(0.96);
+    transform: scale(0.96) translateZ(0);
     opacity: 0;
   }
   100% {
-    transform: scale(1);
+    transform: scale(1) translateZ(0);
     opacity: 1;
   }
 }
 
-@keyframes sulyap-splash-fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes sulyap-splash-loading-pulse {
+@keyframes sulyap-splash-loading-sweep {
   0% {
-    transform: translateX(-100%);
-    opacity: 0.72;
+    transform: translate3d(-120%, 0, 0);
+    opacity: 0.65;
   }
-  55% {
-    transform: translateX(0%);
+  50% {
+    transform: translate3d(220%, 0, 0);
     opacity: 1;
   }
   100% {
-    transform: translateX(100%);
-    opacity: 0.72;
+    transform: translate3d(420%, 0, 0);
+    opacity: 0.65;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sulyap-splash-mount .splash-layer {
-    opacity: 1 !important;
-    visibility: visible !important;
-  }
-
   .sulyap-splash-mount .icon-wrapper,
-  .sulyap-splash-mount .sulyap-splash-logo,
-  .sulyap-splash-mount .logo-shine-pass,
-  .sulyap-splash-mount .subtext,
   .sulyap-splash-mount .loading-progress {
     animation: none !important;
   }
 
   .sulyap-splash-mount .icon-wrapper {
     opacity: 1;
-    transform: scale(1);
+    transform: scale(1) translateZ(0);
   }
 
-  /* Static bar indicator when motion is reduced */
   .sulyap-splash-mount .loading-progress {
-    transform: translateX(0%);
+    transform: translate3d(0, 0, 0);
+    width: 55%;
     opacity: 0.85;
   }
 }

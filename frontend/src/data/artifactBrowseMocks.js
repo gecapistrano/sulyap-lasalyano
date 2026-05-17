@@ -282,6 +282,13 @@ export function getAllMockArtifacts() {
   return [...MOCK_ARTIFACTS_BROWSE, ...MOCK_ARTIFACTS_RELATED_EXTENDED]
 }
 
+/** Resolve a mock artifact by RD class code (e.g. `RD246` from the scanner). */
+export function findMockArtifactByRdCode(rdCode) {
+  if (typeof rdCode !== 'string' || !rdCode.trim()) return null
+  const key = rdCode.trim().toUpperCase()
+  return getAllMockArtifacts().find((a) => String(a.rdCode ?? '').toUpperCase() === key) ?? null
+}
+
 /** Resolve a mock artifact by numeric `id` (browser history / deep links). */
 export function findMockArtifactById(id) {
   if (id == null || id === '') return null

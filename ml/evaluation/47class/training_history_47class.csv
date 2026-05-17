@@ -1,4 +1,4 @@
-epoch,train_box_loss,train_cls_loss,train_dfl_loss,accuracy,precision,recall,f1_score,mAP50,mAP50_95,val_box_loss,val_cls_loss,val_dfl_loss
+epoch,train_box_loss,train_cls_loss,train_dfl_loss,mean_P_R,precision,recall,f1_score,mAP50,mAP50_95,val_box_loss,val_cls_loss,val_dfl_loss
 1,0.67718,4.41344,1.12609,0.38421,0.02839,0.74002,0.05468,0.09852,0.09397,0.37541,3.42954,0.9219
 2,0.63391,3.69744,1.09046,0.4893,0.65612,0.32248,0.43243,0.36596,0.33705,0.48707,2.3051,0.96026
 3,0.63376,2.79702,1.08082,0.64196,0.67527,0.60865,0.64023,0.69805,0.65523,0.4039,1.43465,0.92524

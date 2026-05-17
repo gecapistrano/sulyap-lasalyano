@@ -45,10 +45,6 @@ function resolveBootScreen() {
 }
 
 export default function App() {
-  useEffect(() => {
-    void preloadRdScanner()
-  }, [])
-
   const initialScreen = resolveBootScreen()
 
   /** Last pushed / popped navigation snapshot (aligned with `history.state`). */
@@ -157,10 +153,27 @@ export default function App() {
 
   const handleSplashDone = useCallback(() => {
     setShowApp(true)
+    void preloadRdScanner()
     window.setTimeout(() => {
       setShowSplash(false)
     }, 520)
   }, [])
+
+  /** Keep ONNX / WASM off the splash thread; start after first paint when splash is skipped. */
+  useEffect(() => {
+    if (showSplash) return undefined
+    const id = window.requestIdleCallback
+      ? window.requestIdleCallback(() => {
+          void preloadRdScanner()
+        })
+      : window.setTimeout(() => {
+          void preloadRdScanner()
+        }, 0)
+    return () => {
+      if (window.requestIdleCallback) window.cancelIdleCallback(id)
+      else window.clearTimeout(id)
+    }
+  }, [showSplash])
 
   const renderAppScreen = () => {
     switch (screen) {
@@ -310,7 +323,7 @@ export default function App() {
         </div>
 
         <div className={`h-full w-full transition-opacity duration-500 ease-out ${showApp ? 'opacity-100' : 'opacity-0'}`}>
-          {renderAppScreen()}
+          {showApp ? renderAppScreen() : null}
         </div>
       </div>
     </div>

@@ -77,10 +77,10 @@
   [46] RD413
 
 ====================================================================
-  BEST EPOCH — VALIDATION METRICS
+  BEST EPOCH — VALIDATION METRICS (held-out val split, not test)
 ====================================================================
 
-  Accuracy:           0.98600   (98.60%)
+  Mean(P,R):          0.98600   (98.60%)  [derived; not top-1 accuracy]
   Precision:          0.97855   (97.86%)
   Recall:             0.99345   (99.34%)
   F1-Score:           0.98594   (98.59%)
@@ -99,7 +99,7 @@
 ====================================================================
   TRAINING PROGRESSION (key epochs)
 ====================================================================
-   Epoch    Accuracy   Precision      Recall          F1       mAP50    mAP50-95
+   Epoch   Mean(P,R)   Precision      Recall          F1       mAP50    mAP50-95
   --------------------------------------------------------------------------
        1      0.3842      0.0284      0.7400      0.0547      0.0985      0.0940
        5      0.8466      0.7816      0.9115      0.8416      0.9423      0.8774
@@ -112,3 +112,10 @@
      100      0.9868      0.9783      0.9954      0.9867      0.9927      0.9652
 
 ====================================================================
+
+====================================================================
+  HELD-OUT TEST SPLIT — NOT RUN
+====================================================================
+  Dataset missing. Copy YoloV8_Annotated (with test/) to ml/ or pass --data.
+  Command: python ml/scripts/evaluate_test_split.py --data path/to/data.yaml
+  Training data path from checkpoint: C:\Users\Justine\Documents\Cursor\archive-dlsud\ml\YoloV8_Annotated\data.yaml

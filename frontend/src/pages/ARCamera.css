@@ -116,7 +116,6 @@
   );
   backdrop-filter: blur(14px) saturate(1.12);
   -webkit-backdrop-filter: blur(14px) saturate(1.12);
-  border-bottom: 1px solid rgba(242, 239, 214, 0.12);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.22);
   transition: background 0.5s ease, box-shadow 0.5s ease;
 }
@@ -624,7 +623,6 @@
     rgba(12, 10, 8, 0.58) 72%,
     rgba(12, 10, 8, 0.16) 100%
   );
-  border-bottom-color: rgba(242, 239, 214, 0.14);
 }
 
 .ar-dark .ar-camera__nav-btn {

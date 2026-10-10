@@ -21,8 +21,8 @@ def parse_args() -> argparse.Namespace:
         default=Path("ml/YoloV8_Annotated"),
         help="Root folder containing train/valid/test with images+labels.",
     )
-    parser.add_argument("--train-ratio", type=float, default=0.8)
-    parser.add_argument("--val-ratio", type=float, default=0.1)
+    parser.add_argument("--train-ratio", type=float, default=0.7)
+    parser.add_argument("--val-ratio", type=float, default=0.2)
     parser.add_argument("--test-ratio", type=float, default=0.1)
     parser.add_argument("--seed", type=int, default=42)
     return parser.parse_args()

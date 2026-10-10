@@ -2,8 +2,10 @@
  * PresidentArtifacts — mock list of artifacts tied to one president (browse → president tap).
  * Replace filtering with API `GET /presidents/:id/artifacts` (or similar) when backend exists.
  */
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { getMockArtifactsForPresident } from '../data/artifactBrowseMocks'
+import { isBackendConfigured, listCatalogArtifacts, mapCatalogArtifact } from '../lib/archiveApi'
+import { t } from '../i18n'
 import { validateSearchQuery } from '../utils/security'
 import './BrowseMode.css'
 import './PresidentArtifacts.css'
@@ -20,26 +22,43 @@ function formatServiceYears(service) {
   return service
 }
 
-export default function PresidentArtifacts({ president, onBack, onOpenArtifact, darkMode }) {
+export default function PresidentArtifacts({ language = 'English', president, onBack, onOpenArtifact, darkMode }) {
   const [query, setQuery] = useState('')
+  const [remoteRows, setRemoteRows] = useState(null)
+
+  useEffect(() => {
+    if (!isBackendConfigured() || !president?.name) return undefined
+    let cancelled = false
+    listCatalogArtifacts({ ownerName: president.name })
+      .then((rows) => {
+        if (cancelled || !Array.isArray(rows)) return
+        setRemoteRows(rows.map(mapCatalogArtifact).filter(Boolean))
+      })
+      .catch(() => {
+        if (!cancelled) setRemoteRows(null)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [president?.name])
 
   const { sanitized: safeQuery } = validateSearchQuery(query)
 
   const filtered = useMemo(() => {
-    const base = getMockArtifactsForPresident(president?.name ?? '')
+    const base = remoteRows ?? getMockArtifactsForPresident(president?.name ?? '')
     if (!safeQuery) return base
     const q = safeQuery.toLowerCase()
     return base.filter((a) =>
       [a.name, a.subtitle, a.year, a.owner].join(' ').toLowerCase().includes(q),
     )
-  }, [president?.name, safeQuery])
+  }, [president?.name, remoteRows, safeQuery])
 
   if (!president) return null
 
   return (
     <div className={`browse-root president-artifacts-root${darkMode ? ' browse-dark' : ''}`}>
       <header className="browse-header">
-        <button type="button" className="browse-back" onClick={onBack} aria-label="Back">
+        <button type="button" className="browse-back" onClick={onBack} aria-label={t(language, 'nav.back')}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 18l-6-6 6-6" />
           </svg>
@@ -65,7 +84,7 @@ export default function PresidentArtifacts({ president, onBack, onOpenArtifact, 
         <input
           type="text"
           className="browse-search"
-          placeholder="Search memorabilia from this president..."
+          placeholder={t(language, 'browse.searchMemorabilia')}
           value={query}
           onChange={(event) => {
             const { sanitized, isValid } = validateSearchQuery(event.target.value)
@@ -75,13 +94,13 @@ export default function PresidentArtifacts({ president, onBack, onOpenArtifact, 
       </div>
 
       <p className="president-artifacts-count" role="status">
-        {filtered.length} {filtered.length === 1 ? 'item' : 'items'}
+        {t(language, filtered.length === 1 ? 'browse.item' : 'browse.items', { count: filtered.length })}
       </p>
 
       <div className="browse-list">
         {filtered.length === 0 ? (
           <div className="president-artifacts-empty">
-            No memorabilia registered from this president yet. Stay tuned — more treasures are on the way.
+            {t(language, 'browse.emptyPresident')}
           </div>
         ) : (
           filtered.map((entry) => (

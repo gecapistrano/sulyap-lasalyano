@@ -2,10 +2,11 @@
  * Onboarding.jsx — two-step first-run instructions (camera + tap) with pager dots.
  * Pair with `Onboarding.css` for lens/finger illustrations and glass treatments.
  */
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import './Onboarding.css'
 import nameLogoDark from '../../images/logo/NAME_Dark-Mode.png'
 import nameLogoLight from '../../images/logo/NAME_Light-Mode.png'
+import { t } from '../i18n'
 
 /** Realistic front-facing lens (pure CSS stacking, no images). */
 function LensIcon() {
@@ -47,38 +48,31 @@ function FingerIcon() {
   )
 }
 
-/** Slides: id is used as React `key` for enter transitions; Icon is the hero graphic. */
-const PAGES = [
-  {
-    id: 'camera',
-    title: 'Point your camera',
-    body: (
-      <>
-        <span className="onb-body-line">Aim your camera at any artifact in the gallery. Sulyap Lasalyano will recognize it automatically.</span>
-      </>
-    ),
-    Icon: LensIcon,
-  },
-  {
-    id: 'tap',
-    title: 'Tap to learn more',
-    body: (
-      <span className="onb-body-line">
-        When an artifact is detected, tap it on the screen to view full details.
-      </span>
-    ),
-    Icon: FingerIcon,
-  },
-]
-
 /** `onFinish` advances App state to the camera screen (see `App.jsx`). */
-export default function Onboarding({ onFinish, onBack, darkMode }) {
+export default function Onboarding({ language = 'English', onFinish, onBack, darkMode }) {
   const [page, setPage] = useState(0)
-  const slide = PAGES[page]
+  const pages = useMemo(
+    () => [
+      {
+        id: 'camera',
+        title: t(language, 'onb.pointTitle'),
+        body: t(language, 'onb.pointBody'),
+        Icon: LensIcon,
+      },
+      {
+        id: 'tap',
+        title: t(language, 'onb.tapTitle'),
+        body: t(language, 'onb.tapBody'),
+        Icon: FingerIcon,
+      },
+    ],
+    [language],
+  )
+  const slide = pages[page]
   const Icon = slide.Icon
 
   const handleNext = () => {
-    if (page < PAGES.length - 1) {
+    if (page < pages.length - 1) {
       window.history.pushState({ onbPage: page + 1 }, '', null)
       setPage((p) => p + 1)
     } else {
@@ -109,7 +103,7 @@ export default function Onboarding({ onFinish, onBack, darkMode }) {
 
   return (
     <div className={`onboarding-root ${darkMode ? 'onb-dark' : ''}`}>
-      <button type="button" className="onb-back-btn" onClick={handleBack} aria-label="Go back">
+      <button type="button" className="onb-back-btn" onClick={handleBack} aria-label={t(language, 'nav.goBack')}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M15 18l-6-6 6-6" />
         </svg>
@@ -124,21 +118,27 @@ export default function Onboarding({ onFinish, onBack, darkMode }) {
           <Icon />
         </div>
         <h1 className="onb-title">{slide.title}</h1>
-        <div className="onb-body">{slide.body}</div>
+        <div className="onb-body">
+          <span className="onb-body-line">{slide.body}</span>
+        </div>
       </main>
 
       <footer className="onb-footer">
-        <div className="onb-dots" role="img" aria-label={`Step ${page + 1} of ${PAGES.length}`}>
+        <div
+          className="onb-dots"
+          role="img"
+          aria-label={t(language, 'onb.step', { current: page + 1, total: pages.length })}
+        >
           <span className={`onb-dot ${page === 0 ? 'onb-dot--active' : ''}`} aria-hidden />
           <span className={`onb-dot ${page === 1 ? 'onb-dot--active' : ''}`} aria-hidden />
         </div>
 
         <button type="button" className="onb-btn-next" onClick={handleNext}>
-          Next
+          {t(language, 'onb.next')}
         </button>
 
         <button type="button" className="onb-btn-skip" onClick={onFinish}>
-          Skip
+          {t(language, 'onb.skip')}
         </button>
       </footer>
     </div>

@@ -19,12 +19,14 @@ import BrowseMode from './pages/BrowseMode'
 import PresidentArtifacts from './pages/PresidentArtifacts'
 
 import RelatedArtifacts from './pages/RelatedArtifacts'
+import CuratorDesk from './pages/CuratorDesk'
 
 import SplashScreen from './pages/SplashScreen'
 import { preloadRdScanner } from './lib/rdClassifier'
 import { emptySnapshot, mergeSnapshot, sanitizeSnapshot } from './lib/navigationHistory'
 import { findMockArtifactById } from './data/artifactBrowseMocks'
 import { findPresidentById } from './data/presidentBrowseMocks'
+import { languageToCode, loadStoredLanguage, persistLanguage } from './i18n'
 import darkModeLogo from '../images/logo/LOGO_Dark-Mode.png'
 import lightModeLogo from '../images/logo/LOGO_Light-Mode.png'
 
@@ -55,9 +57,17 @@ export default function App() {
 
   const [showSplash, setShowSplash] = useState(isPageRefresh)
   const [showApp, setShowApp] = useState(!isPageRefresh)
-  const [language, setLanguage] = useState('English')
+  const [language, setLanguageState] = useState(() => loadStoredLanguage())
+  const setLanguage = useCallback((next) => {
+    setLanguageState(next)
+    persistLanguage(next)
+  }, [])
   const [darkMode, setDarkMode] = useState(false)
   const toggleDarkMode = useCallback(() => setDarkMode((d) => !d), [])
+
+  useEffect(() => {
+    document.documentElement.lang = languageToCode(language)
+  }, [language])
 
   useEffect(() => {
     const applyFavicon = () => {
@@ -178,7 +188,14 @@ export default function App() {
   const renderAppScreen = () => {
     switch (screen) {
       case 'onboarding':
-        return <Onboarding onFinish={() => setScreen('camera')} onBack={() => setScreen('home')} darkMode={darkMode} />
+        return (
+          <Onboarding
+            language={language}
+            onFinish={() => setScreen('camera')}
+            onBack={() => setScreen('home')}
+            darkMode={darkMode}
+          />
+        )
 
       case 'home':
         return (
@@ -195,13 +212,18 @@ export default function App() {
               setBrowseListView('presidents')
               setScreen('browse', { browseReturnScreen: 'home' })
             }}
+            onOpenCurator={() => setScreen('curator')}
           />
         )
+
+      case 'curator':
+        return <CuratorDesk language={language} darkMode={darkMode} onBack={() => setScreen('home')} />
 
       case 'camera':
         return (
           <Suspense fallback={<div className="grid h-full place-items-center text-sm text-[#f2efd6]">Loading scanner…</div>}>
             <ARCamera
+              language={language}
               onBrowse={() => {
                 setScreen('browse', { browseReturnScreen: 'camera' })
               }}
@@ -214,6 +236,7 @@ export default function App() {
       case 'browse':
         return (
           <BrowseMode
+            language={language}
             onBack={() => setScreen(browseReturnScreen)}
             darkMode={darkMode}
             onOpenPresident={(president) => {
@@ -225,6 +248,7 @@ export default function App() {
       case 'president-artifacts':
         return (
           <PresidentArtifacts
+            language={language}
             president={selectedPresident}
             darkMode={darkMode}
             onBack={() => {
@@ -244,6 +268,7 @@ export default function App() {
       case 'artifact-detail':
         return (
           <ArtifactDetail
+            language={language}
             artifact={browseArtifact}
             darkMode={darkMode}
             onBack={() => {
@@ -270,6 +295,7 @@ export default function App() {
       case 'related-artifacts':
         return (
           <RelatedArtifacts
+            language={language}
             tag={relatedArtifactsTag}
             darkMode={darkMode}
             onBack={() => setScreen(relatedArtifactsReturn)}
@@ -306,6 +332,7 @@ export default function App() {
               setBrowseListView('presidents')
               setScreen('browse', { browseReturnScreen: 'home' })
             }}
+            onOpenCurator={() => setScreen('curator')}
           />
         )
     }

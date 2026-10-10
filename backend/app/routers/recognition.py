@@ -16,6 +16,7 @@ from ..schemas import (
     RecognitionRequest,
     RecognitionResponse,
 )
+from ..services.labels import load_rd_class_names
 from ..services.recognition_service import retrieve_candidates
 
 router = APIRouter(prefix="/recognition", tags=["recognition"])
@@ -40,7 +41,7 @@ def _validate_frame_payload(payload: RecognitionRequest) -> None:
 @router.get("/classes")
 def list_supported_classes() -> dict[str, list[str]]:
     """Public helper endpoint for UI bootstrapping and debug overlays."""
-    return {"classes": ["RD242-243", "RD244"]}
+    return {"classes": load_rd_class_names()}
 
 
 @router.post("/candidates", response_model=RecognitionResponse)

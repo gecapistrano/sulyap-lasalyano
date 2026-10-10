@@ -2,6 +2,7 @@
  * KnowledgeGraphPage — mock interactive graph for presentation (pan + zoom only; nodes not clickable yet).
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { t } from '../i18n'
 import './KnowledgeGraphPage.css'
 
 /** Demo nodes (logical coordinates inside the SVG viewBox). */
@@ -37,7 +38,7 @@ const NODE_MAP = Object.fromEntries(NODES.map((n) => [n.id, n]))
 const MIN_SCALE = 0.35
 const MAX_SCALE = 2.2
 
-export default function KnowledgeGraphPage({ language, onBack, darkMode }) {
+export default function KnowledgeGraphPage({ language = 'English', onBack, darkMode }) {
   const viewportRef = useRef(null)
   const dragRef = useRef(null)
   const [pan, setPan] = useState({ x: 0, y: 0 })
@@ -129,18 +130,16 @@ export default function KnowledgeGraphPage({ language, onBack, darkMode }) {
   return (
     <div className={`kg-root${darkMode ? ' kg-dark' : ''}`}>
       <header className="kg-header">
-        <button type="button" className="kg-back" onClick={onBack} aria-label="Back">
+        <button type="button" className="kg-back" onClick={onBack} aria-label={t(language, 'nav.back')}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 18l-6-6 6-6" />
           </svg>
         </button>
-        <h1 className="kg-header-title">Knowledge Graph</h1>
+        <h1 className="kg-header-title">{t(language, 'kg.title')}</h1>
         <div className="kg-header-spacer" aria-hidden />
       </header>
 
-      <p className="kg-sub">
-        Drag to pan · Scroll to zoom · Nodes are preview-only (not clickable yet)
-      </p>
+      <p className="kg-sub">{t(language, 'kg.hint')}</p>
 
       <div className="kg-viewport-wrap">
         <div
@@ -151,7 +150,7 @@ export default function KnowledgeGraphPage({ language, onBack, darkMode }) {
           onPointerUp={endDrag}
           onPointerCancel={endDrag}
           role="application"
-          aria-label="Interactive knowledge graph preview. Drag to pan and scroll to zoom."
+          aria-label={t(language, 'kg.aria')}
         >
           <div
             className="kg-canvas"
@@ -196,10 +195,10 @@ export default function KnowledgeGraphPage({ language, onBack, darkMode }) {
         </div>
 
         <div className="kg-zoom-tools" aria-label="Zoom controls">
-          <button type="button" className="kg-zoom-btn" onClick={() => zoomBy(0.12)} aria-label="Zoom in">
+          <button type="button" className="kg-zoom-btn" onClick={() => zoomBy(0.12)} aria-label={t(language, 'kg.zoomIn')}>
             +
           </button>
-          <button type="button" className="kg-zoom-btn" onClick={() => zoomBy(-0.12)} aria-label="Zoom out">
+          <button type="button" className="kg-zoom-btn" onClick={() => zoomBy(-0.12)} aria-label={t(language, 'kg.zoomOut')}>
             −
           </button>
         </div>
@@ -207,7 +206,7 @@ export default function KnowledgeGraphPage({ language, onBack, darkMode }) {
 
       <footer className="kg-footer">
         <span className="kg-footer-lang">{language}</span>
-        <span className="kg-footer-note">Mock data for demonstration</span>
+        <span className="kg-footer-note">{t(language, 'kg.mock')}</span>
       </footer>
     </div>
   )

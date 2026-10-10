@@ -2,34 +2,51 @@
  * BrowseMode.jsx — "DLSU Presidents" browsing page.
  * Shows the list of DLSU-D presidents; tapping a card opens their memorabilia.
  */
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { MOCK_PRESIDENTS } from '../data/presidentBrowseMocks'
+import { isBackendConfigured, listCatalogPresidents } from '../lib/archiveApi'
+import { t } from '../i18n'
 import { validateSearchQuery } from '../utils/security'
 import './BrowseMode.css'
 
-export default function BrowseMode({ onBack, onOpenPresident, darkMode }) {
+export default function BrowseMode({ language = 'English', onBack, onOpenPresident, darkMode }) {
   const [query, setQuery] = useState('')
+  const [presidents, setPresidents] = useState(MOCK_PRESIDENTS)
+
+  useEffect(() => {
+    if (!isBackendConfigured()) return undefined
+    let cancelled = false
+    listCatalogPresidents()
+      .then((rows) => {
+        if (cancelled || !Array.isArray(rows) || rows.length === 0) return
+        setPresidents(rows)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const { sanitized: safeQuery } = validateSearchQuery(query)
 
   const filtered = useMemo(() => {
-    if (!safeQuery) return MOCK_PRESIDENTS
+    if (!safeQuery) return presidents
     const q = safeQuery.toLowerCase()
-    return MOCK_PRESIDENTS.filter((p) =>
+    return presidents.filter((p) =>
       [p.name, p.service].join(' ').toLowerCase().includes(q),
     )
-  }, [safeQuery])
+  }, [presidents, safeQuery])
 
   return (
     <div className={`browse-root${darkMode ? ' browse-dark' : ''}`}>
       <header className="browse-header">
-        <button type="button" className="browse-back" onClick={onBack} aria-label="Back">
+        <button type="button" className="browse-back" onClick={onBack} aria-label={t(language, 'nav.back')}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 18l-6-6 6-6" />
           </svg>
         </button>
 
-        <h1 className="browse-title">DLSU Presidents</h1>
+        <h1 className="browse-title">{t(language, 'browse.presidentsTitle')}</h1>
 
         <div style={{ width: '1.25rem' }} />
       </header>
@@ -42,7 +59,7 @@ export default function BrowseMode({ onBack, onOpenPresident, darkMode }) {
         <input
           type="text"
           className="browse-search"
-          placeholder="Search presidents..."
+          placeholder={t(language, 'browse.searchPresidents')}
           value={query}
           onChange={(event) => {
             const { sanitized, isValid } = validateSearchQuery(event.target.value)

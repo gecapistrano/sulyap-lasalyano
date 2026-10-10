@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { t } from '../../i18n'
+import { useTranslatedText } from '../../i18n/useTranslatedText'
 
 /**
  * InfoSheet — slide-up bottom sheet (62vh) with a fixed header and scrollable content.
@@ -8,7 +10,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
  * - onClose: called when the user swipes down far enough or closes via exit/backdrop
  * - onDragProgress: called with 0–1 during drag (0 = fully open, 1 = fully closed)
  */
-export default function InfoSheet({ artifact, darkMode, onClose, onDragProgress }) {
+export default function InfoSheet({ artifact, language = 'English', darkMode, onClose, onDragProgress }) {
   const info = artifact?.artifactInfo
 
   const sheetRef = useRef(null)
@@ -19,10 +21,13 @@ export default function InfoSheet({ artifact, darkMode, onClose, onDragProgress 
   const [showBottomFade, setShowBottomFade] = useState(false)
 
   /** Single paragraph: collapse internal newlines so layout is one block of body text. */
-  const descriptionParagraph = useMemo(() => {
+  const descriptionSource = useMemo(() => {
     const raw = typeof info?.description === 'string' ? info.description : ''
     return raw.replace(/\s+/g, ' ').trim()
   }, [info?.description])
+  const historySource = typeof info?.historical_context === 'string' ? info.historical_context : ''
+  const { text: descriptionParagraph, loading: translatingDesc } = useTranslatedText(descriptionSource, language)
+  const { text: historyText, loading: translatingHistory } = useTranslatedText(historySource, language)
 
   const syncScrollFades = useCallback(() => {
     const el = scrollRef.current
@@ -215,14 +220,16 @@ export default function InfoSheet({ artifact, darkMode, onClose, onDragProgress 
               overscrollBehavior: 'contain',
             }}
           >
-            <p className={`${bodyColor} leading-relaxed text-sm font-semibold`}>{descriptionParagraph}</p>
+            <p className={`${bodyColor} leading-relaxed text-sm font-semibold`}>
+              {translatingDesc ? t(language, 'detail.translating') : descriptionParagraph}
+            </p>
 
             <section className="mt-6">
               <h3 className={`${sectionHead} font-bold text-sm tracking-wide uppercase`}>
-                Historical Context
+                {t(language, 'scan.historical')}
               </h3>
               <p className={`mt-2 ${bodyLight} leading-relaxed text-sm font-semibold whitespace-pre-wrap`}>
-                {info.historical_context}
+                {translatingHistory ? t(language, 'detail.translating') : historyText}
               </p>
             </section>
           </div>

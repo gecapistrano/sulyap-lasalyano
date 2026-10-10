@@ -133,6 +133,12 @@ export function mergeSnapshot(prev, nextScreen, patch = {}) {
         kgReturnScreen: patch.kgReturnScreen ?? p.kgReturnScreen ?? 'home',
       }
 
+    case 'curator':
+      return {
+        ...emptySnapshot('curator'),
+        browseReturnScreen: patch.browseReturnScreen ?? p.browseReturnScreen ?? 'home',
+      }
+
     default:
       return emptySnapshot('home')
   }

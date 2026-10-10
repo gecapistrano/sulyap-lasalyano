@@ -1,7 +1,8 @@
 """
 FastAPI application entry: CORS, rate limiting, security headers, and router registration.
 
-Run with uvicorn (see `backend/README.md`). Creates SQLite tables on startup via SQLAlchemy metadata.
+Run with uvicorn (see `backend/README.md`). Creates tables on startup via SQLAlchemy metadata
+(SQLite locally, or Supabase/Postgres when `DATABASE_URL` points there).
 """
 import logging
 
@@ -9,19 +10,34 @@ from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
 from .core.config import get_settings
-from .core.database import Base, engine
 from .core.rate_limit import limiter
-from .routers import artifacts, auth, recognition
+from .core.database import (
+    Base,
+    SessionLocal,
+    _postgres_add_missing_columns,
+    _sqlite_add_missing_columns,
+    engine,
+)
+from .routers import artifacts, auth, catalog, recognition
+from .services.catalog_seed import seed_catalog_if_empty
+from .services.model_uploads import ensure_upload_dir
 
 settings = get_settings()
 logger = logging.getLogger("sulyap.security")
 logging.basicConfig(level=logging.INFO)
 
 Base.metadata.create_all(bind=engine)
+_sqlite_add_missing_columns(engine)
+_postgres_add_missing_columns(engine)
+with SessionLocal() as _seed_db:
+    seed_catalog_if_empty(_seed_db)
+
+_uploads_dir = ensure_upload_dir()
 
 app = FastAPI(title=settings.app_name)
 app.state.limiter = limiter
@@ -51,6 +67,7 @@ async def set_security_headers(request: Request, call_next):
         "img-src 'self' data: https:; "
         "font-src 'self'; "
         "connect-src 'self'; "
+        "media-src 'self'; "
         "object-src 'none'; "
         "frame-ancestors 'none'; "
         "base-uri 'self';"
@@ -90,5 +107,7 @@ def healthcheck():
 
 app.include_router(auth.router)
 app.include_router(artifacts.router)
+app.include_router(catalog.router)
 app.include_router(recognition.router)
+app.mount("/media/models", StaticFiles(directory=str(_uploads_dir)), name="artifact_models")
 

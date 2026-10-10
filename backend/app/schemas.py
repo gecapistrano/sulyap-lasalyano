@@ -37,12 +37,26 @@ class ArtifactCreate(StrictSchema):
     title: str = Field(min_length=1, max_length=200)
     description: str = Field(default="", max_length=5000)
     image_url: HttpUrl
+    rd_code: str = Field(default="", max_length=32)
+    owner_name: str = Field(default="", max_length=200)
+    year: str = Field(default="", max_length=32)
+    subtitle: str = Field(default="", max_length=200)
+    icon: str = Field(default="🏺", max_length=16)
+    published: bool = True
 
 
 class ArtifactUpdate(StrictSchema):
     title: str | None = Field(default=None, min_length=1, max_length=200)
     description: str | None = Field(default=None, max_length=5000)
     image_url: HttpUrl | None = None
+    rd_code: str | None = Field(default=None, max_length=32)
+    owner_name: str | None = Field(default=None, max_length=200)
+    year: str | None = Field(default=None, max_length=32)
+    subtitle: str | None = Field(default=None, max_length=200)
+    icon: str | None = Field(default=None, max_length=16)
+    published: bool | None = None
+    # Empty string clears a previously uploaded model reference.
+    model_url: str | None = Field(default=None, max_length=500)
 
 
 class ArtifactOut(StrictSchema):
@@ -50,8 +64,37 @@ class ArtifactOut(StrictSchema):
     owner_id: int
     title: str
     description: str
-    image_url: HttpUrl
+    image_url: str
+    model_url: str = ""
+    rd_code: str
+    owner_name: str
+    year: str
+    subtitle: str
+    icon: str
+    published: bool
     created_at: datetime
+
+
+class CatalogArtifactOut(StrictSchema):
+    """Visitor-facing published memorabilia. No user-account owner_id."""
+
+    id: int
+    rd_code: str
+    title: str
+    description: str
+    image_url: str
+    model_url: str = ""
+    owner_name: str
+    year: str
+    subtitle: str
+    icon: str
+
+
+class CatalogPresidentOut(StrictSchema):
+    id: int
+    name: str
+    service: str
+    icon: str
 
 
 class RecognitionCandidate(StrictSchema):

@@ -4,6 +4,8 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ModelViewer from '../components/ar/ModelViewer'
+import { t } from '../i18n'
+import { useTranslatedText } from '../i18n/useTranslatedText'
 import { getRelatedTagsForArtifact } from '../lib/relatedTags'
 import './ArtifactDetail.css'
 
@@ -26,7 +28,7 @@ function getArtifactRdHeaderLabel(artifact) {
   return 'Artifact'
 }
 
-export default function ArtifactDetail({ artifact, onBack, onViewKnowledgeGraph, onRelatedTag, darkMode }) {
+export default function ArtifactDetail({ language = 'English', artifact, onBack, onViewKnowledgeGraph, onRelatedTag, darkMode }) {
   const copyScrollRef = useRef(null)
   const [copyFadeTop, setCopyFadeTop] = useState(false)
   const [copyFadeBottom, setCopyFadeBottom] = useState(false)
@@ -60,23 +62,25 @@ export default function ArtifactDetail({ artifact, onBack, onViewKnowledgeGraph,
     }
   }, [updateCopyScrollFades, artifact])
 
+  const relatedTags = useMemo(() => getRelatedTagsForArtifact(artifact), [artifact])
+  const sourceDescription =
+    typeof artifact?.description === 'string' && artifact.description.trim()
+      ? artifact.description
+      : t(language, 'detail.fallbackDesc')
+  const { text: translatedDescription, loading: translating } = useTranslatedText(sourceDescription, language)
+
   if (!artifact) return null
 
-  const title = artifact.name ?? 'Artifact'
+  const title = artifact.name ?? t(language, 'detail.artifact')
   const owner = artifact.owner ?? '\u2014'
   const year = artifact.year ?? '\u2014'
   const headerRdLabel = getArtifactRdHeaderLabel(artifact)
-  const description =
-    typeof artifact.description === 'string' && artifact.description.trim()
-      ? artifact.description
-      : 'Description will appear here when this record is loaded from the database.'
-
-  const relatedTags = useMemo(() => getRelatedTagsForArtifact(artifact), [artifact])
+  const description = translating ? t(language, 'detail.translating') : translatedDescription
 
   return (
     <div className={`ad-root${darkMode ? ' ad-dark' : ''}`}>
       <header className="ad-header">
-        <button type="button" className="ad-back" onClick={onBack} aria-label="Back">
+        <button type="button" className="ad-back" onClick={onBack} aria-label={t(language, 'nav.back')}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 18l-6-6 6-6" />
           </svg>
@@ -89,7 +93,7 @@ export default function ArtifactDetail({ artifact, onBack, onViewKnowledgeGraph,
             type="button"
             className="ad-kg"
             onClick={onViewKnowledgeGraph}
-            aria-label="Open knowledge graph"
+            aria-label={t(language, 'nav.openKnowledgeGraph')}
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden>
               <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
@@ -107,10 +111,15 @@ export default function ArtifactDetail({ artifact, onBack, onViewKnowledgeGraph,
         <section className="ad-model-section" aria-label="3D artifact preview">
           <div className="ad-model-frame">
             <div className="ad-model-slot">
-              <ModelViewer showArtifactLabel={false} showTapHint={false} />
+              <ModelViewer
+                showArtifactLabel={false}
+                showTapHint={false}
+                language={language}
+                modelUrl={typeof artifact?.modelUrl === 'string' ? artifact.modelUrl : ''}
+              />
             </div>
           </div>
-          <p className="ad-model-caption">Rotate or zoom to view</p>
+          <p className="ad-model-caption">{t(language, 'detail.rotate')}</p>
         </section>
 
         <section className="ad-info" aria-label="Artifact information">
@@ -119,10 +128,10 @@ export default function ArtifactDetail({ artifact, onBack, onViewKnowledgeGraph,
               <div className="ad-info-head-text">
                 <h2 className="ad-title">{title}</h2>
 
-                <p className="ad-label">DLSU President</p>
+                <p className="ad-label">{t(language, 'detail.president')}</p>
                 <p className="ad-owner">{owner}</p>
 
-                <p className="ad-label">Year acquired</p>
+                <p className="ad-label">{t(language, 'detail.year')}</p>
                 <p className="ad-year">{year}</p>
               </div>
 
@@ -133,13 +142,13 @@ export default function ArtifactDetail({ artifact, onBack, onViewKnowledgeGraph,
 
             <div className="ad-divider" aria-hidden />
 
-            <h3 className="ad-desc-heading">Description</h3>
+            <h3 className="ad-desc-heading">{t(language, 'detail.description')}</h3>
             <p className="ad-description">{description}</p>
 
             {relatedTags.length > 0 && (
               <section className="ad-related" aria-labelledby="ad-related-heading">
                 <h3 id="ad-related-heading" className="ad-related-heading">
-                  Related
+                  {t(language, 'detail.related')}
                 </h3>
                 <div className="ad-related-tags">
                   {relatedTags.map((tag) => (

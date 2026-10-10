@@ -1,35 +1,49 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+import { t } from '../../i18n'
 
-const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3)
+const easeOutCubic = (tValue) => 1 - Math.pow(1 - tValue, 3)
+
+function fitObjectToView(object, targetSize = 1.2) {
+  const box = new THREE.Box3().setFromObject(object)
+  const size = box.getSize(new THREE.Vector3())
+  const center = box.getCenter(new THREE.Vector3())
+  const maxDim = Math.max(size.x, size.y, size.z) || 1
+  const scale = targetSize / maxDim
+  object.scale.setScalar(scale)
+  object.position.sub(center.multiplyScalar(scale))
+}
 
 /**
- * ModelViewer — interactive placeholder 3D model with OrbitControls.
- *
- * Props:
- * - artifactLabel: string shown at the top
- * - dimmed: boolean; when true we reduce model brightness + scale to fit behind the info sheet
- * - onTap: called only on a real press/tap (swipes/rotations do not trigger onTap)
- * - showTapHint: when false, hides the bottom “Tap to learn more” chip (e.g. browse / cabinet view).
- * - showArtifactLabel: when false, hides the top floating name chip (e.g. browse artifact detail).
+ * ModelViewer — interactive 3D preview (uploaded GLB when available, else placeholder).
  */
 export default function ModelViewer({
   artifactLabel,
+  modelUrl = '',
   dimmed = false,
   dragProgressRef,
   onTap,
   showTapHint = true,
   showArtifactLabel = true,
+  language = 'English',
 }) {
   const containerRef = useRef(null)
   const rendererRef = useRef(null)
   const canvasRef = useRef(null)
   const meshRef = useRef(null)
+  const sceneRef = useRef(null)
+  const placeholderMaterial = useMemo(() => {
+    return new THREE.MeshStandardMaterial({
+      color: 0x1d9e75,
+      metalness: 0.4,
+      roughness: 0.3,
+    })
+  }, [])
 
   const [hasPoppedIn, setHasPoppedIn] = useState(false)
 
-  // Final scales chosen so the placeholder fits on mobile and stays visible behind the info sheet.
   const viewScaleFinal = 0.68
   const infoScaleFinal = 0.48
 
@@ -41,14 +55,6 @@ export default function ModelViewer({
     dimmedRef.current = dimmed
     scaleTargetRef.current = dimmed ? infoScaleFinal : viewScaleFinal
   }, [dimmed])
-
-  const placeholderMaterial = useMemo(() => {
-    return new THREE.MeshStandardMaterial({
-      color: 0x1d9e75,
-      metalness: 0.4,
-      roughness: 0.3,
-    })
-  }, [])
 
   const tapGestureRef = useRef({
     pointerId: null,
@@ -84,8 +90,7 @@ export default function ModelViewer({
     if (st.pointerId === null || e.pointerId !== st.pointerId) return
     const dx = e.clientX - st.startX
     const dy = e.clientY - st.startY
-    const dist = Math.hypot(dx, dy)
-    if (dist > 18) st.moved = true
+    if (Math.hypot(dx, dy) > 18) st.moved = true
   }
 
   const handlePointerUp = (e) => {
@@ -110,7 +115,6 @@ export default function ModelViewer({
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
     renderer.setSize(container.clientWidth, container.clientHeight)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
-    // Transparent canvas so the live camera feed remains visible.
     renderer.setClearColor('#0a0a0f', 0)
 
     rendererRef.current = renderer
@@ -118,6 +122,7 @@ export default function ModelViewer({
     canvasRef.current = renderer.domElement
 
     const scene = new THREE.Scene()
+    sceneRef.current = scene
     const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100)
     camera.position.set(0, 0.12, 2.7)
 
@@ -128,19 +133,16 @@ export default function ModelViewer({
     controls.autoRotate = true
     controls.autoRotateSpeed = 1.5
 
-    const ambient = new THREE.AmbientLight(0xffffff, 0.8)
-    scene.add(ambient)
-
+    scene.add(new THREE.AmbientLight(0xffffff, 0.8))
     const directional = new THREE.DirectionalLight(0xffffff, 1.2)
     directional.position.set(5, 5, 5)
     scene.add(directional)
 
     const geometry = new THREE.TorusKnotGeometry(0.55, 0.16, 128, 14)
     const mesh = new THREE.Mesh(geometry, placeholderMaterial)
+    mesh.userData.isPlaceholder = true
     meshRef.current = mesh
     scene.add(mesh)
-
-    // Start scale at 0 for pop-in animation.
     mesh.scale.set(0, 0, 0)
 
     let rafId = 0
@@ -152,8 +154,8 @@ export default function ModelViewer({
       rafId = requestAnimationFrame(animate)
 
       if (!startTs) startTs = ts
-      const t = (ts - startTs) / 400
-      const clamped = Math.min(1, Math.max(0, t))
+      const tNorm = (ts - startTs) / 400
+      const clamped = Math.min(1, Math.max(0, tNorm))
       const eased = easeOutCubic(clamped)
 
       const dp = dragProgressRef?.current ?? 0
@@ -165,7 +167,7 @@ export default function ModelViewer({
       const current = scaleCurrentRef.current
       const lerped = current + (desired - current) * 0.12
       scaleCurrentRef.current = lerped
-      mesh.scale.setScalar(lerped)
+      if (meshRef.current) meshRef.current.scale.setScalar(lerped)
 
       const maxYOffset = -20
       const yTarget = dimmedRef.current ? maxYOffset * (1 - dp) : 0
@@ -173,9 +175,7 @@ export default function ModelViewer({
       const yLerped = yCurrent + (yTarget - yCurrent) * 0.12
       yOffsetCurrentRef.current = yLerped
       const canvasEl = canvasRef.current
-      if (canvasEl) {
-        canvasEl.style.transform = `translateY(${yLerped}vh)`
-      }
+      if (canvasEl) canvasEl.style.transform = `translateY(${yLerped}vh)`
 
       controls.update()
       renderer.render(scene, camera)
@@ -206,9 +206,70 @@ export default function ModelViewer({
       placeholderMaterial.dispose()
       if (rendererRef.current?.domElement) rendererRef.current.domElement.remove()
       renderer.dispose()
+      sceneRef.current = null
+      meshRef.current = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  useEffect(() => {
+    const scene = sceneRef.current
+    if (!scene) return undefined
+
+    let cancelled = false
+    const previous = meshRef.current
+
+    const attachObject = (object) => {
+      if (cancelled || !sceneRef.current) return
+      if (previous && previous.parent) {
+        previous.parent.remove(previous)
+        previous.traverse((child) => {
+          if (child.geometry) child.geometry.dispose()
+          if (child.material) {
+            const mats = Array.isArray(child.material) ? child.material : [child.material]
+            mats.forEach((mat) => {
+              if (mat && mat !== placeholderMaterial) mat.dispose?.()
+            })
+          }
+        })
+      }
+      fitObjectToView(object)
+      object.scale.multiplyScalar(0.001)
+      meshRef.current = object
+      scaleCurrentRef.current = 0
+      setHasPoppedIn(false)
+      scene.add(object)
+    }
+
+    if (!modelUrl) {
+      if (previous?.userData?.isPlaceholder) return undefined
+      const geometry = new THREE.TorusKnotGeometry(0.55, 0.16, 128, 14)
+      const mesh = new THREE.Mesh(geometry, placeholderMaterial)
+      mesh.userData.isPlaceholder = true
+      attachObject(mesh)
+      return undefined
+    }
+
+    const loader = new GLTFLoader()
+    loader.load(
+      modelUrl,
+      (gltf) => {
+        if (cancelled) return
+        const root = gltf.scene || gltf.scenes?.[0]
+        if (!root) return
+        root.userData.isPlaceholder = false
+        attachObject(root)
+      },
+      undefined,
+      () => {
+        // Keep placeholder on load failure.
+      },
+    )
+
+    return () => {
+      cancelled = true
+    }
+  }, [modelUrl, placeholderMaterial])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -231,9 +292,7 @@ export default function ModelViewer({
       role={viewerRole}
       tabIndex={0}
       aria-label={viewerLabel}
-      style={{
-        touchAction: 'none',
-      }}
+      style={{ touchAction: 'none' }}
     >
       {showArtifactLabel && artifactLabel ? (
         <div className="pointer-events-none absolute left-4 top-4 z-10">
@@ -243,15 +302,13 @@ export default function ModelViewer({
         </div>
       ) : null}
 
-      {/* Bottom hint (AR scan flow only) */}
       {showTapHint && !dimmed && (
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10">
           <div className="px-4 py-2 rounded-full bg-black/40 border border-white/10 backdrop-blur-sm text-white text-xs animate-pulse">
-            Tap to learn more
+            {t(language, 'scan.tapMore')}
           </div>
         </div>
       )}
     </div>
   )
 }
-

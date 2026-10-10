@@ -16,10 +16,15 @@ if (MODEL_ASSET_BASE_URL) {
   assertSecureHttpUrl(MODEL_ASSET_BASE_URL)
 }
 
+const resolvedApiBaseUrl = API_BASE_URL || 'https://api.example.com'
+const apiLooksConfigured =
+  Boolean(API_BASE_URL) && !resolvedApiBaseUrl.includes('api.example.com')
+
 export const env = {
-  apiBaseUrl: API_BASE_URL || 'https://api.example.com',
+  apiBaseUrl: resolvedApiBaseUrl,
+  apiConfigured: apiLooksConfigured,
   modelAssetBaseUrl: MODEL_ASSET_BASE_URL || '',
   recognitionMode: import.meta.env.VITE_RECOGNITION_MODE || 'local',
   recognitionHybridEnabled:
-    (import.meta.env.VITE_RECOGNITION_MODE || 'local') === 'hybrid' && Boolean(API_BASE_URL),
+    (import.meta.env.VITE_RECOGNITION_MODE || 'local') === 'hybrid' && apiLooksConfigured,
 }

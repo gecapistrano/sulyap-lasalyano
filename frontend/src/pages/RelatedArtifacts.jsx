@@ -3,11 +3,12 @@
  */
 import { useMemo, useState } from 'react'
 import { getArtifactsForRelatedTag } from '../lib/relatedTags'
+import { t } from '../i18n'
 import { validateSearchQuery } from '../utils/security'
 import './BrowseMode.css'
 import './RelatedArtifacts.css'
 
-export default function RelatedArtifacts({ tag, onBack, onOpenArtifact, darkMode }) {
+export default function RelatedArtifacts({ language = 'English', tag, onBack, onOpenArtifact, darkMode }) {
   const [query, setQuery] = useState('')
 
   const { sanitized: safeQuery } = validateSearchQuery(query)
@@ -22,12 +23,12 @@ export default function RelatedArtifacts({ tag, onBack, onOpenArtifact, darkMode
     )
   }, [baseList, safeQuery])
 
-  const title = typeof tag === 'string' && tag.trim() ? tag.trim() : 'Related'
+  const title = typeof tag === 'string' && tag.trim() ? tag.trim() : t(language, 'browse.related')
 
   return (
     <div className={`browse-root related-artifacts-root${darkMode ? ' browse-dark' : ''}`}>
       <header className="browse-header">
-        <button type="button" className="browse-back" onClick={onBack} aria-label="Back">
+        <button type="button" className="browse-back" onClick={onBack} aria-label={t(language, 'nav.back')}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 18l-6-6 6-6" />
           </svg>
@@ -48,7 +49,7 @@ export default function RelatedArtifacts({ tag, onBack, onOpenArtifact, darkMode
         <input
           type="text"
           className="browse-search"
-          placeholder="Search in this tag…"
+          placeholder={t(language, 'browse.searchTag')}
           value={query}
           onChange={(event) => {
             const { sanitized, isValid } = validateSearchQuery(event.target.value)
@@ -58,12 +59,12 @@ export default function RelatedArtifacts({ tag, onBack, onOpenArtifact, darkMode
       </div>
 
       <p className="ra-count" role="status">
-        {filtered.length} {filtered.length === 1 ? 'item' : 'items'}
+        {t(language, filtered.length === 1 ? 'browse.item' : 'browse.items', { count: filtered.length })}
       </p>
 
       <div className="browse-list">
         {filtered.length === 0 ? (
-          <div className="ra-empty">No artifacts match this tag or your search yet.</div>
+          <div className="ra-empty">{t(language, 'browse.emptyTag')}</div>
         ) : (
           filtered.map((entry) => (
             <button

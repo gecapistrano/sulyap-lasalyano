@@ -187,6 +187,13 @@
   background: rgba(242, 239, 214, 0.08);
 }
 
+.hp-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  z-index: 3;
+}
+
 /* Mode toggle */
 .hp-mode-toggle {
   flex-shrink: 0;
@@ -383,6 +390,25 @@
 
 .hp-footer p {
   margin: 0;
+}
+
+.hp-footer-curator {
+  margin-top: 0.55rem !important;
+}
+
+.hp-footer-curator-btn {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  opacity: 0.85;
+  cursor: pointer;
+}
+
+.hp-footer-curator-btn:hover {
+  opacity: 1;
 }
 
 /* ═══════════════════════════════════════════

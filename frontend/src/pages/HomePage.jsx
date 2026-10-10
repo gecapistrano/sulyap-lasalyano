@@ -2,16 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import './HomePage.css'
 import heroBg from '../../images/aea_images/homepage-cover.png'
 import nameLogo from '../../images/logo/NAME_Dark-Mode.png'
-
-const LANGUAGES = [
-  'English',
-  'Filipino',
-  'Spanish',
-  'French',
-  'Chinese',
-  'Korean',
-  'Japanese',
-]
+import { LANGUAGE_OPTIONS, t } from '../i18n'
 
 function LangDropdown({ language, onLanguageChange }) {
   const [open, setOpen] = useState(false)
@@ -31,7 +22,7 @@ function LangDropdown({ language, onLanguageChange }) {
         type="button"
         className="hp-lang-btn"
         onClick={() => setOpen((o) => !o)}
-        aria-label="Select language"
+        aria-label={t(language, 'nav.selectLanguage')}
         aria-expanded={open}
       >
         {language}
@@ -41,17 +32,17 @@ function LangDropdown({ language, onLanguageChange }) {
       </button>
 
       <div className={`hp-lang-menu ${open ? 'hp-lang-menu--open' : ''}`}>
-        {LANGUAGES.map((item) => (
+        {LANGUAGE_OPTIONS.map((item) => (
           <button
-            key={item}
+            key={item.id}
             type="button"
-            className={`hp-lang-option ${item === language ? 'hp-lang-option--active' : ''}`}
+            className={`hp-lang-option ${item.id === language ? 'hp-lang-option--active' : ''}`}
             onClick={() => {
-              onLanguageChange?.(item)
+              onLanguageChange?.(item.id)
               setOpen(false)
             }}
           >
-            {item}
+            {item.id}
           </button>
         ))}
       </div>
@@ -59,7 +50,16 @@ function LangDropdown({ language, onLanguageChange }) {
   )
 }
 
-export default function HomePage({ language, onLanguageChange, onStartCamera, onBrowse, onOpenKnowledgeGraph, darkMode, onToggleDarkMode }) {
+export default function HomePage({
+  language,
+  onLanguageChange,
+  onStartCamera,
+  onBrowse,
+  onOpenKnowledgeGraph,
+  onOpenCurator,
+  darkMode,
+  onToggleDarkMode,
+}) {
   const rootRef = useRef(null)
   const headerRef = useRef(null)
   const featuresRef = useRef(null)
@@ -97,30 +97,32 @@ export default function HomePage({ language, onLanguageChange, onStartCamera, on
       <header className={`hp-header ${headerScrolled ? 'hp-header-scrolled' : ''}`} ref={headerRef}>
         <LangDropdown language={language} onLanguageChange={onLanguageChange} />
 
-        <button
-          type="button"
-          className="hp-mode-toggle"
-          onClick={onToggleDarkMode}
-          aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-        >
-          {darkMode ? (
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="hp-mode-icon">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-            </svg>
-          ) : (
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="hp-mode-icon">
-              <circle cx="12" cy="12" r="5" />
-              <line x1="12" y1="1" x2="12" y2="3" />
-              <line x1="12" y1="21" x2="12" y2="23" />
-              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-              <line x1="1" y1="12" x2="3" y2="12" />
-              <line x1="21" y1="12" x2="23" y2="12" />
-              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-            </svg>
-          )}
-        </button>
+        <div className="hp-header-actions">
+          <button
+            type="button"
+            className="hp-mode-toggle"
+            onClick={onToggleDarkMode}
+            aria-label={darkMode ? t(language, 'home.lightMode') : t(language, 'home.darkMode')}
+          >
+            {darkMode ? (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="hp-mode-icon">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="hp-mode-icon">
+                <circle cx="12" cy="12" r="5" />
+                <line x1="12" y1="1" x2="12" y2="3" />
+                <line x1="12" y1="21" x2="12" y2="23" />
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                <line x1="1" y1="12" x2="3" y2="12" />
+                <line x1="21" y1="12" x2="23" y2="12" />
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+              </svg>
+            )}
+          </button>
+        </div>
       </header>
 
       {/* Parallax background — stays fixed within the scroll container */}
@@ -131,19 +133,19 @@ export default function HomePage({ language, onLanguageChange, onStartCamera, on
         <div className="hp-hero-overlay" />
 
         <div className="hp-hero-content">
-          <span className="hp-welcome-label">Welcome to</span>
+          <span className="hp-welcome-label">{t(language, 'home.welcome')}</span>
           <img src={nameLogo} alt="Sulyap Lasalyano" className="hp-name-logo" />
         </div>
 
         <div className="hp-hero-actions">
           <button type="button" className="hp-pill-btn" onClick={onBrowse}>
-            Browse
+            {t(language, 'home.browse')}
           </button>
           <button type="button" className="hp-pill-btn" onClick={onOpenKnowledgeGraph}>
-            View Knowledge Graph
+            {t(language, 'home.knowledgeGraph')}
           </button>
           <button type="button" className="hp-pill-btn" onClick={onStartCamera}>
-            Live Scan
+            {t(language, 'home.liveScan')}
           </button>
         </div>
       </section>
@@ -152,13 +154,8 @@ export default function HomePage({ language, onLanguageChange, onStartCamera, on
       <section className="hp-features" ref={featuresRef}>
         <div className="hp-features-grid">
           <div className="hp-feature-card hp-fade-in">
-            <h3 className="hp-feature-title">Browse</h3>
-            <p className="hp-feature-desc">
-              Take your time and explore at your own pace.
-              Browse the full collection of presidential memorabilia
-              from wherever you are. Whether you're on-site or miles away,
-              the legacy of De La Salle is always within reach.
-            </p>
+            <h3 className="hp-feature-title">{t(language, 'home.feature.browse.title')}</h3>
+            <p className="hp-feature-desc">{t(language, 'home.feature.browse.body')}</p>
           </div>
 
           <div className="hp-center-line">
@@ -168,14 +165,8 @@ export default function HomePage({ language, onLanguageChange, onStartCamera, on
           </div>
 
           <div className="hp-feature-card hp-fade-in">
-            <h3 className="hp-feature-title">Knowledge Graph</h3>
-            <p className="hp-feature-desc">
-              Trace the threads of our shared heritage.
-              Explore an interactive map that connects presidents, artifacts,
-              and milestones across generations of Lasallian history.
-              See how each piece of memorabilia weaves into the rich
-              tapestry of DLSU's story, and perhaps, your own.
-            </p>
+            <h3 className="hp-feature-title">{t(language, 'home.feature.kg.title')}</h3>
+            <p className="hp-feature-desc">{t(language, 'home.feature.kg.body')}</p>
           </div>
 
           <div className="hp-center-line">
@@ -185,24 +176,22 @@ export default function HomePage({ language, onLanguageChange, onStartCamera, on
           </div>
 
           <div className="hp-feature-card hp-fade-in">
-            <h3 className="hp-feature-title">Live Scan</h3>
-            <p className="hp-feature-desc">
-              Step into history with your camera.
-              Simply point your device at any memorabilia in the gallery,
-              and watch as its story comes alive. Learn who it belonged to,
-              why it matters, and how it shaped the legacy of De La Salle.
-              Every artifact has a story waiting to be told.
-            </p>
+            <h3 className="hp-feature-title">{t(language, 'home.feature.scan.title')}</h3>
+            <p className="hp-feature-desc">{t(language, 'home.feature.scan.body')}</p>
           </div>
         </div>
       </section>
 
       {/* ── Footer ── */}
       <footer className="hp-footer">
-        <p>
-          &copy; 2026 Sulyap Lasalyano &mdash; De La Salle University-Dasmari&ntilde;as. All rights reserved.
-          Developed by J.N. Lagajino, J.U. Ricafrente &amp; G.E. Capistrano
-        </p>
+        <p>{t(language, 'home.footer')}</p>
+        {typeof onOpenCurator === 'function' ? (
+          <p className="hp-footer-curator">
+            <button type="button" className="hp-footer-curator-btn" onClick={onOpenCurator}>
+              {t(language, 'home.curator')}
+            </button>
+          </p>
+        ) : null}
       </footer>
     </div>
   )

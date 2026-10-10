@@ -25,6 +25,17 @@ class User(Base):
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(back_populates="user")
 
 
+class President(Base):
+    """Published museum catalog entry for a DLSU-D president (visitor-facing browse)."""
+
+    __tablename__ = "presidents"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    name: Mapped[str] = mapped_column(String(200), unique=True, nullable=False, index=True)
+    service: Mapped[str] = mapped_column(String(80), default="", nullable=False)
+    icon: Mapped[str] = mapped_column(String(16), default="👤", nullable=False)
+
+
 class Artifact(Base):
     __tablename__ = "artifacts"
 
@@ -33,6 +44,13 @@ class Artifact(Base):
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[str] = mapped_column(Text, default="", nullable=False)
     image_url: Mapped[str] = mapped_column(String(500), nullable=False)
+    model_url: Mapped[str] = mapped_column(String(500), default="", nullable=False)
+    rd_code: Mapped[str] = mapped_column(String(32), default="", nullable=False, index=True)
+    owner_name: Mapped[str] = mapped_column(String(200), default="", nullable=False, index=True)
+    year: Mapped[str] = mapped_column(String(32), default="", nullable=False)
+    subtitle: Mapped[str] = mapped_column(String(200), default="", nullable=False)
+    icon: Mapped[str] = mapped_column(String(16), default="🏺", nullable=False)
+    published: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
 
     owner: Mapped["User"] = relationship(back_populates="artifacts")

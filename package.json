@@ -3,7 +3,7 @@
     "prepare": "git config core.hooksPath .githooks",
     "dev": "concurrently -n frontend,backend -c cyan,magenta \"npm run dev:frontend\" \"npm run dev:backend\"",
     "dev:frontend": "npm --prefix frontend run dev",
-    "dev:backend": "cd backend && uvicorn app.main:app --reload",
+    "dev:backend": "cd backend && python -m uvicorn app.main:app --reload --host localhost --port 8000",
     "audit": "npm audit --audit-level=high",
     "audit:frontend": "npm --prefix frontend audit --audit-level=high",
     "security:lint": "python backend/scripts/security_lint.py",

@@ -11,6 +11,15 @@
 7. Rate limiting on sensitive routes (`/auth/login` and `/artifacts` search/list endpoint).
 8. Generic sanitized error responses with detailed server-side logging.
 
+Visitor browse/scan reads use public `GET /catalog/*` (published collection only). Admin mutations stay on `/artifacts` with auth + CSRF.
+
+Local curator seed (created on first empty DB):
+- email: `curator@example.com`
+- password: `ChangeMeLocal12` (override with env `ADMIN_SEED_PASSWORD` before first seed)
+- UI: Home footer → **Curator desk**
+
+Hosted DB: set `DATABASE_URL` to a Supabase Postgres URI (see `docs/SUPABASE_SETUP.md`). Schema/seed live under `supabase/`. Smoke-check with `python scripts/check_db.py` from `backend/`.
+
 ## Run Locally
 
 ```bash

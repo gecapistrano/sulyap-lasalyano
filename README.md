@@ -18,6 +18,7 @@ Visitors can point a phone camera at supported memorabilia and the system attemp
 - Backend: FastAPI, Pydantic, SQLAlchemy
 - ML: Ultralytics YOLOv8, PyTorch, ONNX
 - Deployment: Vercel (frontend), Render-compatible backend
+- Database: SQLite locally by default, or Supabase Postgres via `DATABASE_URL`
 
 ## Repository Structure
 
@@ -25,8 +26,9 @@ Visitors can point a phone camera at supported memorabilia and the system attemp
 sulyap-lasalyano/
 +-- frontend/          # SPA (scanner, splash, onboarding, gesture modules)
 +-- backend/           # FastAPI API and security middleware
++-- supabase/          # Postgres schema + catalog seed for Supabase
 +-- ml/                # Training scripts, datasets, runs, weights
-+-- docs/              # Setup/deployment/API notes
++-- docs/              # Setup/deployment/API notes (see SUPABASE_SETUP.md)
 +-- README.md
 ```
 
@@ -72,6 +74,7 @@ Backend default URL: `http://localhost:8000`
 - Configure frontend env in `frontend/.env` (or `.env.local`)
 - Configure backend env in `backend/.env`
 - For split hosting (frontend + backend on different domains), keep secure cookie settings enabled in production
+- **Supabase:** follow the manual checklist in [`docs/SUPABASE_SETUP.md`](docs/SUPABASE_SETUP.md), then set `DATABASE_URL` in `backend/.env`
 
 ## Vercel (project URL and domain)
 

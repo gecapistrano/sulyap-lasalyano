@@ -59,5 +59,34 @@ export function createSecureApiClient({ baseUrl }) {
       if (response.status === 204) return null
       return response.json()
     },
+
+    /**
+     * Multipart upload (do not set Content-Type — browser adds boundary).
+     * Still sends cookies + CSRF for mutating uploads.
+     */
+    async upload(path, formData, { method = 'POST', query } = {}) {
+      const url = buildUrl(parsedBaseUrl, path, query)
+      const nextHeaders = {}
+      const normalizedMethod = method.toUpperCase()
+      if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(normalizedMethod)) {
+        const csrfToken = readCookie('csrf_token')
+        if (csrfToken) {
+          nextHeaders['X-CSRF-Token'] = csrfToken
+        }
+      }
+
+      const response = await fetch(url, {
+        method: normalizedMethod,
+        headers: nextHeaders,
+        credentials: 'include',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error(`API upload failed (${response.status})`)
+      }
+      if (response.status === 204) return null
+      return response.json()
+    },
   }
 }

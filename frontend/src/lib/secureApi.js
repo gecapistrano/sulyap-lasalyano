@@ -4,11 +4,26 @@
  */
 import { assertSecureHttpUrl, sanitizeText } from '../utils/security'
 
+/** In-memory CSRF for cross-origin SPA→API (cookie is on the API host, not readable via document.cookie). */
+let csrfTokenMemory = null
+
+export function setCsrfToken(token) {
+  csrfTokenMemory = typeof token === 'string' && token.trim() ? token.trim() : null
+}
+
+export function clearCsrfToken() {
+  csrfTokenMemory = null
+}
+
 function readCookie(name) {
   if (typeof document === 'undefined') return null
   const escapedName = name.replace(/[-[\]/{}()*+?.\\^$|]/g, '\\$&')
   const match = document.cookie.match(new RegExp(`(?:^|; )${escapedName}=([^;]*)`))
   return match ? decodeURIComponent(match[1]) : null
+}
+
+function resolveCsrfToken() {
+  return csrfTokenMemory || readCookie('csrf_token')
 }
 
 /** Builds an absolute URL under `baseUrl` and appends query params with basic key/value sanitization. */
@@ -39,7 +54,7 @@ export function createSecureApiClient({ baseUrl }) {
       }
       const normalizedMethod = method.toUpperCase()
       if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(normalizedMethod)) {
-        const csrfToken = readCookie('csrf_token')
+        const csrfToken = resolveCsrfToken()
         if (csrfToken) {
           nextHeaders['X-CSRF-Token'] = csrfToken
         }
@@ -76,7 +91,7 @@ export function createSecureApiClient({ baseUrl }) {
       const nextHeaders = {}
       const normalizedMethod = method.toUpperCase()
       if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(normalizedMethod)) {
-        const csrfToken = readCookie('csrf_token')
+        const csrfToken = resolveCsrfToken()
         if (csrfToken) {
           nextHeaders['X-CSRF-Token'] = csrfToken
         }

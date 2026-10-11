@@ -618,9 +618,10 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
       ) : !user ? (
         <form className="curator-login" onSubmit={handleLogin}>
           <p className="curator-lead">{t(language, 'curator.lead')}</p>
+          <p className="curator-muted">{t(language, 'curator.hint')}</p>
           <label className="curator-label">
             {t(language, 'curator.email')}
-            <input className="curator-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <input className="curator-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="username" />
           </label>
           <label className="curator-label">
             {t(language, 'curator.password')}
@@ -631,6 +632,7 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
               onChange={(e) => setPassword(e.target.value)}
               minLength={10}
               required
+              autoComplete="current-password"
             />
           </label>
           {authError ? <p className="curator-error">{authError}</p> : null}

@@ -7,7 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from passlib.context import CryptContext  # noqa: E402
+import bcrypt  # noqa: E402
 
 from app.services.catalog_seed import (  # noqa: E402
     ARTIFACT_BY_RD,
@@ -27,7 +27,7 @@ def esc(value: str) -> str:
 
 
 def main() -> None:
-    hash_pw = CryptContext(schemes=["bcrypt"], deprecated="auto").hash(PWD)
+    hash_pw = bcrypt.hashpw(PWD.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
     needed = sorted(set(_load_scanner_labels()) | set(ARTIFACT_BY_RD.keys()))
     lines: list[str] = [
         "-- Idempotent seed for Sulyap catalog (presidents + artifacts + curator)",

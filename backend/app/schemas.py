@@ -27,6 +27,9 @@ class UserPublic(StrictSchema):
     email: EmailStr
     role: UserRole
     is_active: bool
+    # Returned so cross-origin SPAs can send X-CSRF-Token (document.cookie
+    # cannot read the csrf cookie set on the API host).
+    csrf_token: str | None = None
 
 
 class TagOut(StrictSchema):

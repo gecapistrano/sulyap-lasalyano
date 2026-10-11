@@ -131,7 +131,13 @@ def login(
     db.commit()
 
     _set_auth_cookies(response, access_token, refresh_token, csrf_token)
-    return UserPublic(id=user.id, email=user.email, role=user.role, is_active=user.is_active)
+    return UserPublic(
+        id=user.id,
+        email=user.email,
+        role=user.role,
+        is_active=user.is_active,
+        csrf_token=csrf_token,
+    )
 
 
 @router.post("/refresh", response_model=UserPublic)
@@ -154,7 +160,13 @@ def refresh_session(request: Request, response: Response, db: Session = Depends(
     access_token, next_refresh = _rotate_refresh_token(db, user, incoming_refresh)
     csrf_token = token_urlsafe(24)
     _set_auth_cookies(response, access_token, next_refresh, csrf_token)
-    return UserPublic(id=user.id, email=user.email, role=user.role, is_active=user.is_active)
+    return UserPublic(
+        id=user.id,
+        email=user.email,
+        role=user.role,
+        is_active=user.is_active,
+        csrf_token=csrf_token,
+    )
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
@@ -180,5 +192,11 @@ def logout(
 
 
 @router.get("/me", response_model=UserPublic)
-def get_me(user: User = Depends(get_current_active_user)) -> UserPublic:
-    return UserPublic(id=user.id, email=user.email, role=user.role, is_active=user.is_active)
+def get_me(request: Request, user: User = Depends(get_current_active_user)) -> UserPublic:
+    return UserPublic(
+        id=user.id,
+        email=user.email,
+        role=user.role,
+        is_active=user.is_active,
+        csrf_token=request.cookies.get("csrf_token"),
+    )

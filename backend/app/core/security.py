@@ -1,28 +1,34 @@
 """
-Password hashing (passlib/bcrypt), JWT access/refresh creation, decode, and refresh-token fingerprinting.
+Password hashing (bcrypt), JWT access/refresh creation, decode, and refresh-token fingerprinting.
 
 Tokens are signed with `JWT_SECRET_KEY` from settings — never log raw tokens.
+Uses the `bcrypt` package directly (passlib 1.7.4 is incompatible with bcrypt>=4.1).
 """
 from datetime import UTC, datetime, timedelta
 from hashlib import sha256
 from secrets import token_urlsafe
 
+import bcrypt
 import jwt
 from jwt import InvalidTokenError
-from passlib.context import CryptContext
 
 from .config import get_settings
 
 settings = get_settings()
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        return bcrypt.checkpw(
+            plain_password.encode("utf-8"),
+            hashed_password.encode("utf-8"),
+        )
+    except (ValueError, TypeError):
+        return False
 
 
 def create_access_token(*, subject: str, role: str, expires_delta: timedelta | None = None) -> str:

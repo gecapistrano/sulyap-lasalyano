@@ -4,6 +4,14 @@
 import { env } from '../config/env'
 import { sanitizeText } from '../utils/security'
 import { apiClient } from './apiClient'
+import { clearCsrfToken, setCsrfToken } from './secureApi'
+
+function rememberCsrf(payload) {
+  if (payload && typeof payload.csrf_token === 'string') {
+    setCsrfToken(payload.csrf_token)
+  }
+  return payload
+}
 
 export function isBackendConfigured() {
   return Boolean(env.apiConfigured)
@@ -108,25 +116,30 @@ export async function listRelatedArtifacts({ tag = '', idCode = '' } = {}) {
 }
 
 export async function login(email, password) {
-  return apiClient.request('/auth/login', {
+  const me = await apiClient.request('/auth/login', {
     method: 'POST',
     body: {
       email: sanitizeText(email).trim(),
       password,
     },
   })
+  return rememberCsrf(me)
 }
 
 export async function getMe() {
-  return apiClient.request('/auth/me', { method: 'GET' })
+  return rememberCsrf(await apiClient.request('/auth/me', { method: 'GET' }))
 }
 
 export async function refreshSession() {
-  return apiClient.request('/auth/refresh', { method: 'POST' })
+  return rememberCsrf(await apiClient.request('/auth/refresh', { method: 'POST' }))
 }
 
 export async function logout() {
-  return apiClient.request('/auth/logout', { method: 'POST' })
+  try {
+    return await apiClient.request('/auth/logout', { method: 'POST' })
+  } finally {
+    clearCsrfToken()
+  }
 }
 
 export async function listArtifacts({ search = '' } = {}) {

@@ -23,13 +23,15 @@ from .core.database import (
     _sqlite_add_missing_columns,
     engine,
 )
-from .routers import artifacts, auth, catalog, recognition
+from .routers import artifacts, auth, catalog, presidents, recognition
 from .services.catalog_seed import seed_catalog_if_empty
 from .services.model_uploads import ensure_upload_dir
+from .services.photo_uploads import ensure_photo_dir
 
 settings = get_settings()
 logger = logging.getLogger("sulyap.security")
 logging.basicConfig(level=logging.INFO)
+logger.info("CORS allow_origins=%s", settings.allowed_origins)
 
 Base.metadata.create_all(bind=engine)
 _sqlite_add_missing_columns(engine)
@@ -38,8 +40,11 @@ with SessionLocal() as _seed_db:
     seed_catalog_if_empty(_seed_db)
 
 _uploads_dir = ensure_upload_dir()
+ensure_photo_dir()
 
-app = FastAPI(title=settings.app_name)
+# redirect_slashes=False avoids 307 /artifacts -> /artifacts/ which breaks
+# credentialed cross-origin fetch (cookies dropped on the redirected request).
+app = FastAPI(title=settings.app_name, redirect_slashes=False)
 app.state.limiter = limiter
 app.add_middleware(SlowAPIMiddleware)
 
@@ -108,6 +113,7 @@ def healthcheck():
 app.include_router(auth.router)
 app.include_router(artifacts.router)
 app.include_router(catalog.router)
+app.include_router(presidents.router)
 app.include_router(recognition.router)
 app.mount("/media/models", StaticFiles(directory=str(_uploads_dir)), name="artifact_models")
 

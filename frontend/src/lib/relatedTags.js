@@ -13,18 +13,26 @@ export function getAllArtifactsForRelatedBrowse() {
 export function getRelatedTagsForArtifact(artifact) {
   if (!artifact) return []
   const tags = []
-  const rd = artifact.rdCode ?? artifact.rd_code
-  if (typeof rd === 'string' && rd.trim()) tags.push(rd.trim().replace(/^rd/i, 'RD'))
-  const y = artifact.year != null ? String(artifact.year).trim() : ''
-  const o = typeof artifact.owner === 'string' ? artifact.owner.trim() : ''
-  const sub = typeof artifact.subtitle === 'string' ? artifact.subtitle.trim() : ''
-  if (y && y !== '\u2014') tags.push(y)
-  if (o && o !== '\u2014') tags.push(o)
-  if (sub) tags.push(sub)
-  if (Array.isArray(artifact.tags)) {
+  // Prefer API/catalog tags when present (hybrid auto|manual|llm).
+  if (Array.isArray(artifact.tags) && artifact.tags.length > 0) {
     for (const t of artifact.tags) {
       if (typeof t === 'string' && t.trim()) tags.push(t.trim())
+      else if (t && typeof t.label === 'string' && t.label.trim()) tags.push(t.label.trim())
     }
+  } else {
+    const rd = artifact.idCode ?? artifact.rdCode ?? artifact.rd_code ?? artifact.id_code
+    if (typeof rd === 'string' && rd.trim()) tags.push(rd.trim())
+    const y = artifact.yearAcquired ?? artifact.year
+    const yStr = y != null ? String(y).trim() : ''
+    const o = typeof artifact.owner === 'string' ? artifact.owner.trim() : ''
+    const sub = typeof artifact.subtitle === 'string' ? artifact.subtitle.trim() : ''
+    const country = typeof artifact.countryOfOrigin === 'string' ? artifact.countryOfOrigin.trim() : ''
+    const atype = typeof artifact.artifactType === 'string' ? artifact.artifactType.trim() : ''
+    if (yStr && yStr !== '\u2014') tags.push(yStr)
+    if (o && o !== '\u2014') tags.push(o)
+    if (sub) tags.push(sub)
+    if (country) tags.push(country)
+    if (atype) tags.push(atype)
   }
   const seen = new Set()
   const out = []

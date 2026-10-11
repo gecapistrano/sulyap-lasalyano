@@ -4,9 +4,11 @@
  */
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import './Onboarding.css'
-import nameLogoDark from '../../images/logo/NAME_Dark-Mode.png'
-import nameLogoLight from '../../images/logo/NAME_Light-Mode.png'
 import { t } from '../i18n'
+
+/** Served from `public/` — Next static imports return objects, not URL strings. */
+const nameLogoDark = '/images/logo/NAME_Dark-Mode.png'
+const nameLogoLight = '/images/logo/NAME_Light-Mode.png'
 
 /** Realistic front-facing lens (pure CSS stacking, no images). */
 function LensIcon() {

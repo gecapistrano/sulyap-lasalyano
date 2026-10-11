@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 
 from ..core.security import hash_password
 from ..models import Artifact, President, User
+from .id_codes import normalize_id_code, owner_for_id_code
 
 logger = logging.getLogger("sulyap.seed")
 
@@ -94,7 +95,7 @@ ARTIFACT_ROWS = (
      "Trained scanner class RD244. Curatorial copy will deepen as catalog records are edited."),
 )
 
-ARTIFACT_BY_RD = {row[1].upper(): row for row in ARTIFACT_ROWS}
+ARTIFACT_BY_RD = {normalize_id_code(row[1]): row for row in ARTIFACT_ROWS}
 
 
 def _load_scanner_labels() -> list[str]:
@@ -102,13 +103,13 @@ def _load_scanner_labels() -> list[str]:
         if not path.is_file():
             continue
         labels = [
-            line.strip().upper()
+            normalize_id_code(line)
             for line in path.read_text(encoding="utf-8").splitlines()
             if line.strip()
         ]
         if labels:
             return labels
-    return sorted({row[1].upper() for row in ARTIFACT_ROWS})
+    return sorted({normalize_id_code(row[1]) for row in ARTIFACT_ROWS})
 
 
 def _curator_account(db: Session) -> User:
@@ -132,34 +133,46 @@ def _ensure_presidents(db: Session) -> None:
     if db.scalar(select(func.count()).select_from(President)) > 0:
         return
     for president_id, name, service in PRESIDENT_ROWS:
-        db.add(President(id=president_id, name=name, service=service, icon="👤"))
+        db.add(
+            President(
+                id=president_id,
+                name=name,
+                service=service,
+                icon="👤",
+                biography="",
+                photo_url="",
+                published=True,
+            )
+        )
     db.flush()
 
 
 def _ensure_artifacts_for_labels(db: Session, curator: User) -> int:
     """Insert any missing published rows for scanner labels / curated seed codes."""
     existing = {
-        (code or "").strip().upper()
-        for code in db.scalars(select(Artifact.rd_code)).all()
+        normalize_id_code(code)
+        for code in db.scalars(select(Artifact.id_code)).all()
         if code
     }
     needed = set(_load_scanner_labels()) | set(ARTIFACT_BY_RD.keys())
     added = 0
-    for rd_code in sorted(needed):
-        if rd_code in existing:
+    for id_code in sorted(needed):
+        if id_code in existing:
             continue
-        rich = ARTIFACT_BY_RD.get(rd_code)
+        rich = ARTIFACT_BY_RD.get(id_code)
         if rich:
-            title, code, owner_name, year, subtitle, icon, description = rich
+            title, code, _seed_owner, year, subtitle, icon, description = rich
+            code = normalize_id_code(code)
+            owner_name = owner_for_id_code(code) or _seed_owner
         else:
-            title = f"Memorabilia {rd_code}"
-            code = rd_code
-            owner_name = "DLSU-D Presidents' Gallery"
+            title = ""
+            code = id_code
+            owner_name = owner_for_id_code(id_code)
             year = ""
             subtitle = "Scanner catalog entry"
             icon = "🏺"
             description = (
-                f"Published catalog record for scanner class {rd_code}. "
+                f"Published catalog record for scanner class {id_code}. "
                 "Curators can edit this title and description in Curator Desk."
             )
         db.add(
@@ -169,23 +182,34 @@ def _ensure_artifacts_for_labels(db: Session, curator: User) -> int:
                 description=description,
                 image_url=PLACEHOLDER_IMAGE,
                 model_url="",
-                rd_code=code,
+                id_code=code,
                 owner_name=owner_name,
                 year=year,
+                year_acquired=year,
                 subtitle=subtitle,
                 icon=icon,
                 published=True,
             )
         )
         added += 1
-        existing.add(rd_code)
+        existing.add(id_code)
     return added
 
 
 def seed_catalog_if_empty(db: Session) -> None:
+    """Ensure curator + presidents exist. Only invent scanner placeholder artifacts when catalog is empty.
+
+    Once memorabilia has been imported from the Excel workbook (source of truth), do not
+    re-create missing label codes — that would drift Supabase / Curator Desk away from Excel.
+    """
     curator = _curator_account(db)
     _ensure_presidents(db)
-    added = _ensure_artifacts_for_labels(db, curator)
+    artifact_count = db.scalar(select(func.count()).select_from(Artifact)) or 0
+    added = 0
+    if artifact_count == 0:
+        added = _ensure_artifacts_for_labels(db, curator)
     db.commit()
     if added:
         logger.info("Ensured museum catalog rows (added %s artifacts for scanner labels)", added)
+    elif artifact_count:
+        logger.info("Catalog already has %s artifacts; skipped scanner label backfill", artifact_count)

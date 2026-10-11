@@ -1,21 +1,20 @@
 {
-  "name": "frontend",
+  "name": "sulyap-lasalyano-web",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "version": "1.0.0",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "next dev",
+    "build": "node scripts/encode-splash-video.mjs && next build",
+    "start": "next start",
     "lint": "eslint .",
-    "preview": "vite preview",
     "audit": "npm audit --audit-level=high",
-    "encode:splash": "node scripts/encode-splash-video.mjs",
-    "prebuild": "node scripts/encode-splash-video.mjs"
+    "encode:splash": "node scripts/encode-splash-video.mjs"
   },
   "dependencies": {
     "@mediapipe/camera_utils": "^0.3.1675466862",
     "@mediapipe/drawing_utils": "^0.3.1675466124",
     "@mediapipe/hands": "^0.4.1675469240",
+    "next": "^15.5.4",
     "onnxruntime-web": "^1.24.3",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
@@ -26,17 +25,12 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^6.0.1",
     "autoprefixer": "^10.4.27",
     "eslint": "^9.39.4",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-react-refresh": "^0.5.2",
+    "eslint-config-next": "^15.5.4",
     "ffmpeg-static": "^5.2.0",
     "globals": "^17.4.0",
     "postcss": "^8.5.8",
-    "tailwindcss": "^3.4.19",
-    "vite": "^8.0.1"
+    "tailwindcss": "^3.4.19"
   }
 }

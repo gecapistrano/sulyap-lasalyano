@@ -1,12 +1,15 @@
 /**
- * Runtime environment for the browser build.
- * `VITE_API_BASE_URL` — optional; when present must be https:// or http://localhost for dev (see `assertSecureHttpUrl`).
- * Falls back to a placeholder so local UI can run before the real API URL is configured.
+ * Runtime environment for the Next.js browser build.
+ * `NEXT_PUBLIC_API_BASE_URL` — optional; when present must be https:// or http://localhost.
+ *
+ * Important: Next.js only inlines env vars that are referenced as static
+ * `process.env.NEXT_PUBLIC_*` identifiers — dynamic `process.env[name]` stays empty in the client bundle.
  */
 import { assertSecureHttpUrl } from '../utils/security'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
-const MODEL_ASSET_BASE_URL = import.meta.env.VITE_MODEL_ASSET_BASE_URL
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+const MODEL_ASSET_BASE_URL = process.env.NEXT_PUBLIC_MODEL_ASSET_BASE_URL
+const RECOGNITION_MODE = process.env.NEXT_PUBLIC_RECOGNITION_MODE || 'local'
 
 if (API_BASE_URL) {
   assertSecureHttpUrl(API_BASE_URL)
@@ -24,7 +27,6 @@ export const env = {
   apiBaseUrl: resolvedApiBaseUrl,
   apiConfigured: apiLooksConfigured,
   modelAssetBaseUrl: MODEL_ASSET_BASE_URL || '',
-  recognitionMode: import.meta.env.VITE_RECOGNITION_MODE || 'local',
-  recognitionHybridEnabled:
-    (import.meta.env.VITE_RECOGNITION_MODE || 'local') === 'hybrid' && apiLooksConfigured,
+  recognitionMode: RECOGNITION_MODE,
+  recognitionHybridEnabled: RECOGNITION_MODE === 'hybrid' && apiLooksConfigured,
 }

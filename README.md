@@ -14,21 +14,22 @@ Visitors can point a phone camera at supported memorabilia and the system attemp
 
 ## Tech Stack
 
-- Frontend: React, Vite, Tailwind, onnxruntime-web
+- Frontend: **Next.js** (App Router), React, Tailwind, onnxruntime-web
 - Backend: FastAPI, Pydantic, SQLAlchemy
 - ML: Ultralytics YOLOv8, PyTorch, ONNX
-- Deployment: Vercel (frontend), Render-compatible backend
-- Database: SQLite locally by default, or Supabase Postgres via `DATABASE_URL`
+- Deployment: Vercel (Next.js), Render (FastAPI) — see `docs/DEPLOYMENT.md`
+- Database: Supabase Postgres via `DATABASE_URL` (SQLite still ok for local smoke tests)
 
 ## Repository Structure
 
 ```text
 sulyap-lasalyano/
-+-- frontend/          # SPA (scanner, splash, onboarding, gesture modules)
++-- frontend/          # Next.js app (browse, scan, curator, knowledge graph)
 +-- backend/           # FastAPI API and security middleware
 +-- supabase/          # Postgres schema + catalog seed for Supabase
++-- data/imports/      # Local memorabilia workbook copies (gitignored binaries)
 +-- ml/                # Training scripts, datasets, runs, weights
-+-- docs/              # Setup/deployment/API notes (see SUPABASE_SETUP.md)
++-- docs/              # DEPLOYMENT.md, OPS_RUNBOOK.md, SUPABASE_SETUP.md
 +-- README.md
 ```
 
@@ -52,7 +53,7 @@ npm install
 npm run dev
 ```
 
-Frontend default URL: `http://localhost:5173`
+Frontend default URL: `http://localhost:3000` (Next.js)
 
 ### 3) Backend
 
@@ -71,10 +72,10 @@ Backend default URL: `http://localhost:8000`
 
 ## Environment Notes
 
-- Configure frontend env in `frontend/.env` (or `.env.local`)
+- Configure frontend env in `frontend/.env.local` (`NEXT_PUBLIC_API_BASE_URL`)
 - Configure backend env in `backend/.env`
-- For split hosting (frontend + backend on different domains), keep secure cookie settings enabled in production
-- **Supabase:** follow the manual checklist in [`docs/SUPABASE_SETUP.md`](docs/SUPABASE_SETUP.md), then set `DATABASE_URL` in `backend/.env`
+- For split hosting (Vercel + Render), use `COOKIE_SAMESITE=none` + `COOKIE_SECURE=true` and set `FRONTEND_ORIGINS` to the Vercel origin(s)
+- **Supabase:** [`docs/SUPABASE_SETUP.md`](docs/SUPABASE_SETUP.md) · **Deploy:** [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) · **Ops:** [`docs/OPS_RUNBOOK.md`](docs/OPS_RUNBOOK.md)
 
 ## Vercel (project URL and domain)
 

@@ -1,36 +1,39 @@
+'use client'
+
 /**
- * App.jsx — root React shell for Sulyap Lasalyano.
+ * App.jsx — client shell for Sulyap Lasalyano (Next.js App Router).
  *
- * Flow: splash (brand intro) → in-app navigation between onboarding, live camera, and browse list.
- * State is intentionally simple (no router yet): `phase` gates splash vs app; `screen` picks the active full-page view.
- * Browser history uses rich `history.state` so Back/Forward restores artifact / president / tag context (no blank detail).
+ * Flow: splash → in-app screens. Deep links set `initialScreen` from route pages.
+ * Browser history uses rich `history.state` so Back/Forward restores context.
  */
 
 import { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 
-import Onboarding from './pages/Onboarding'
-import HomePage from './pages/HomePage'
-import KnowledgeGraphPage from './pages/KnowledgeGraphPage'
+import Onboarding from './screens/Onboarding'
+import HomePage from './screens/HomePage'
+import KnowledgeGraphPage from './screens/KnowledgeGraphPage'
 
-import ArtifactDetail from './pages/ArtifactDetail'
+import ArtifactDetail from './screens/ArtifactDetail'
 
-import BrowseMode from './pages/BrowseMode'
+import BrowseMode from './screens/BrowseMode'
 
-import PresidentArtifacts from './pages/PresidentArtifacts'
+import PresidentArtifacts from './screens/PresidentArtifacts'
 
-import RelatedArtifacts from './pages/RelatedArtifacts'
-import CuratorDesk from './pages/CuratorDesk'
+import RelatedArtifacts from './screens/RelatedArtifacts'
+import CuratorDesk from './screens/CuratorDesk'
 
-import SplashScreen from './pages/SplashScreen'
+import SplashScreen from './screens/SplashScreen'
 import { preloadRdScanner } from './lib/rdClassifier'
 import { emptySnapshot, mergeSnapshot, sanitizeSnapshot } from './lib/navigationHistory'
-import { findMockArtifactById } from './data/artifactBrowseMocks'
+import { findMockArtifactById, getAllMockArtifacts } from './data/artifactBrowseMocks'
 import { findPresidentById } from './data/presidentBrowseMocks'
 import { languageToCode, loadStoredLanguage, persistLanguage } from './i18n'
-import darkModeLogo from '../images/logo/LOGO_Dark-Mode.png'
-import lightModeLogo from '../images/logo/LOGO_Light-Mode.png'
+import { getCatalogArtifactByIdCode, isBackendConfigured } from './lib/archiveApi'
 
-const ARCamera = lazy(() => import('./pages/ARCamera'))
+const darkModeLogo = '/logo/LOGO_Dark-Mode.png'
+const lightModeLogo = '/logo/LOGO_Light-Mode.png'
+
+const ARCamera = lazy(() => import('./screens/ARCamera'))
 
 /** Screens that need in-memory state; without it, the view renders blank after a full reload. */
 function resolveBootScreen() {
@@ -46,14 +49,19 @@ function resolveBootScreen() {
   }
 }
 
-export default function App() {
-  const initialScreen = resolveBootScreen()
+export default function App({
+  initialScreen: routeScreen,
+  initialPresidentId = null,
+  initialIdCode = null,
+  initialRelatedTag = '',
+} = {}) {
+  const bootScreen = routeScreen || resolveBootScreen()
 
   /** Last pushed / popped navigation snapshot (aligned with `history.state`). */
-  const navRef = useRef(emptySnapshot(initialScreen))
+  const navRef = useRef(emptySnapshot(bootScreen))
 
-  const [screen, setScreenRaw] = useState(initialScreen)
-  const isPageRefresh = screen === 'home'
+  const [screen, setScreenRaw] = useState(bootScreen)
+  const isPageRefresh = !routeScreen && screen === 'home'
 
   const [showSplash, setShowSplash] = useState(isPageRefresh)
   const [showApp, setShowApp] = useState(!isPageRefresh)
@@ -95,7 +103,9 @@ export default function App() {
 
   /** President row from browse (mock) — used by `president-artifacts` screen. */
 
-  const [selectedPresident, setSelectedPresident] = useState(null)
+  const [selectedPresident, setSelectedPresident] = useState(() =>
+    initialPresidentId != null ? findPresidentById(initialPresidentId) : null,
+  )
 
   /** Where artifact detail was opened from — controls Back from `ArtifactDetail`. */
 
@@ -105,7 +115,7 @@ export default function App() {
   const [browseReturnScreen, setBrowseReturnScreen] = useState('home')
 
   /** Selected tag for `RelatedArtifacts` (opened from artifact detail tags). */
-  const [relatedArtifactsTag, setRelatedArtifactsTag] = useState('')
+  const [relatedArtifactsTag, setRelatedArtifactsTag] = useState(initialRelatedTag || '')
 
   /** Back target from RelatedArtifacts (e.g. artifact-detail). */
   const [relatedArtifactsReturn, setRelatedArtifactsReturn] = useState('artifact-detail')

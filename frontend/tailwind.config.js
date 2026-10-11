@@ -1,9 +1,8 @@
-/** Tailwind scans `index.html` and all `src` JS/JSX for class names. */
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
   content: [
-    "./index.html",
-    "./src/**/*.{js,jsx}",
+    './app/**/*.{js,jsx}',
+    './src/**/*.{js,jsx}',
   ],
   theme: {
     extend: {

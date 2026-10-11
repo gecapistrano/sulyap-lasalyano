@@ -85,21 +85,45 @@ def _sqlite_add_missing_columns(engine) -> None:
     if not settings.database_url.startswith("sqlite"):
         return
     extras = {
-        "rd_code": "VARCHAR(32) DEFAULT '' NOT NULL",
+        "id_code": "VARCHAR(32) DEFAULT '' NOT NULL",
         "owner_name": "VARCHAR(200) DEFAULT '' NOT NULL",
         "year": "VARCHAR(32) DEFAULT '' NOT NULL",
+        "year_acquired": "VARCHAR(32) DEFAULT '' NOT NULL",
+        "country_of_origin": "VARCHAR(120) DEFAULT '' NOT NULL",
+        "artifact_type": "VARCHAR(120) DEFAULT '' NOT NULL",
         "subtitle": "VARCHAR(200) DEFAULT '' NOT NULL",
         "icon": "VARCHAR(16) DEFAULT '🏺' NOT NULL",
         "published": "BOOLEAN DEFAULT 1 NOT NULL",
         "model_url": "VARCHAR(500) DEFAULT '' NOT NULL",
+        "remarks": "TEXT DEFAULT '' NOT NULL",
+        "llm_assist_enabled": "BOOLEAN DEFAULT 0 NOT NULL",
+        "president_id": "INTEGER",
     }
     with engine.connect() as conn:
         existing = {row[1] for row in conn.exec_driver_sql("PRAGMA table_info(artifacts)").fetchall()}
         if not existing:
             return
+        if "rd_code" in existing and "id_code" not in existing:
+            # SQLite 3.25+ supports RENAME COLUMN
+            try:
+                conn.exec_driver_sql("ALTER TABLE artifacts RENAME COLUMN rd_code TO id_code")
+                existing.discard("rd_code")
+                existing.add("id_code")
+            except Exception:  # noqa: BLE001
+                pass
         for name, ddl in extras.items():
             if name not in existing:
                 conn.exec_driver_sql(f"ALTER TABLE artifacts ADD COLUMN {name} {ddl}")
+        # presidents extras
+        pcols = {row[1] for row in conn.exec_driver_sql("PRAGMA table_info(presidents)").fetchall()}
+        if pcols:
+            for name, ddl in {
+                "biography": "TEXT DEFAULT '' NOT NULL",
+                "photo_url": "VARCHAR(500) DEFAULT '' NOT NULL",
+                "published": "BOOLEAN DEFAULT 1 NOT NULL",
+            }.items():
+                if name not in pcols:
+                    conn.exec_driver_sql(f"ALTER TABLE presidents ADD COLUMN {name} {ddl}")
         conn.commit()
 
 
@@ -108,10 +132,53 @@ def _postgres_add_missing_columns(engine) -> None:
     url = settings.database_url.lower()
     if not (url.startswith("postgres") or "postgresql" in url):
         return
-    with engine.connect() as conn:
-        conn.exec_driver_sql(
-            "ALTER TABLE artifacts ADD COLUMN IF NOT EXISTS model_url VARCHAR(500) NOT NULL DEFAULT ''"
+    statements = [
+        """
+        DO $$
+        BEGIN
+          IF EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'artifacts' AND column_name = 'rd_code'
+          ) AND NOT EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'artifacts' AND column_name = 'id_code'
+          ) THEN
+            ALTER TABLE artifacts RENAME COLUMN rd_code TO id_code;
+          END IF;
+        END $$;
+        """,
+        "ALTER TABLE artifacts ADD COLUMN IF NOT EXISTS id_code VARCHAR(32) NOT NULL DEFAULT ''",
+        "ALTER TABLE artifacts ADD COLUMN IF NOT EXISTS model_url VARCHAR(500) NOT NULL DEFAULT ''",
+        "ALTER TABLE artifacts ADD COLUMN IF NOT EXISTS remarks TEXT NOT NULL DEFAULT ''",
+        "ALTER TABLE artifacts ADD COLUMN IF NOT EXISTS year_acquired VARCHAR(32) NOT NULL DEFAULT ''",
+        "ALTER TABLE artifacts ADD COLUMN IF NOT EXISTS country_of_origin VARCHAR(120) NOT NULL DEFAULT ''",
+        "ALTER TABLE artifacts ADD COLUMN IF NOT EXISTS artifact_type VARCHAR(120) NOT NULL DEFAULT ''",
+        "ALTER TABLE artifacts ADD COLUMN IF NOT EXISTS llm_assist_enabled BOOLEAN NOT NULL DEFAULT FALSE",
+        "ALTER TABLE artifacts ADD COLUMN IF NOT EXISTS president_id INTEGER",
+        "ALTER TABLE presidents ADD COLUMN IF NOT EXISTS biography TEXT NOT NULL DEFAULT ''",
+        "ALTER TABLE presidents ADD COLUMN IF NOT EXISTS photo_url VARCHAR(500) NOT NULL DEFAULT ''",
+        "ALTER TABLE presidents ADD COLUMN IF NOT EXISTS published BOOLEAN NOT NULL DEFAULT TRUE",
+        """
+        CREATE TABLE IF NOT EXISTS tags (
+          id SERIAL PRIMARY KEY,
+          slug VARCHAR(120) NOT NULL UNIQUE,
+          label VARCHAR(200) NOT NULL,
+          kind VARCHAR(40) NOT NULL DEFAULT 'theme'
         )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS artifact_tags (
+          artifact_id INTEGER NOT NULL REFERENCES artifacts (id) ON DELETE CASCADE,
+          tag_id INTEGER NOT NULL REFERENCES tags (id) ON DELETE CASCADE,
+          source VARCHAR(16) NOT NULL DEFAULT 'auto',
+          PRIMARY KEY (artifact_id, tag_id, source)
+        )
+        """,
+        "UPDATE artifacts SET year_acquired = year WHERE (year_acquired IS NULL OR year_acquired = '') AND COALESCE(year, '') <> ''",
+    ]
+    with engine.connect() as conn:
+        for stmt in statements:
+            conn.exec_driver_sql(stmt)
         conn.commit()
 
 

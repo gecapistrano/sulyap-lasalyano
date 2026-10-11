@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import './HomePage.css'
-import heroBg from '../../images/aea_images/homepage-cover.png'
-import nameLogo from '../../images/logo/NAME_Dark-Mode.png'
 import { LANGUAGE_OPTIONS, t } from '../i18n'
+
+/** Served from `public/` — Next static imports return objects, not URL strings. */
+const heroBg = '/images/aea_images/homepage-cover.png'
+const nameLogo = '/images/logo/NAME_Dark-Mode.png'
 
 function LangDropdown({ language, onLanguageChange }) {
   const [open, setOpen] = useState(false)

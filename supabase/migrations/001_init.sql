@@ -18,7 +18,10 @@ CREATE TABLE IF NOT EXISTS presidents (
   id SERIAL PRIMARY KEY,
   name VARCHAR(200) NOT NULL UNIQUE,
   service VARCHAR(80) NOT NULL DEFAULT '',
-  icon VARCHAR(16) NOT NULL DEFAULT '👤'
+  icon VARCHAR(16) NOT NULL DEFAULT '👤',
+  biography TEXT NOT NULL DEFAULT '',
+  photo_url VARCHAR(500) NOT NULL DEFAULT '',
+  published BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 CREATE INDEX IF NOT EXISTS ix_presidents_id ON presidents (id);
@@ -31,18 +34,24 @@ CREATE TABLE IF NOT EXISTS artifacts (
   description TEXT NOT NULL DEFAULT '',
   image_url VARCHAR(500) NOT NULL,
   model_url VARCHAR(500) NOT NULL DEFAULT '',
-  rd_code VARCHAR(32) NOT NULL DEFAULT '',
+  id_code VARCHAR(32) NOT NULL DEFAULT '',
   owner_name VARCHAR(200) NOT NULL DEFAULT '',
   year VARCHAR(32) NOT NULL DEFAULT '',
+  year_acquired VARCHAR(32) NOT NULL DEFAULT '',
+  country_of_origin VARCHAR(120) NOT NULL DEFAULT '',
+  artifact_type VARCHAR(120) NOT NULL DEFAULT '',
   subtitle VARCHAR(200) NOT NULL DEFAULT '',
   icon VARCHAR(16) NOT NULL DEFAULT '🏺',
+  remarks TEXT NOT NULL DEFAULT '',
+  llm_assist_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+  president_id INTEGER REFERENCES presidents (id),
   published BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS ix_artifacts_id ON artifacts (id);
 CREATE INDEX IF NOT EXISTS ix_artifacts_owner_id ON artifacts (owner_id);
-CREATE INDEX IF NOT EXISTS ix_artifacts_rd_code ON artifacts (rd_code);
+CREATE INDEX IF NOT EXISTS ix_artifacts_id_code ON artifacts (id_code);
 CREATE INDEX IF NOT EXISTS ix_artifacts_owner_name ON artifacts (owner_name);
 CREATE INDEX IF NOT EXISTS ix_artifacts_published ON artifacts (published);
 

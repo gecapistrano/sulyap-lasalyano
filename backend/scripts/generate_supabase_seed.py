@@ -16,6 +16,7 @@ from app.services.catalog_seed import (  # noqa: E402
     PRESIDENT_ROWS,
     _load_scanner_labels,
 )
+from app.services.id_codes import normalize_id_code, owner_for_id_code  # noqa: E402
 
 OUT = ROOT.parent / "supabase" / "seed.sql"
 PWD = "ChangeMe" + "Local12"
@@ -32,7 +33,7 @@ def main() -> None:
         "-- Idempotent seed for Sulyap catalog (presidents + artifacts + curator)",
         f"-- Curator login: curator@example.com / {PWD}",
         "-- Prefer letting FastAPI seed on startup; this SQL is for the Supabase SQL Editor.",
-        "-- Inserts missing RD codes even when some artifacts already exist.",
+        "-- Inserts missing id_code rows even when some artifacts already exist.",
         "",
         "INSERT INTO users (email, hashed_password, role, is_active)",
         f"SELECT 'curator@example.com', '{hash_pw}', 'admin', TRUE",
@@ -41,8 +42,8 @@ def main() -> None:
     ]
     for president_id, name, service in PRESIDENT_ROWS:
         lines.append(
-            "INSERT INTO presidents (id, name, service, icon) "
-            f"SELECT {president_id}, '{esc(name)}', '{esc(service)}', '👤' "
+            "INSERT INTO presidents (id, name, service, icon, biography, photo_url, published) "
+            f"SELECT {president_id}, '{esc(name)}', '{esc(service)}', '👤', '', '', TRUE "
             f"WHERE NOT EXISTS (SELECT 1 FROM presidents WHERE id = {president_id} OR name = '{esc(name)}');"
         )
     lines.extend(
@@ -57,30 +58,32 @@ def main() -> None:
             "  SELECT id INTO curator_id FROM users WHERE email = 'curator@example.com';",
         ]
     )
-    for rd_code in needed:
-        rich = ARTIFACT_BY_RD.get(rd_code)
+    for id_code in needed:
+        rich = ARTIFACT_BY_RD.get(id_code)
         if rich:
-            title, code, owner_name, year, subtitle, icon, description = rich
+            title, code, _seed_owner, year, subtitle, icon, description = rich
+            code = normalize_id_code(code)
+            owner_name = owner_for_id_code(code) or _seed_owner
         else:
-            title = f"Memorabilia {rd_code}"
-            code = rd_code
-            owner_name = "DLSU-D Presidents' Gallery"
+            title = ""
+            code = id_code
+            owner_name = owner_for_id_code(id_code)
             year = ""
             subtitle = "Scanner catalog entry"
             icon = "🏺"
             description = (
-                f"Published catalog record for scanner class {rd_code}. "
+                f"Published catalog record for scanner class {id_code}. "
                 "Curators can edit this title and description in Curator Desk."
             )
         lines.append(
-            "  IF NOT EXISTS (SELECT 1 FROM artifacts WHERE upper(rd_code) = "
+            "  IF NOT EXISTS (SELECT 1 FROM artifacts WHERE upper(id_code) = "
             f"'{esc(code.upper())}') THEN"
         )
         lines.append(
             "    INSERT INTO artifacts "
-            "(owner_id, title, description, image_url, rd_code, owner_name, year, subtitle, icon, published) "
+            "(owner_id, title, description, image_url, id_code, owner_name, year, year_acquired, subtitle, icon, published) "
             f"VALUES (curator_id, '{esc(title)}', '{esc(description)}', '{esc(PLACEHOLDER_IMAGE)}', "
-            f"'{esc(code)}', '{esc(owner_name)}', '{esc(year)}', '{esc(subtitle)}', '{esc(icon)}', TRUE);"
+            f"'{esc(code)}', '{esc(owner_name)}', '{esc(year)}', '{esc(year)}', '{esc(subtitle)}', '{esc(icon)}', TRUE);"
         )
         lines.append("  END IF;")
     lines.extend(["END $$;", ""])

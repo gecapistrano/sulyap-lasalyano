@@ -53,7 +53,14 @@ export function createSecureApiClient({ baseUrl }) {
       })
 
       if (!response.ok) {
-        throw new Error(`API request failed (${response.status})`)
+        let detail = ''
+        try {
+          const errBody = await response.json()
+          detail = typeof errBody?.detail === 'string' ? errBody.detail : ''
+        } catch {
+          /* ignore */
+        }
+        throw new Error(detail || `API request failed (${response.status})`)
       }
 
       if (response.status === 204) return null

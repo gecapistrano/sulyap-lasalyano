@@ -1,6 +1,7 @@
 import { assertSecureHttpUrl } from '../utils/security'
+import { env } from '../config/env'
 
-const MODEL_ASSET_BASE_URL = (import.meta.env.VITE_MODEL_ASSET_BASE_URL || '').trim()
+const MODEL_ASSET_BASE_URL = (env.modelAssetBaseUrl || '').trim()
 if (MODEL_ASSET_BASE_URL) {
   assertSecureHttpUrl(MODEL_ASSET_BASE_URL)
 }

@@ -16,7 +16,7 @@ import {
 } from '../lib/rdClassifier'
 import { PLACEHOLDER_ARTIFACT_DESCRIPTION } from '../data/artifactBrowseMocks'
 import {
-  getCatalogArtifactByRdCode,
+  getCatalogArtifactByIdCode,
   isBackendConfigured,
   listCatalogArtifacts,
   mapCatalogArtifact,
@@ -514,7 +514,7 @@ export default function ARCamera({ language = 'English', onBrowse, onHome, darkM
       try {
         let mapped = rdCode ? catalogByRdRef.current.get(rdCode) || null : null
         if (!mapped && rdCode && isBackendConfigured()) {
-          const row = await getCatalogArtifactByRdCode(rdCode)
+          const row = await getCatalogArtifactByIdCode(rdCode)
           mapped = mapCatalogArtifact(row)
           if (mapped) catalogByRdRef.current.set(rdCode, mapped)
         }

@@ -1,8 +1,9 @@
 /**
  * RelatedArtifacts — list of memorabilia sharing a selected tag (same card style as Browse).
  */
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { getArtifactsForRelatedTag } from '../lib/relatedTags'
+import { isBackendConfigured, listRelatedArtifacts } from '../lib/archiveApi'
 import { t } from '../i18n'
 import { validateSearchQuery } from '../utils/security'
 import './BrowseMode.css'
@@ -10,16 +11,48 @@ import './RelatedArtifacts.css'
 
 export default function RelatedArtifacts({ language = 'English', tag, onBack, onOpenArtifact, darkMode }) {
   const [query, setQuery] = useState('')
+  const [apiList, setApiList] = useState(null)
+  const [loading, setLoading] = useState(false)
 
   const { sanitized: safeQuery } = validateSearchQuery(query)
 
-  const baseList = useMemo(() => getArtifactsForRelatedTag(tag ?? ''), [tag])
+  useEffect(() => {
+    let cancelled = false
+    const needle = typeof tag === 'string' ? tag.trim() : ''
+    if (!needle || !isBackendConfigured()) {
+      setApiList(null)
+      return undefined
+    }
+    setLoading(true)
+    listRelatedArtifacts({ tag: needle })
+      .then((rows) => {
+        if (!cancelled) setApiList(rows)
+      })
+      .catch(() => {
+        if (!cancelled) setApiList(null)
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [tag])
+
+  const baseList = useMemo(() => {
+    if (Array.isArray(apiList)) return apiList
+    return getArtifactsForRelatedTag(tag ?? '')
+  }, [apiList, tag])
 
   const filtered = useMemo(() => {
     if (!safeQuery) return baseList
     const q = safeQuery.toLowerCase()
     return baseList.filter((a) =>
-      [a.name, a.subtitle, a.year, a.owner, a.rdCode].filter(Boolean).join(' ').toLowerCase().includes(q),
+      [a.name, a.subtitle, a.year, a.owner, a.rdCode, a.idCode]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+        .includes(q),
     )
   }, [baseList, safeQuery])
 
@@ -59,7 +92,9 @@ export default function RelatedArtifacts({ language = 'English', tag, onBack, on
       </div>
 
       <p className="ra-count" role="status">
-        {t(language, filtered.length === 1 ? 'browse.item' : 'browse.items', { count: filtered.length })}
+        {loading
+          ? '…'
+          : t(language, filtered.length === 1 ? 'browse.item' : 'browse.items', { count: filtered.length })}
       </p>
 
       <div className="browse-list">
@@ -68,19 +103,24 @@ export default function RelatedArtifacts({ language = 'English', tag, onBack, on
         ) : (
           filtered.map((entry) => (
             <button
-              key={entry.id}
+              key={entry.id ?? entry.idCode ?? entry.rdCode}
               type="button"
               className="browse-card-button"
               onClick={() => onOpenArtifact?.(entry)}
             >
               <div className="browse-card-thumb" aria-hidden>
-                <span>{entry.icon}</span>
+                <span>{entry.icon || '🏺'}</span>
               </div>
 
               <div className="browse-card-body">
                 <div className="browse-card-name">{entry.name}</div>
                 <div className="browse-card-meta-wrap">
-                  <div className="browse-card-year">{entry.rdCode ? `${entry.rdCode} · ` : ''}{entry.year}</div>
+                  <div className="browse-card-year">
+                    {entry.rdCode || entry.idCode
+                      ? `${entry.rdCode || entry.idCode} · `
+                      : ''}
+                    {entry.year}
+                  </div>
                   <div className="browse-card-owner">{entry.owner}</div>
                 </div>
               </div>

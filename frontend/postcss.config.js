@@ -1,5 +1,4 @@
-/** PostCSS pipeline for Vite: Tailwind then Autoprefixer. */
-export default {
+module.exports = {
   plugins: {
     tailwindcss: {},
     autoprefixer: {},

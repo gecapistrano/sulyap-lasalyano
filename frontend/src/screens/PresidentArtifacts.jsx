@@ -70,7 +70,11 @@ export default function PresidentArtifacts({ language = 'English', president, on
 
       <div className="pa-profile">
         <div className="pa-profile-photo" aria-hidden>
-          <span>👤</span>
+          {president.photo_url ? (
+            <img src={president.photo_url} alt="" />
+          ) : (
+            <span>👤</span>
+          )}
         </div>
         <h2 className="pa-profile-name">{president.name}</h2>
         <p className="pa-profile-years">{formatServiceYears(president.service)}</p>

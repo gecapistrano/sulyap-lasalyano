@@ -32,6 +32,7 @@ export default function ArtifactDetail({ language = 'English', artifact, onBack,
   const copyScrollRef = useRef(null)
   const [copyFadeTop, setCopyFadeTop] = useState(false)
   const [copyFadeBottom, setCopyFadeBottom] = useState(false)
+  const [descExpanded, setDescExpanded] = useState(false)
 
   const updateCopyScrollFades = useCallback(() => {
     const el = copyScrollRef.current
@@ -76,6 +77,9 @@ export default function ArtifactDetail({ language = 'English', artifact, onBack,
   const year = artifact.year ?? '\u2014'
   const headerRdLabel = getArtifactRdHeaderLabel(artifact)
   const description = translating ? t(language, 'detail.translating') : translatedDescription
+  const descLong = typeof description === 'string' && description.length > 280
+  const visibleDescription =
+    !descLong || descExpanded ? description : `${description.slice(0, 280).trim()}…`
 
   return (
     <div className={`ad-root${darkMode ? ' ad-dark' : ''}`}>
@@ -143,7 +147,12 @@ export default function ArtifactDetail({ language = 'English', artifact, onBack,
             <div className="ad-divider" aria-hidden />
 
             <h3 className="ad-desc-heading">{t(language, 'detail.description')}</h3>
-            <p className="ad-description">{description}</p>
+            <p className="ad-description">{visibleDescription}</p>
+            {descLong ? (
+              <button type="button" className="ad-related-tag" onClick={() => setDescExpanded((v) => !v)}>
+                {descExpanded ? 'Show less' : 'Show more'}
+              </button>
+            ) : null}
 
             {relatedTags.length > 0 && (
               <section className="ad-related" aria-labelledby="ad-related-heading">

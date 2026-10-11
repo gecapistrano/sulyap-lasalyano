@@ -1,1 +1,3 @@
-"""API routers package (`auth`, `artifacts`, `recognition` are mounted from `main.py`)."""
+from . import artifacts, auth, catalog, presidents, recognition
+
+__all__ = ["artifacts", "auth", "catalog", "presidents", "recognition"]

@@ -77,7 +77,11 @@ export default function BrowseMode({ language = 'English', onBack, onOpenPreside
             onClick={() => onOpenPresident?.(president)}
           >
             <div className="browse-card-thumb" aria-hidden>
-              <span>{president.icon}</span>
+              {president.photo_url ? (
+                <img src={president.photo_url} alt="" />
+              ) : (
+                <span>{president.icon || '👤'}</span>
+              )}
             </div>
 
             <div className="browse-card-body">

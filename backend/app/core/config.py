@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     access_token_exp_minutes: int = 15
     refresh_token_exp_days: int = 7
 
-    frontend_origins: str = "http://localhost:5173"
+    frontend_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
     cookie_domain: str | None = None
     cookie_secure: bool = True
     # Cross-site SPA (e.g. Vercel → Render): browsers require SameSite=None + Secure for credentialed API calls.

@@ -111,7 +111,7 @@ const en = {
   'curator.saving': 'Saving…',
   'curator.saved': 'Saved. Browse and scan will show the new copy.',
   'curator.checking': 'Checking session…',
-  'curator.noApi': 'Backend not configured. Set `VITE_API_BASE_URL` and start FastAPI.',
+  'curator.noApi': 'Backend not configured. Set `NEXT_PUBLIC_API_BASE_URL` and start FastAPI.',
   'curator.search': 'Search title, RD code, president…',
   'curator.published': 'Published (visible in Browse / Scan catalog)',
   'curator.field.title': 'Title',
@@ -136,6 +136,7 @@ const en = {
   'curator.hidden': 'hidden',
   'curator.signedIn': 'Signed in as',
   'curator.hint': 'Local seed account: curator@example.com / ChangeMeLocal12',
+  'curator.login': 'Log in',
   'curator.loginFail': 'Login failed. Check email/password and that the API is running.',
   'curator.saveFail': 'Save failed. Session may have expired — log in again.',
 }

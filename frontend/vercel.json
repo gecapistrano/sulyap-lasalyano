@@ -1,18 +1,5 @@
 {
-  "rewrites": [
-    {
-      "source": "/ar",
-      "destination": "/"
-    },
-    {
-      "source": "/ar/",
-      "destination": "/"
-    },
-    {
-      "source": "/ar/(.*)",
-      "destination": "/"
-    }
-  ],
+  "framework": "nextjs",
   "redirects": [
     {
       "source": "/(.*)",
@@ -74,10 +61,9 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self' https: wss:; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;"
+          "value": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self' https: wss:; media-src 'self' blob:; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;"
         }
       ]
     }
   ]
 }
-

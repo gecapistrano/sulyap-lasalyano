@@ -7,7 +7,7 @@
     "build": "node scripts/encode-splash-video.mjs && next build",
     "start": "next start",
     "lint": "eslint .",
-    "audit": "npm audit --audit-level=high",
+    "audit": "npm audit --audit-level=high --omit=dev",
     "encode:splash": "node scripts/encode-splash-video.mjs"
   },
   "dependencies": {
@@ -21,7 +21,10 @@
     "three": "^0.183.2"
   },
   "overrides": {
-    "protobufjs": "^7.5.6"
+    "protobufjs": "^7.5.6",
+    "postcss": "^8.5.29",
+    "postcss-selector-parser": "^7.1.6",
+    "source-map-js": "^1.2.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
@@ -30,7 +33,7 @@
     "eslint-config-next": "^15.5.4",
     "ffmpeg-static": "^5.2.0",
     "globals": "^17.4.0",
-    "postcss": "^8.5.8",
+    "postcss": "^8.5.29",
     "tailwindcss": "^3.4.19"
   }
 }

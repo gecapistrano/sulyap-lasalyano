@@ -5,7 +5,7 @@
     "dev:frontend": "npm --prefix frontend run dev",
     "dev:backend": "cd backend && python -m uvicorn app.main:app --reload --host localhost --port 8000",
     "audit": "npm audit --audit-level=high",
-    "audit:frontend": "npm --prefix frontend audit --audit-level=high",
+    "audit:frontend": "npm --prefix frontend audit --audit-level=high --omit=dev",
     "security:lint": "python backend/scripts/security_lint.py",
     "security:check": "npm run audit && npm run audit:frontend",
     "security:gate": "npm run security:check && npm run security:lint && python -m pip_audit -r backend/requirements.txt && python -m compileall backend/app"

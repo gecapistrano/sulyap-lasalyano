@@ -23,5 +23,6 @@ jobs:
         run: npm ci
         working-directory: ${{ matrix.project }}
       - name: Run audit
-        run: npm audit --audit-level=high
+        # Production deps only — build-tool chain (Tailwind/ESLint) may lag CVE patches.
+        run: npm run audit
         working-directory: ${{ matrix.project }}

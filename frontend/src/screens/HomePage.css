@@ -130,6 +130,7 @@
   position: absolute;
   inset: 0;
   background:
+    radial-gradient(ellipse 50% 35% at 85% 15%, color-mix(in srgb, var(--aca-grove) 16%, transparent), transparent 65%),
     linear-gradient(180deg, rgba(28, 23, 20, 0.55) 0%, rgba(28, 23, 20, 0.72) 45%, rgba(28, 23, 20, 0.92) 100%),
     radial-gradient(ellipse at center, transparent 0%, rgba(28, 23, 20, 0.35) 100%);
   pointer-events: none;

@@ -19,6 +19,10 @@ module.exports = {
           foreground: '#1C1714',
         },
         crimson: '#8B2635',
+        grove: {
+          DEFAULT: '#00703C',
+          bright: '#0A8250',
+        },
       },
       fontFamily: {
         display: ['var(--font-cinzel)', 'Cinzel', 'serif'],

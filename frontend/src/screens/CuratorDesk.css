@@ -18,8 +18,8 @@
   --cur-danger: var(--aca-crimson);
   --cur-danger-soft: color-mix(in srgb, var(--aca-crimson) 18%, transparent);
   --cur-danger-ink: var(--aca-fg);
-  --cur-ok: #6b9b5a;
-  --cur-ok-soft: color-mix(in srgb, #6b9b5a 16%, transparent);
+  --cur-ok: var(--aca-grove-bright);
+  --cur-ok-soft: var(--aca-grove-soft);
   --cur-info: var(--aca-accent);
   --cur-info-soft: color-mix(in srgb, var(--aca-accent) 14%, transparent);
   --cur-header-h: var(--aca-header-h);

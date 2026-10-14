@@ -19,12 +19,18 @@
 
 .aca-vignette {
   z-index: 9997;
-  background: radial-gradient(
-    ellipse at center,
-    transparent 0%,
-    transparent 50%,
-    rgba(28, 23, 20, 0.4) 100%
-  );
+  background:
+    radial-gradient(
+      ellipse 55% 40% at 12% 88%,
+      color-mix(in srgb, var(--aca-grove) 14%, transparent) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse at center,
+      transparent 0%,
+      transparent 50%,
+      rgba(28, 23, 20, 0.4) 100%
+    );
 }
 
 /* ── Buttons ── */
@@ -145,7 +151,7 @@
   border: 2px solid var(--aca-accent);
   opacity: 0.6;
   pointer-events: none;
-  transition: opacity var(--aca-base) var(--aca-ease);
+  transition: opacity var(--aca-base) var(--aca-ease), border-color var(--aca-base) var(--aca-ease);
 }
 
 .aca-card.aca-flourish::before {
@@ -153,6 +159,7 @@
   left: -1px;
   border-right: none;
   border-bottom: none;
+  border-color: var(--aca-grove);
 }
 
 .aca-card.aca-flourish::after {
@@ -196,9 +203,11 @@ img.aca-sepia:hover {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    var(--aca-border) 20%,
+    var(--aca-border) 18%,
+    var(--aca-grove) 42%,
     var(--aca-accent) 50%,
-    var(--aca-border) 80%,
+    var(--aca-grove) 58%,
+    var(--aca-border) 82%,
     transparent 100%
   );
 }
@@ -209,7 +218,7 @@ img.aca-sepia:hover {
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  color: var(--aca-accent);
+  color: var(--aca-grove-bright);
   font-size: 0.75rem;
   background: var(--aca-bg);
   padding: 0 0.75rem;
@@ -218,6 +227,7 @@ img.aca-sepia:hover {
 
 /* ── Volume label ── */
 .aca-volume {
+  display: inline-block;
   font-family: var(--font-display);
   font-size: 0.7rem;
   font-weight: 500;
@@ -225,6 +235,15 @@ img.aca-sepia:hover {
   text-transform: uppercase;
   color: var(--aca-accent);
   margin: 0 0 0.5rem;
+}
+
+.aca-volume::after {
+  content: '';
+  display: block;
+  width: 2.5rem;
+  height: 1px;
+  margin-top: 0.45rem;
+  background: linear-gradient(90deg, var(--aca-grove), transparent);
 }
 
 /* ── Drop cap ── */
@@ -236,6 +255,8 @@ img.aca-sepia:hover {
   margin: 0.1rem 0.75rem 0 0;
   color: var(--aca-accent);
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  border-left: 3px solid var(--aca-grove);
+  padding-left: 0.2rem;
 }
 
 /* ── Visitor chrome ── */

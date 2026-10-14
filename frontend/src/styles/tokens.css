@@ -16,6 +16,10 @@
   --aca-accent-bright: #d4b872;
   --aca-accent-deep: #b8953f;
   --aca-crimson: #8b2635;
+  /* Lasallian grove — sparse academic accent (not primary interaction) */
+  --aca-grove: #00703c;
+  --aca-grove-bright: #0a8250;
+  --aca-grove-soft: color-mix(in srgb, #00703c 18%, transparent);
   --aca-accent-fg: #1c1714;
 
   /* Type */

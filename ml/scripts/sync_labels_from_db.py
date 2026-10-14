@@ -1,5 +1,9 @@
 """
-Regenerate frontend/public/models/labels.txt from published artifact id_codes.
+Export published catalog id_codes for docs / annotation guides.
+
+IMPORTANT: Do NOT overwrite frontend/public/models/labels.txt from the catalog.
+Live Scan labels must match the trained ONNX class order (see ml/weights/classes.txt
+and ml/scripts/deploy_model.py). Catalog-sorted codes break index→class mapping.
 
 Usage (from repo root, with DATABASE_URL set):
   python ml/scripts/sync_labels_from_db.py
@@ -18,7 +22,10 @@ from app.core.database import SessionLocal  # noqa: E402
 from app.models import Artifact  # noqa: E402
 from app.services.id_codes import normalize_id_code  # noqa: E402
 
-OUT = ROOT / "frontend" / "public" / "models" / "labels.txt"
+# Catalog export only — never Live Scan training labels.
+OUT = ROOT / "frontend" / "public" / "models" / "catalog_id_codes.txt"
+TRAINING_LABELS = ROOT / "frontend" / "public" / "models" / "labels.txt"
+WEIGHTS_CLASSES = ROOT / "ml" / "weights" / "classes.txt"
 
 
 def main() -> None:
@@ -32,7 +39,12 @@ def main() -> None:
         )
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text("\n".join(codes) + ("\n" if codes else ""), encoding="utf-8")
-    print(f"Wrote {len(codes)} labels -> {OUT}")
+    print(f"Wrote {len(codes)} catalog id_codes -> {OUT}")
+    print(
+        "Live Scan labels stay in training order "
+        f"({TRAINING_LABELS.name} / {WEIGHTS_CLASSES.name}); "
+        "use ml/scripts/deploy_model.py after retraining."
+    )
 
 
 if __name__ == "__main__":

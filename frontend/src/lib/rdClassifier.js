@@ -6,8 +6,14 @@ if (MODEL_ASSET_BASE_URL) {
   assertSecureHttpUrl(MODEL_ASSET_BASE_URL)
 }
 const MODEL_BASE = MODEL_ASSET_BASE_URL.replace(/\/+$/, '')
-const MODEL_URL = MODEL_BASE ? `${MODEL_BASE}/model.onnx` : '/models/model.onnx'
-const LABELS_URL = MODEL_BASE ? `${MODEL_BASE}/labels.txt` : '/models/labels.txt'
+/** Bump when replacing ONNX or training-order labels (CDN caches /models as immutable). */
+const MODEL_ASSET_VERSION = 'v47-train-20261014'
+const MODEL_URL = MODEL_BASE
+  ? `${MODEL_BASE}/model.onnx?v=${MODEL_ASSET_VERSION}`
+  : `/models/model.onnx?v=${MODEL_ASSET_VERSION}`
+const LABELS_URL = MODEL_BASE
+  ? `${MODEL_BASE}/labels.txt?v=${MODEL_ASSET_VERSION}`
+  : `/models/labels.txt?v=${MODEL_ASSET_VERSION}`
 export const MODEL_INPUT_SIZE = 640
 const SIGNAL_INPUT_SIZE = 224
 /** Discard degenerate frames below this peak class probability on the best anchor. */
@@ -154,6 +160,23 @@ async function getClassNames() {
   return classNamesPromise
 }
 
+/**
+ * Labels must be exactly the ONNX class-channel count, in training order.
+ * A longer catalog dump (e.g. sorted id_codes) remaps every index to the wrong artifact.
+ */
+function alignClassNamesToModel(classNames, classCount) {
+  if (!Array.isArray(classNames) || classCount <= 0) return classNames
+  if (classNames.length === classCount) return classNames
+  if (typeof console !== 'undefined' && console.warn) {
+    console.warn(
+      `[rdClassifier] labels.txt has ${classNames.length} names but model has ${classCount} classes; ` +
+        'using the first model-sized slice. Restore training-order labels via ml/scripts/deploy_model.py.',
+    )
+  }
+  if (classNames.length > classCount) return classNames.slice(0, classCount)
+  return classNames
+}
+
 /** YOLOv8 ONNX class channels are logits; apply sigmoid like Ultralytics multiclass heads. */
 function sigmoid(x) {
   const z = Number(x)
@@ -253,6 +276,7 @@ function parseDetectionOutput(outputTensor, classNames) {
   const anchors = Number(dims[2] ?? 0)
   const classCount = channels - 4
   if (channels <= 4 || anchors <= 0 || classCount <= 0) return null
+  const names = alignClassNamesToModel(classNames, classCount)
 
   // This project's Ultralytics ONNX export stores class logits — always sigmoid.
   const useSigmoid = true
@@ -309,7 +333,7 @@ function parseDetectionOutput(outputTensor, classNames) {
     candidates.push({
       id: `${localBestCls}-${anchor}`,
       classIndex: localBestCls,
-      className: classNames[localBestCls] ?? `class-${localBestCls}`,
+      className: names[localBestCls] ?? `class-${localBestCls}`,
       confidence: Number(localBestConf.toFixed(4)),
       margin: Number(margin.toFixed(4)),
       box: {
@@ -340,7 +364,7 @@ function parseDetectionOutput(outputTensor, classNames) {
   const top = detections[0]
   return {
     classIndex: top?.classIndex ?? bestClassIndex,
-    className: top?.className ?? classNames[bestClassIndex] ?? `class-${bestClassIndex}`,
+    className: top?.className ?? names[bestClassIndex] ?? `class-${bestClassIndex}`,
     confidence: Number((top?.confidence ?? bestConfidence).toFixed(4)),
     probabilities: Array.from(anchorProbs),
     margin: Number((top?.margin ?? Math.max(0, bestConfidence - secondBest)).toFixed(4)),
@@ -541,9 +565,10 @@ export async function classifyRdItemsFrame(videoEl, options = {}) {
     }
   }
 
+  const names = alignClassNamesToModel(classNames, probs.length)
   return {
     classIndex: bestIdx,
-    className: classNames[bestIdx] ?? `class-${bestIdx}`,
+    className: names[bestIdx] ?? `class-${bestIdx}`,
     confidence: Number(best.toFixed(4)),
     probabilities: Array.from(probs),
     detections: [],

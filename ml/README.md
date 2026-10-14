@@ -69,14 +69,14 @@ python ml/scripts/evaluate_test_split.py --data ml/YoloV8_Annotated/data.yaml
 
 Detector class names **must match** catalog `id_code` values (e.g. `RD244`, `AB005`).
 
-Before a train cycle, sync labels from the published catalog (Supabase/`DATABASE_URL`):
+Optional: export published catalog codes for annotation planning (does **not** feed Live Scan):
 
 ```bash
 # from repo root, with backend DATABASE_URL set
 python ml/scripts/sync_labels_from_db.py
 ```
 
-That writes `frontend/public/models/labels.txt`. After training, `train_and_deploy.py` overwrites ONNX + labels from the Roboflow/`data.yaml` class list — keep Roboflow classes aligned with `id_code`.
+That writes `frontend/public/models/catalog_id_codes.txt`. Live Scan `labels.txt` must stay in **training order** — after training, `train_and_deploy.py` / `deploy_model.py` overwrite ONNX + labels from the Roboflow/`data.yaml` class list. Keep Roboflow classes aligned with `id_code`.
 
 Catalog rows can exist before the next retrain; browse works immediately; Live Scan catches up after you deploy updated `frontend/public/models/`.
 

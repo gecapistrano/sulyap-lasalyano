@@ -336,6 +336,10 @@
 
 select.curator-input {
   cursor: pointer;
+  appearance: auto;
+  -webkit-appearance: menulist;
+  background-image: none;
+  padding-right: 2rem;
 }
 
 .curator-primary {

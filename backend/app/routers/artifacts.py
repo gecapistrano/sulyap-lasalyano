@@ -169,7 +169,9 @@ def update_artifact(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Artifact not found")
     ensure_resource_owner_or_admin(owner_id=artifact.owner_id, user=user)
 
-    updates = payload.model_dump(exclude_none=True)
+    # exclude_unset keeps explicit nulls (e.g. clearing president_id) while
+    # omitting fields the client did not send.
+    updates = payload.model_dump(exclude_unset=True)
     # Curator Desk sends the full editable tag list (auto + manual + llm chips).
     tag_labels = updates.pop("tags", None)
     if tag_labels is None:

@@ -39,7 +39,7 @@ Prefer `.xlsx`/`.csv` for portability. `.xlsb` needs Excel COM on Windows.
 ## Live Scan model update (iterative)
 
 1. Ensure catalog `id_code` values match training class names.
-2. Sync labels: `python ml/scripts/sync_labels_from_db.py`
+2. After retraining, deploy ONNX + training-order labels: `python ml/scripts/deploy_model.py --onnx <path>` (do not overwrite Live Scan `labels.txt` from the catalog)
 3. Train/deploy: `python ml/scripts/train_and_deploy.py` (see `ml/README.md`)
 4. Commit/deploy updated `frontend/public/models/` (ONNX + `labels.txt`) with the Next.js app.
 
@@ -63,6 +63,6 @@ Rotate curator password after handover. Never commit `.env` files.
 | Login works locally, fails on Vercel | `FRONTEND_ORIGINS`, `COOKIE_SAMESITE=none`, `COOKIE_SECURE=true`, HTTPS API URL |
 | CSRF / 403 on save | Session cookie present; CSRF cookie + header; origin allowlist |
 | Photos/models missing after Render deploy | Ephemeral disk — re-upload or attach persistent disk / object storage |
-| Scan wrong / no class | `labels.txt` vs catalog `id_code`; redeploy Next with new ONNX |
+| Scan wrong / no class | `labels.txt` must match ONNX class order (`ml/weights/classes.txt`); never replace with sorted catalog codes; bump `MODEL_ASSET_VERSION` / redeploy Next |
 
 Full deploy steps: [DEPLOYMENT.md](./DEPLOYMENT.md).

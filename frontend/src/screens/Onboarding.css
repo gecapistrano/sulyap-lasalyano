@@ -5,23 +5,22 @@
 /* Onboarding — splash wordmark + vision board dark theme (REFERENCE) */
 
 .onboarding-root {
-  --night: #d4c8a8;
-  --grove: #c4b898;
-  --moss: #7a6854;
-  --sage: #6b5a48;
-  --sage-lt: #8a7a68;
-  --lichen: #5a4a38;
-  --parch: #3a2e1f;
-  --logo-green: #3a6b2a;
-  --bdr-d: #b8a888;
-  --bdr-l: #a89878;
-  --glass-bg: rgba(58, 46, 31, 0.06);
-  --glass-bd: rgba(58, 46, 31, 0.14);
-  --glass-hi: rgba(58, 46, 31, 0.08);
-  --ff-serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
-  --ff-mono: 'DM Mono', ui-monospace, monospace;
-  /* Vision board uses serif + mono only; DM Sans pairs with DM Mono for readable UI copy */
-  --ff-sans: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --night: var(--aca-bg);
+  --grove: var(--aca-bg-alt);
+  --moss: var(--aca-muted);
+  --sage: var(--aca-muted-fg);
+  --sage-lt: var(--aca-muted-fg);
+  --lichen: var(--aca-border);
+  --parch: var(--aca-fg);
+  --logo-green: var(--aca-accent);
+  --bdr-d: var(--aca-border);
+  --bdr-l: var(--aca-border);
+  --glass-bg: color-mix(in srgb, var(--aca-accent) 8%, transparent);
+  --glass-bd: var(--aca-border);
+  --glass-hi: color-mix(in srgb, var(--aca-accent) 12%, transparent);
+  --ff-serif: var(--font-heading);
+  --ff-mono: var(--font-display);
+  --ff-sans: var(--font-body);
 
   position: relative;
   height: 100%;
@@ -35,7 +34,7 @@
   color: var(--parch);
   font-family: var(--ff-serif);
   overflow: hidden;
-  transition: background 0.5s ease, color 0.5s ease;
+  transition: background var(--aca-slow) var(--aca-ease), color var(--aca-slow) var(--aca-ease);
 }
 
 /* Back button — top-left chevron icon */
@@ -425,39 +424,37 @@
 
 .onb-btn-next {
   width: 100%;
+  min-height: 3rem;
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  border-radius: 9999px;
+  border-radius: var(--aca-radius);
   padding: 0.9rem 1.5rem;
-  font-family: var(--ff-serif);
-  font-size: 0.9375rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: #f2efd6;
-  background: linear-gradient(160deg, #6b5a48 0%, #5a4a38 100%);
-  border: 1.5px solid rgba(90, 74, 56, 0.6);
+  color: var(--aca-accent-fg);
+  background: var(--aca-brass-gradient);
+  border: none;
+  text-shadow: var(--aca-engraved);
   box-shadow:
-    0 4px 20px rgba(58, 46, 31, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+    0 2px 8px rgba(0, 0, 0, 0.3);
   transition:
-    transform 0.28s cubic-bezier(0.22, 0.68, 0, 1.2),
-    box-shadow 0.28s ease,
-    background 0.5s ease,
-    border-color 0.5s ease,
-    color 0.5s ease;
+    transform var(--aca-base) var(--aca-ease),
+    filter var(--aca-base) var(--aca-ease),
+    box-shadow var(--aca-base) var(--aca-ease);
 }
 
 .onb-btn-next:hover {
   transform: translateY(-2px);
-  background: linear-gradient(160deg, #7a6854 0%, #6b5a48 100%);
-  border-color: rgba(90, 74, 56, 0.9);
+  filter: brightness(1.08);
   box-shadow:
-    0 10px 32px rgba(58, 46, 31, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 4px 12px rgba(201, 169, 98, 0.3);
 }
 
 .onb-btn-next:active {
@@ -509,8 +506,10 @@
 
 .onb-btn-skip:focus-visible,
 .onb-btn-next:focus-visible {
-  outline: 2px solid var(--lichen);
-  outline-offset: 3px;
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--aca-bg),
+    0 0 0 4px var(--aca-accent);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -528,16 +527,8 @@
    ═══════════════════════════════════════════ */
 
 .onb-dark {
-  --night: #3a2e1f;
-  --grove: #2e2316;
-  --lichen: #d4c8a8;
-  --parch: #f2efd6;
-  --bdr-d: #2a3a24;
-  --bdr-l: #3a5230;
-  --glass-bg: rgba(242, 239, 214, 0.06);
-  --glass-bd: rgba(242, 239, 214, 0.14);
-  --glass-hi: rgba(255, 255, 255, 0.12);
-  transition: background 0.5s ease, color 0.5s ease;
+  /* Academia single theme — inherits onboarding-root tokens */
+  transition: background var(--aca-slow) var(--aca-ease), color var(--aca-slow) var(--aca-ease);
 }
 
 .onb-dark::before {
@@ -557,20 +548,11 @@
 }
 
 .onb-dark .onb-btn-next {
-  background: rgba(242, 239, 214, 0.08);
-  border: 1.5px solid rgba(242, 239, 214, 0.4);
-  color: #f2efd6;
-  box-shadow:
-    0 4px 20px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  /* inherits brass primary */
 }
 
 .onb-dark .onb-btn-next:hover {
-  background: rgba(242, 239, 214, 0.15);
-  border-color: rgba(242, 239, 214, 0.7);
-  box-shadow:
-    0 10px 32px rgba(0, 0, 0, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  /* inherits brass primary hover */
 }
 
 .onb-dark .onb-back-btn:hover {

@@ -8,16 +8,16 @@
    ═══════════════════════════════════════════ */
 
 .ad-root {
-  --ad-bg: #d4c8a8;
-  --ad-text: #3a2e1f;
-  --ad-text-soft: #5a4a38;
-  --ad-accent: #f2efd6;
-  --ad-card-bg: rgba(242, 239, 214, 0.4);
-  --ad-card-border: rgba(58, 46, 31, 0.1);
-  --ad-divider: rgba(58, 46, 31, 0.15);
-  --ff-serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
-  --ff-mono: 'DM Mono', ui-monospace, monospace;
-  --ff-sans: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --ad-bg: var(--aca-bg);
+  --ad-text: var(--aca-fg);
+  --ad-text-soft: var(--aca-muted-fg);
+  --ad-accent: var(--aca-accent);
+  --ad-card-bg: var(--aca-bg-alt);
+  --ad-card-border: var(--aca-border);
+  --ad-divider: var(--aca-border);
+  --ff-serif: var(--font-heading);
+  --ff-mono: var(--font-display);
+  --ff-sans: var(--font-body);
 
   position: relative;
   display: flex;
@@ -28,7 +28,7 @@
   font-family: var(--ff-sans);
   background: var(--ad-bg);
   overflow: hidden;
-  transition: background 0.5s ease, color 0.5s ease;
+  transition: background var(--aca-slow) var(--aca-ease), color var(--aca-slow) var(--aca-ease);
 }
 
 /* ── Header ── */
@@ -67,8 +67,10 @@
 }
 
 .ad-back:focus-visible {
-  outline: 2px solid var(--ad-text-soft);
-  outline-offset: 2px;
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--aca-bg),
+    0 0 0 4px var(--aca-accent);
 }
 
 .ad-kg {
@@ -93,10 +95,10 @@
 }
 
 .ad-kg:hover {
-  color: var(--ad-text);
-  border-color: rgba(58, 46, 31, 0.22);
-  background: rgba(242, 239, 214, 0.62);
-  box-shadow: 0 2px 6px rgba(58, 46, 31, 0.1);
+  color: var(--aca-accent);
+  border-color: var(--aca-accent);
+  background: color-mix(in srgb, var(--aca-accent) 14%, transparent);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 .ad-kg svg {
@@ -105,8 +107,10 @@
 }
 
 .ad-kg:focus-visible {
-  outline: 2px solid var(--ad-text-soft);
-  outline-offset: 2px;
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--aca-bg),
+    0 0 0 4px var(--aca-accent);
 }
 
 .ad-header-trailing-spacer {
@@ -385,26 +389,28 @@
 
 .ad-related-tag {
   cursor: pointer;
-  font-family: var(--ff-sans);
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  color: var(--ad-text);
-  padding: 0.45rem 0.85rem;
-  border-radius: 9999px;
-  border: 1px solid var(--ad-card-border);
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--aca-accent);
+  padding: 0.5rem 0.9rem;
+  min-height: 2.75rem;
+  border-radius: var(--aca-radius);
+  border: 1px solid var(--aca-border);
   background: var(--ad-card-bg);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
   transition:
-    border-color 0.2s ease,
-    background 0.2s ease,
-    transform 0.15s ease;
+    border-color var(--aca-fast) var(--aca-ease),
+    background var(--aca-fast) var(--aca-ease),
+    color var(--aca-fast) var(--aca-ease),
+    transform var(--aca-fast) var(--aca-ease);
 }
 
 .ad-related-tag:hover {
-  border-color: rgba(58, 46, 31, 0.22);
-  background: rgba(242, 239, 214, 0.65);
+  border-color: var(--aca-accent);
+  background: color-mix(in srgb, var(--aca-accent) 12%, transparent);
+  color: var(--aca-accent-bright);
 }
 
 .ad-related-tag:active {
@@ -412,8 +418,10 @@
 }
 
 .ad-related-tag:focus-visible {
-  outline: 2px solid var(--ad-text-soft);
-  outline-offset: 2px;
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--aca-bg),
+    0 0 0 4px var(--aca-accent);
 }
 
 /* ═══════════════════════════════════════════
@@ -421,45 +429,11 @@
    ═══════════════════════════════════════════ */
 
 .ad-dark {
-  --ad-bg: #3a2e1f;
-  --ad-text: #d4c8a8;
-  --ad-text-soft: #b8a88a;
-  --ad-accent: #d4c8a8;
-  --ad-card-bg: rgba(212, 200, 168, 0.08);
-  --ad-card-border: rgba(212, 200, 168, 0.12);
-  --ad-divider: rgba(212, 200, 168, 0.15);
+  /* Academia single theme — inherits root tokens */
 }
 
 .ad-dark .ad-header {
-  background: rgba(58, 46, 31, 0.35);
-}
-
-.ad-dark .ad-title {
-  font-weight: 600;
-}
-
-.ad-dark .ad-label {
-  font-weight: 500;
-}
-
-.ad-dark .ad-owner,
-.ad-dark .ad-year {
-  font-weight: 500;
-}
-
-.ad-dark .ad-description {
-  font-weight: 400;
-}
-
-.ad-dark .ad-related-tag {
-  color: var(--ad-text);
-  border-color: rgba(212, 200, 168, 0.2);
-  background: rgba(212, 200, 168, 0.1);
-}
-
-.ad-dark .ad-related-tag:hover {
-  border-color: rgba(212, 200, 168, 0.35);
-  background: rgba(212, 200, 168, 0.16);
+  background: color-mix(in srgb, var(--aca-bg) 88%, transparent);
 }
 
 /* ═══════════════════════════════════════════

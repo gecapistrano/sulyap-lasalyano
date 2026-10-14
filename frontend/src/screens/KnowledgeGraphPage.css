@@ -4,20 +4,20 @@
  */
 
 .kg-root {
-  --kg-bg: #d4c8a8;
-  --kg-text: #3a2e1f;
-  --kg-text-soft: #5a4a38;
-  --kg-accent: #f2efd6;
-  --kg-card: rgba(242, 239, 214, 0.45);
-  --kg-card-border: rgba(58, 46, 31, 0.12);
-  --kg-viewport-bg: rgba(242, 239, 214, 0.35);
-  --kg-edge: rgba(58, 46, 31, 0.28);
-  --kg-node-fill: rgba(242, 239, 214, 0.92);
-  --kg-node-stroke: rgba(58, 46, 31, 0.2);
-  --kg-svg-inner: rgba(212, 200, 168, 0.25);
-  --ff-serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
-  --ff-sans: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --ff-mono: 'DM Mono', ui-monospace, monospace;
+  --kg-bg: var(--aca-bg);
+  --kg-text: var(--aca-fg);
+  --kg-text-soft: var(--aca-muted-fg);
+  --kg-accent: var(--aca-accent);
+  --kg-card: var(--aca-bg-alt);
+  --kg-card-border: var(--aca-border);
+  --kg-viewport-bg: color-mix(in srgb, var(--aca-bg-alt) 80%, #000);
+  --kg-edge: color-mix(in srgb, var(--aca-accent) 35%, transparent);
+  --kg-node-fill: var(--aca-bg-alt);
+  --kg-node-stroke: var(--aca-border);
+  --kg-svg-inner: var(--aca-muted);
+  --ff-serif: var(--font-heading);
+  --ff-sans: var(--font-body);
+  --ff-mono: var(--font-display);
 
   display: flex;
   flex-direction: column;
@@ -26,21 +26,11 @@
   background: var(--kg-bg);
   color: var(--kg-text);
   font-family: var(--ff-sans);
-  transition: background 0.45s ease, color 0.45s ease;
+  transition: background var(--aca-slow) var(--aca-ease), color var(--aca-slow) var(--aca-ease);
 }
 
 .kg-dark {
-  --kg-bg: #3a2e1f;
-  --kg-text: #d4c8a8;
-  --kg-text-soft: #b8a88a;
-  --kg-accent: #d4c8a8;
-  --kg-card: rgba(212, 200, 168, 0.08);
-  --kg-card-border: rgba(212, 200, 168, 0.14);
-  --kg-viewport-bg: rgba(26, 20, 12, 0.35);
-  --kg-edge: rgba(212, 200, 168, 0.22);
-  --kg-node-fill: rgba(212, 200, 168, 0.18);
-  --kg-node-stroke: rgba(212, 200, 168, 0.28);
-  --kg-svg-inner: rgba(58, 46, 31, 0.5);
+  /* Academia library theme (always dark) */
 }
 
 /* Header — matches Browse */
@@ -55,7 +45,7 @@
 }
 
 .kg-dark .kg-header {
-  background: rgba(58, 46, 31, 0.35);
+  background: color-mix(in srgb, var(--aca-bg) 88%, transparent);
 }
 
 .kg-back {
@@ -80,18 +70,21 @@
 }
 
 .kg-back:focus-visible {
-  outline: 2px solid var(--kg-text-soft);
-  outline-offset: 2px;
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--aca-bg),
+    0 0 0 4px var(--aca-accent);
 }
 
 .kg-header-title {
   flex: 1;
   margin: 0;
-  font-family: var(--ff-serif);
-  font-size: 1.05rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: var(--kg-text-soft);
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--aca-accent);
   text-align: center;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }
@@ -216,18 +209,21 @@
 }
 
 .kg-zoom-btn:hover {
-  background: var(--kg-accent);
-  border-color: rgba(58, 46, 31, 0.18);
+  background: color-mix(in srgb, var(--aca-accent) 18%, transparent);
+  border-color: var(--aca-accent);
+  color: var(--aca-accent);
 }
 
 .kg-dark .kg-zoom-btn:hover {
-  background: rgba(212, 200, 168, 0.15);
-  border-color: rgba(212, 200, 168, 0.28);
+  background: color-mix(in srgb, var(--aca-accent) 18%, transparent);
+  border-color: var(--aca-accent);
 }
 
 .kg-zoom-btn:focus-visible {
-  outline: 2px solid var(--kg-text-soft);
-  outline-offset: 2px;
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--aca-bg),
+    0 0 0 4px var(--aca-accent);
 }
 
 .kg-footer {

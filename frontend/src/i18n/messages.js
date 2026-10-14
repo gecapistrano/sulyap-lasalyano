@@ -19,19 +19,28 @@ const en = {
   'nav.openKnowledgeGraph': 'Open knowledge graph',
   'nav.exit': 'Exit',
 
+  'home.brand': 'Sulyap Lasalyano',
   'home.welcome': 'Welcome to',
+  'home.tagline':
+    'A living archive of DLSU-D presidents’ memorabilia—browse the collection, trace its connections, or scan pieces in the gallery.',
+  'home.intro':
+    'From the Presidents’ Memorabilia Gallery at De La Salle University-Dasmariñas, Sulyap Lasalyano invites you to meet the objects that shaped Lasallian leadership—quietly, carefully, and at your own pace.',
   'home.browse': 'Browse',
   'home.knowledgeGraph': 'View Knowledge Graph',
+  'home.knowledgeGraphShort': 'Knowledge Graph',
   'home.liveScan': 'Live Scan',
+  'home.volume1': 'Volume I',
+  'home.volume2': 'Volume II',
+  'home.volume3': 'Volume III',
   'home.feature.browse.title': 'Browse',
   'home.feature.browse.body':
-    "Take your time and explore at your own pace. Browse the full collection of presidential memorabilia from wherever you are. Whether you're on-site or miles away, the legacy of De La Salle is always within reach.",
+    'Explore the full collection of presidential memorabilia from wherever you are—on-site or afar.',
   'home.feature.kg.title': 'Knowledge Graph',
   'home.feature.kg.body':
-    "Trace the threads of our shared heritage. Explore an interactive map that connects presidents, artifacts, and milestones across generations of Lasallian history. See how each piece of memorabilia weaves into the rich tapestry of DLSU's story, and perhaps, your own.",
+    'Trace how presidents, artifacts, and milestones connect across generations of Lasallian history.',
   'home.feature.scan.title': 'Live Scan',
   'home.feature.scan.body':
-    'Step into history with your camera. Simply point your device at any memorabilia in the gallery, and watch as its story comes alive. Learn who it belonged to, why it matters, and how it shaped the legacy of De La Salle. Every artifact has a story waiting to be told.',
+    'Point your camera at gallery memorabilia and watch each object’s story come into focus.',
   'home.footer':
     '© 2026 Sulyap Lasalyano — De La Salle University-Dasmariñas. All rights reserved. Developed by J.N. Lagajino, J.U. Ricafrente & G.E. Capistrano',
   'home.curator': 'Curator desk',
@@ -156,13 +165,13 @@ const tl = {
   'home.liveScan': 'Live Scan',
   'home.feature.browse.title': 'Mag-browse',
   'home.feature.browse.body':
-    'Maglaan ng oras at mag-explore sa sarili mong bilis. Tingnan ang buong koleksyon ng presidential memorabilia kahit nasaan ka. Nasa o malayo man, laging abot-kamay ang pamana ng De La Salle.',
+    'Tuklasin ang buong koleksyon ng presidential memorabilia—sa gallery man o mula sa malayo.',
   'home.feature.kg.title': 'Knowledge Graph',
   'home.feature.kg.body':
-    'Sundan ang mga ugnayan ng ating pinagsasaluhang pamana. Mag-explore ng interactive na mapa na nag-uugnay sa mga pangulo, artifact, at mileston sa kasaysayan ng Lasallian.',
+    'Sundan kung paano magkakaugnay ang mga pangulo, artifact, at milestone sa kasaysayan ng Lasallian.',
   'home.feature.scan.title': 'Live Scan',
   'home.feature.scan.body':
-    'Pasukin ang kasaysayan gamit ang iyong camera. Itutok ang device sa anumang memorabilia sa gallery at panoorin ang kuwento nito. Bawat artifact ay may kuwentong nagaabang.',
+    'Itutok ang camera sa memorabilia at panoorin ang kuwento ng bawat bagay.',
   'home.curator': 'Curator desk',
   'onb.pointTitle': 'Itutok ang camera',
   'onb.pointBody':

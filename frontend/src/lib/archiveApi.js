@@ -196,7 +196,10 @@ export async function updateArtifact(artifactId, patch) {
   if (typeof patch?.published === 'boolean') body.published = patch.published
   if (typeof patch?.llm_assist_enabled === 'boolean') body.llm_assist_enabled = patch.llm_assist_enabled
   if (typeof patch?.model_url === 'string') body.model_url = cleanField(patch.model_url).trim()
-  if (typeof patch?.president_id === 'number') body.president_id = patch.president_id
+  if (patch?.president_id === null) body.president_id = null
+  else if (typeof patch?.president_id === 'number' && Number.isFinite(patch.president_id)) {
+    body.president_id = patch.president_id
+  }
   if (Array.isArray(patch?.tags)) body.tags = patch.tags
   else if (Array.isArray(patch?.manual_tags)) body.tags = patch.manual_tags
   return apiClient.request(`/artifacts/${id}`, {

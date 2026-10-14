@@ -30,6 +30,7 @@ const EMPTY_ARTIFACT = {
   description: '',
   id_code: '',
   owner_name: '',
+  president_id: null,
   year_acquired: '',
   country_of_origin: '',
   artifact_type: '',
@@ -72,13 +73,27 @@ function tagsFromRow(row) {
   return out
 }
 
-function artifactToForm(row) {
+function resolvePresidentId(row, presidents = []) {
+  const rawId = row?.president_id
+  if (typeof rawId === 'number' && Number.isFinite(rawId)) return rawId
+  const name = String(row?.owner_name || '')
+    .trim()
+    .toLowerCase()
+  if (!name || !Array.isArray(presidents)) return null
+  const match = presidents.find((p) => String(p.name || '').trim().toLowerCase() === name)
+  return match?.id ?? null
+}
+
+function artifactToForm(row, presidents = []) {
   if (!row) return { ...EMPTY_ARTIFACT, tags: [] }
+  const presidentId = resolvePresidentId(row, presidents)
+  const matched = presidents.find((p) => p.id === presidentId)
   return {
     title: row.title || '',
     description: row.description || '',
     id_code: row.id_code || row.rd_code || '',
-    owner_name: row.owner_name || '',
+    owner_name: matched?.name || row.owner_name || '',
+    president_id: presidentId,
     year_acquired: row.year_acquired || row.year || '',
     country_of_origin: row.country_of_origin || '',
     artifact_type: row.artifact_type || '',
@@ -314,13 +329,13 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
   )
 
   useEffect(() => {
-    setForm(artifactToForm(selected))
+    setForm(artifactToForm(selected, presidents))
     setAiSuggestion(null)
     setSaveMsg('')
     setSaveError('')
     setUploadMsg('')
     setUploadError('')
-  }, [selected])
+  }, [selected, presidents])
 
   useEffect(() => {
     if (!selectedPresident) {
@@ -389,6 +404,7 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
         description: form.description,
         id_code: form.id_code.trim(),
         owner_name: form.owner_name.trim(),
+        president_id: form.president_id,
         year_acquired: form.year_acquired.trim(),
         country_of_origin: form.country_of_origin.trim(),
         artifact_type: form.artifact_type.trim(),
@@ -400,7 +416,7 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
         tags: form.tags,
       })
       setRows((prev) => prev.map((row) => (row.id === updated.id ? updated : row)))
-      setForm(artifactToForm(updated))
+      setForm(artifactToForm(updated, presidents))
       setSaveMsg(t(language, 'curator.saved'))
     } catch (err) {
       const msg = err instanceof Error && err.message ? err.message : ''
@@ -508,7 +524,7 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
     try {
       const updated = await llmApply(selectedId, { ...aiSuggestion, replace_existing: false })
       setRows((prev) => prev.map((row) => (row.id === updated.id ? updated : row)))
-      setForm(artifactToForm(updated))
+      setForm(artifactToForm(updated, presidents))
       setAiSuggestion(null)
       setSaveMsg('AI suggestions applied')
     } catch {
@@ -801,17 +817,32 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
                       </label>
                       <label className="curator-label">
                         Owner / President
-                        <input
+                        <select
                           className="curator-input"
-                          value={form.owner_name}
-                          onChange={onField('owner_name')}
-                          list="president-names"
-                        />
-                        <datalist id="president-names">
+                          value={form.president_id == null ? '' : String(form.president_id)}
+                          onChange={(event) => {
+                            const raw = event.target.value
+                            if (!raw) {
+                              setForm((prev) => ({ ...prev, president_id: null, owner_name: '' }))
+                              return
+                            }
+                            const id = Number(raw)
+                            const match = presidents.find((p) => p.id === id)
+                            setForm((prev) => ({
+                              ...prev,
+                              president_id: Number.isFinite(id) ? id : null,
+                              owner_name: match?.name || '',
+                            }))
+                          }}
+                        >
+                          <option value="">Unassigned</option>
                           {presidents.map((p) => (
-                            <option key={p.id} value={p.name} />
+                            <option key={p.id} value={String(p.id)}>
+                              {p.name}
+                              {p.service ? ` · ${p.service}` : ''}
+                            </option>
                           ))}
-                        </datalist>
+                        </select>
                       </label>
                       <label className="curator-label curator-span-2">
                         Title

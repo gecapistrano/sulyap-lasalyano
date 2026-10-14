@@ -31,7 +31,7 @@ Live stack:
    - Optional: `LLM_API_KEY`, `LLM_MODEL`, `LLM_API_BASE`
 3. Confirm `GET https://<api-host>/health` → `{"status":"ok"}`.
 
-**Uploads:** Render ephemeral disk loses files on redeploy. For durable curator photos/models, attach a disk or move to object storage (follow-up). Until then, re-upload after redeploys or use a persistent disk.
+**Uploads:** Render ephemeral disk loses files on redeploy. Curator reference photos are restored on API startup from `backend/data/curator_photos.tar.gz` (regenerate with `tar -czf backend/data/curator_photos.tar.gz -C backend/uploads/artifacts .`). New curator uploads and 3D models still need a persistent disk or object storage for durability across deploys.
 
 ## 3. Vercel (Next.js)
 

@@ -1,7 +1,9 @@
 """Curator-only artifact photo storage (not publicly mounted)."""
 from __future__ import annotations
 
+import logging
 import re
+import tarfile
 from pathlib import Path
 from secrets import token_hex
 
@@ -9,7 +11,13 @@ from fastapi import HTTPException, UploadFile, status
 
 MAX_PHOTO_BYTES = 12 * 1024 * 1024
 ALLOWED_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
-PHOTOS_ROOT = Path(__file__).resolve().parents[2] / "uploads" / "artifacts"
+_BACKEND_ROOT = Path(__file__).resolve().parents[2]
+PHOTOS_ROOT = _BACKEND_ROOT / "uploads" / "artifacts"
+# Seed pack checked into the repo so Render redeploys restore curator photos
+# (ephemeral disk otherwise loses uploads/). See docs/DEPLOYMENT.md.
+BUNDLED_PHOTOS_ARCHIVE = _BACKEND_ROOT / "data" / "curator_photos.tar.gz"
+
+logger = logging.getLogger("sulyap.photos")
 
 
 def ensure_photo_dir() -> Path:
@@ -22,6 +30,46 @@ _UPLOAD_PHOTO_RE = re.compile(r"^\d+_[0-9a-f]{16}\.(jpg|jpeg|png|webp)$", re.I)
 _IMPORT_PHOTO_RE = re.compile(r"^import_[A-Z0-9]{2,32}\.(jpg|jpeg|png|webp)$", re.I)
 
 
+def _is_allowed_photo_name(name: str) -> bool:
+    return bool(_UPLOAD_PHOTO_RE.fullmatch(name) or _IMPORT_PHOTO_RE.fullmatch(name))
+
+
+def restore_bundled_photos() -> int:
+    """Extract missing curator photos from the repo seed archive into PHOTOS_ROOT.
+
+    Safe to call on every startup: existing files are left untouched; only
+    allowlisted basenames are written (no path traversal).
+    """
+    ensure_photo_dir()
+    if not BUNDLED_PHOTOS_ARCHIVE.is_file():
+        logger.info("No bundled photo archive at %s", BUNDLED_PHOTOS_ARCHIVE)
+        return 0
+    restored = 0
+    try:
+        with tarfile.open(BUNDLED_PHOTOS_ARCHIVE, "r:gz") as tar:
+            for member in tar.getmembers():
+                if not member.isfile():
+                    continue
+                name = Path(member.name).name
+                if not _is_allowed_photo_name(name):
+                    continue
+                dest = PHOTOS_ROOT / name
+                if dest.is_file():
+                    continue
+                extracted = tar.extractfile(member)
+                if extracted is None:
+                    continue
+                with extracted, dest.open("wb") as out:
+                    out.write(extracted.read())
+                restored += 1
+    except (OSError, tarfile.TarError) as exc:
+        logger.warning("Failed to restore bundled curator photos: %s", exc)
+        return restored
+    if restored:
+        logger.info("Restored %s curator photos from seed archive", restored)
+    return restored
+
+
 def photo_path_for_media_key(media_key: str) -> Path | None:
     """Resolve curator photo path from `/curator-media/artifacts/<file>` keys."""
     name = (media_key or "").strip().replace("\\", "/")
@@ -31,7 +79,7 @@ def photo_path_for_media_key(media_key: str) -> Path | None:
         name = name.split("/")[-1]
     if not name or ".." in name:
         return None
-    if not (_UPLOAD_PHOTO_RE.fullmatch(name) or _IMPORT_PHOTO_RE.fullmatch(name)):
+    if not _is_allowed_photo_name(name):
         return None
     path = PHOTOS_ROOT / name
     if not path.is_file():

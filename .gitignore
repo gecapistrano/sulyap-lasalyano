@@ -41,6 +41,9 @@ sulyap.db
 
 # Curator-uploaded 3D models (served from /media/models) + photos
 backend/uploads/
+# Seed pack restored onto ephemeral disk at API startup (see photo_uploads.py)
+!backend/data/
+!backend/data/curator_photos.tar.gz
 
 # Memorabilia workbook imports (local / institutional copies)
 data/imports/*.xlsb

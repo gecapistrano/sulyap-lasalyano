@@ -26,7 +26,7 @@ from .core.database import (
 from .routers import artifacts, auth, catalog, presidents, recognition
 from .services.catalog_seed import seed_catalog_if_empty
 from .services.model_uploads import ensure_upload_dir
-from .services.photo_uploads import ensure_photo_dir
+from .services.photo_uploads import ensure_photo_dir, restore_bundled_photos
 
 settings = get_settings()
 logger = logging.getLogger("sulyap.security")
@@ -41,6 +41,7 @@ with SessionLocal() as _seed_db:
 
 _uploads_dir = ensure_upload_dir()
 ensure_photo_dir()
+restore_bundled_photos()
 
 # redirect_slashes=False avoids 307 /artifacts -> /artifacts/ which breaks
 # credentialed cross-origin fetch (cookies dropped on the redirected request).

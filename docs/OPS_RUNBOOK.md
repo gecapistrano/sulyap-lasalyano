@@ -62,7 +62,7 @@ Rotate curator password after handover. Never commit `.env` files.
 | Blank browse / empty catalog | Render logs; Supabase `DATABASE_URL`; migrations `001`+`003` applied |
 | Login works locally, fails on Vercel | `FRONTEND_ORIGINS`, `COOKIE_SAMESITE=none`, `COOKIE_SECURE=true`, HTTPS API URL |
 | CSRF / 403 on save | Session cookie present; CSRF cookie + header; origin allowlist |
-| Photos/models missing after Render deploy | Ephemeral disk — re-upload or attach persistent disk / object storage |
+| Photos/models missing after Render deploy | Photos: ensure `backend/data/curator_photos.tar.gz` is current and redeploy. Models / new uploads: re-upload or attach persistent disk / object storage |
 | Scan wrong / no class | `labels.txt` must match ONNX class order (`ml/weights/classes.txt`); never replace with sorted catalog codes; bump `MODEL_ASSET_VERSION` / redeploy Next |
 
 Full deploy steps: [DEPLOYMENT.md](./DEPLOYMENT.md).

@@ -65,13 +65,19 @@ export default function App({
 
   const [showSplash, setShowSplash] = useState(isPageRefresh)
   const [showApp, setShowApp] = useState(!isPageRefresh)
-  const [language, setLanguageState] = useState(() => loadStoredLanguage())
+  // SSR + first client paint must match; restore persisted language after mount.
+  const [language, setLanguageState] = useState('English')
   const setLanguage = useCallback((next) => {
     setLanguageState(next)
     persistLanguage(next)
   }, [])
   const [darkMode, setDarkMode] = useState(false)
   const toggleDarkMode = useCallback(() => setDarkMode((d) => !d), [])
+
+  useEffect(() => {
+    const stored = loadStoredLanguage()
+    if (stored && stored !== 'English') setLanguageState(stored)
+  }, [])
 
   useEffect(() => {
     document.documentElement.lang = languageToCode(language)

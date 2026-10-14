@@ -9,22 +9,22 @@
    ═══════════════════════════════════════════ */
 
 .browse-root {
-  --brw-bg: #d4c8a8;
-  --brw-text: #3a2e1f;
-  --brw-text-soft: #5a4a38;
-  --brw-accent: #f2efd6;
-  --brw-glass: rgba(58, 46, 31, 0.06);
-  --brw-glass-border: rgba(58, 46, 31, 0.12);
-  --brw-card-bg: rgba(242, 239, 214, 0.4);
-  --brw-card-border: rgba(58, 46, 31, 0.1);
-  --brw-card-hover: rgba(58, 46, 31, 0.18);
-  --brw-input-bg: rgba(242, 239, 214, 0.45);
-  --brw-input-border: rgba(58, 46, 31, 0.12);
-  --brw-input-focus: rgba(58, 46, 31, 0.25);
-  --brw-chevron: rgba(58, 46, 31, 0.35);
-  --ff-serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
-  --ff-mono: 'DM Mono', ui-monospace, monospace;
-  --ff-sans: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --brw-bg: var(--aca-bg);
+  --brw-text: var(--aca-fg);
+  --brw-text-soft: var(--aca-muted-fg);
+  --brw-accent: var(--aca-accent);
+  --brw-glass: rgba(201, 169, 98, 0.06);
+  --brw-glass-border: var(--aca-border);
+  --brw-card-bg: var(--aca-bg-alt);
+  --brw-card-border: var(--aca-border);
+  --brw-card-hover: color-mix(in srgb, var(--aca-accent) 18%, transparent);
+  --brw-input-bg: var(--aca-bg-alt);
+  --brw-input-border: var(--aca-border);
+  --brw-input-focus: var(--aca-accent);
+  --brw-chevron: var(--aca-muted-fg);
+  --ff-serif: var(--font-heading);
+  --ff-mono: var(--font-display);
+  --ff-sans: var(--font-body);
 
   display: flex;
   flex-direction: column;
@@ -33,7 +33,7 @@
   background: var(--brw-bg);
   color: var(--brw-text);
   font-family: var(--ff-sans);
-  transition: background 0.5s ease, color 0.5s ease;
+  transition: background var(--aca-slow) var(--aca-ease), color var(--aca-slow) var(--aca-ease);
 }
 
 /* ── Header ── */
@@ -54,7 +54,7 @@
   display: flex;
   align-items: center;
   padding: max(0.75rem, env(safe-area-inset-top)) 1.25rem 0.85rem;
-  background: rgba(212, 200, 168, 0.08);
+  background: color-mix(in srgb, var(--aca-bg) 88%, transparent);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
@@ -115,7 +115,7 @@
   box-sizing: border-box;
   background: var(--brw-input-bg);
   border: 1px solid var(--brw-input-border);
-  border-radius: 0.875rem;
+  border-radius: var(--aca-radius);
   padding: 0.75rem 2.5rem 0.75rem 1rem;
   font-family: var(--ff-sans);
   font-size: 0.875rem;
@@ -132,8 +132,8 @@
 
 .browse-search:focus {
   border-color: var(--brw-input-focus);
-  box-shadow: 0 0 0 2px rgba(58, 46, 31, 0.08);
-  background: rgba(242, 239, 214, 0.6);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--aca-accent) 30%, transparent);
+  background: var(--aca-bg-alt);
 }
 
 /* ── List ── */
@@ -277,41 +277,21 @@
    ═══════════════════════════════════════════ */
 
 .browse-dark {
-  --brw-bg: #3a2e1f;
-  --brw-text: #d4c8a8;
-  --brw-text-soft: #b8a88a;
-  --brw-accent: #d4c8a8;
-  --brw-glass: rgba(212, 200, 168, 0.04);
-  --brw-glass-border: rgba(212, 200, 168, 0.1);
-  --brw-card-bg: rgba(212, 200, 168, 0.08);
-  --brw-card-border: rgba(212, 200, 168, 0.12);
-  --brw-card-hover: rgba(212, 200, 168, 0.16);
-  --brw-input-bg: rgba(212, 200, 168, 0.1);
-  --brw-input-border: rgba(212, 200, 168, 0.15);
-  --brw-input-focus: rgba(212, 200, 168, 0.3);
-  --brw-chevron: rgba(212, 200, 168, 0.4);
+  /* Academia is always dark library theme */
 }
 
-.browse-dark .browse-header {
-  background: rgba(58, 46, 31, 0.35);
+.browse-back:focus-visible,
+.browse-card-button:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--aca-bg),
+    0 0 0 4px var(--aca-accent);
 }
 
-.browse-dark .browse-card-thumb {
-  background: rgba(212, 200, 168, 0.1);
-  border-color: rgba(212, 200, 168, 0.1);
-}
-
-.browse-dark .browse-card-button:hover {
-  background: rgba(212, 200, 168, 0.14);
-}
-
-.browse-dark .browse-search:focus {
-  box-shadow: 0 0 0 2px rgba(212, 200, 168, 0.12);
-  background: rgba(212, 200, 168, 0.15);
-}
-
-.browse-dark .browse-card-name {
-  font-weight: 600;
+.browse-search:focus {
+  outline: none;
+  border-color: var(--aca-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--aca-accent) 30%, transparent);
 }
 
 /* ═══════════════════════════════════════════

@@ -1,22 +1,8 @@
 /*
- * Global styles for the Sulyap Lasalyano frontend.
- * Tailwind layers + any app-wide tokens/overrides belong here; page-specific layout lives next to each page under `src/pages/`.
+ * Global styles — Academia tokens + Tailwind + app chrome.
  */
-@font-face {
-  font-family: 'Roca Two';
-  src: url('../fonts/Roca_Two_Font/fonts/fonnts.com-Roca_Two_Thin.ttf') format('truetype');
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Roca Two';
-  src: url('../fonts/Roca_Two_Font/fonts/fonnts.com-Roca_Two_Bold.ttf') format('truetype');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
+@import '../src/styles/tokens.css';
+@import '../src/styles/academia.css';
 
 @tailwind base;
 @tailwind components;
@@ -24,31 +10,45 @@
 
 html,
 body,
-#root,
-button,
-input,
-textarea,
-select,
-option,
-label,
-span,
-p,
+#root {
+  height: 100%;
+  margin: 0;
+  background: var(--aca-bg);
+  color: var(--aca-fg);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.625;
+  -webkit-font-smoothing: antialiased;
+}
+
 h1,
 h2,
 h3,
 h4,
 h5,
-h6,
-a,
-li,
-div {
-  font-family: 'Roca Two', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+h6 {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--aca-fg);
 }
 
-/* Thin modern scrollbar */
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+a {
+  color: var(--aca-accent);
+}
+
+/* Thin scrollbar — brass on mahogany */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(58, 46, 31, 0.8) transparent;
+  scrollbar-color: color-mix(in srgb, var(--aca-accent) 45%, transparent) transparent;
 }
 
 *::-webkit-scrollbar {
@@ -57,27 +57,14 @@ div {
 }
 
 *::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.04);
+  background: rgba(0, 0, 0, 0.15);
 }
 
 *::-webkit-scrollbar-thumb {
-  background: rgba(58, 46, 31, 0.5);
+  background: color-mix(in srgb, var(--aca-accent) 40%, transparent);
   border-radius: 999px;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: rgba(58, 46, 31, 0.7);
-}
-
-/* Dark mode scrollbar */
-.app-dark * {
-  scrollbar-color: rgba(212, 200, 168, 0.45) transparent;
-}
-
-.app-dark *::-webkit-scrollbar-thumb {
-  background: rgba(212, 200, 168, 0.4);
-}
-
-.app-dark *::-webkit-scrollbar-thumb:hover {
-  background: rgba(212, 200, 168, 0.6);
+  background: color-mix(in srgb, var(--aca-accent) 65%, transparent);
 }

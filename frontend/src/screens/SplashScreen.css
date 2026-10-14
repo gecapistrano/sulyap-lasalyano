@@ -8,8 +8,8 @@
 }
 
 .sulyap-splash-mount {
-  --forest-night: #675642;
-  --sage-accent: #b7c68c;
+  --forest-night: var(--aca-bg, #1c1714);
+  --sage-accent: var(--aca-accent, #c9a962);
 
   position: fixed;
   inset: 0;
@@ -21,7 +21,7 @@
   contain: strict;
   isolation: isolate;
   touch-action: none;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--font-heading), Georgia, 'Times New Roman', serif;
   background-color: var(--forest-night);
 }
 

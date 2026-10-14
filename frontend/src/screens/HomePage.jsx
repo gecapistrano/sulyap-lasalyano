@@ -1,10 +1,10 @@
+'use client'
+
 import { useEffect, useRef, useState } from 'react'
 import './HomePage.css'
 import { LANGUAGE_OPTIONS, t } from '../i18n'
 
-/** Served from `public/` — Next static imports return objects, not URL strings. */
 const heroBg = '/images/aea_images/homepage-cover.png'
-const nameLogo = '/images/logo/NAME_Dark-Mode.png'
 
 function LangDropdown({ language, onLanguageChange }) {
   const [open, setOpen] = useState(false)
@@ -19,26 +19,32 @@ function LangDropdown({ language, onLanguageChange }) {
   }, [])
 
   return (
-    <div className="hp-hero-lang" ref={ref}>
+    <div className="hp-lang" ref={ref}>
       <button
         type="button"
-        className="hp-lang-btn"
+        className="aca-header-link hp-lang-btn"
         onClick={() => setOpen((o) => !o)}
         aria-label={t(language, 'nav.selectLanguage')}
         aria-expanded={open}
       >
         {language}
-        <svg viewBox="0 0 12 8" className={`hp-lang-arrow ${open ? 'hp-lang-arrow--open' : ''}`}>
-          <path d="M1 1.5l5 5 5-5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <svg viewBox="0 0 12 8" className={`hp-lang-arrow${open ? ' is-open' : ''}`} aria-hidden>
+          <path
+            d="M1 1.5l5 5 5-5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       </button>
-
-      <div className={`hp-lang-menu ${open ? 'hp-lang-menu--open' : ''}`}>
+      <div className={`hp-lang-menu${open ? ' is-open' : ''}`}>
         {LANGUAGE_OPTIONS.map((item) => (
           <button
             key={item.id}
             type="button"
-            className={`hp-lang-option ${item.id === language ? 'hp-lang-option--active' : ''}`}
+            className={`hp-lang-option${item.id === language ? ' is-active' : ''}`}
             onClick={() => {
               onLanguageChange?.(item.id)
               setOpen(false)
@@ -59,137 +65,99 @@ export default function HomePage({
   onBrowse,
   onOpenKnowledgeGraph,
   onOpenCurator,
-  darkMode,
-  onToggleDarkMode,
 }) {
   const rootRef = useRef(null)
-  const headerRef = useRef(null)
-  const featuresRef = useRef(null)
   const [headerScrolled, setHeaderScrolled] = useState(false)
 
   useEffect(() => {
     const root = rootRef.current
-    if (!root) return
-    const onScroll = () => setHeaderScrolled(root.scrollTop > 30)
+    if (!root) return undefined
+    const onScroll = () => setHeaderScrolled(root.scrollTop > 40)
     root.addEventListener('scroll', onScroll, { passive: true })
     return () => root.removeEventListener('scroll', onScroll)
   }, [])
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('hp-visible')
-          }
-        })
-      },
-      { root: rootRef.current, threshold: 0.15 },
-    )
-
-    const elements = featuresRef.current?.querySelectorAll('.hp-fade-in')
-    elements?.forEach((el) => observer.observe(el))
-
-    return () => observer.disconnect()
-  }, [])
-
   return (
-    <div className={`hp-root ${darkMode ? 'hp-dark' : ''}`} ref={rootRef}>
-      {/* ── Sticky Header (always at the very top) ── */}
-      <header className={`hp-header ${headerScrolled ? 'hp-header-scrolled' : ''}`} ref={headerRef}>
-        <LangDropdown language={language} onLanguageChange={onLanguageChange} />
-
-        <div className="hp-header-actions">
-          <button
-            type="button"
-            className="hp-mode-toggle"
-            onClick={onToggleDarkMode}
-            aria-label={darkMode ? t(language, 'home.lightMode') : t(language, 'home.darkMode')}
-          >
-            {darkMode ? (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="hp-mode-icon">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-              </svg>
-            ) : (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="hp-mode-icon">
-                <circle cx="12" cy="12" r="5" />
-                <line x1="12" y1="1" x2="12" y2="3" />
-                <line x1="12" y1="21" x2="12" y2="23" />
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-                <line x1="1" y1="12" x2="3" y2="12" />
-                <line x1="21" y1="12" x2="23" y2="12" />
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-              </svg>
-            )}
-          </button>
-        </div>
-      </header>
-
-      {/* Parallax background — stays fixed within the scroll container */}
-      <div className="hp-parallax-bg" style={{ backgroundImage: `url(${heroBg})` }} aria-hidden="true" />
-
-      {/* ── Hero Section ── */}
-      <section className="hp-hero">
-        <div className="hp-hero-overlay" />
-
-        <div className="hp-hero-content">
-          <span className="hp-welcome-label">{t(language, 'home.welcome')}</span>
-          <img src={nameLogo} alt="Sulyap Lasalyano" className="hp-name-logo" />
-        </div>
-
-        <div className="hp-hero-actions">
-          <button type="button" className="hp-pill-btn" onClick={onBrowse}>
+    <div className="hp-root" ref={rootRef}>
+      <header className={`hp-header${headerScrolled ? ' is-scrolled' : ''}`}>
+        <span className="aca-header-brand hp-brand">{t(language, 'home.brand')}</span>
+        <nav className="aca-header-nav hp-nav" aria-label="Primary">
+          <button type="button" className="aca-header-link" onClick={onBrowse}>
             {t(language, 'home.browse')}
           </button>
-          <button type="button" className="hp-pill-btn" onClick={onOpenKnowledgeGraph}>
-            {t(language, 'home.knowledgeGraph')}
+          <button type="button" className="aca-header-link" onClick={onOpenKnowledgeGraph}>
+            {t(language, 'home.knowledgeGraphShort')}
           </button>
-          <button type="button" className="hp-pill-btn" onClick={onStartCamera}>
+          <button type="button" className="aca-header-link" onClick={onStartCamera}>
             {t(language, 'home.liveScan')}
           </button>
-        </div>
-      </section>
+        </nav>
+        <LangDropdown language={language} onLanguageChange={onLanguageChange} />
+      </header>
 
-      {/* ── Features Section ── */}
-      <section className="hp-features" ref={featuresRef}>
-        <div className="hp-features-grid">
-          <div className="hp-feature-card hp-fade-in">
-            <h3 className="hp-feature-title">{t(language, 'home.feature.browse.title')}</h3>
-            <p className="hp-feature-desc">{t(language, 'home.feature.browse.body')}</p>
-          </div>
-
-          <div className="hp-center-line">
-            <div className="hp-line" />
-            <div className="hp-dot" />
-            <div className="hp-line" />
-          </div>
-
-          <div className="hp-feature-card hp-fade-in">
-            <h3 className="hp-feature-title">{t(language, 'home.feature.kg.title')}</h3>
-            <p className="hp-feature-desc">{t(language, 'home.feature.kg.body')}</p>
-          </div>
-
-          <div className="hp-center-line">
-            <div className="hp-line" />
-            <div className="hp-dot" />
-            <div className="hp-line" />
-          </div>
-
-          <div className="hp-feature-card hp-fade-in">
-            <h3 className="hp-feature-title">{t(language, 'home.feature.scan.title')}</h3>
-            <p className="hp-feature-desc">{t(language, 'home.feature.scan.body')}</p>
+      <section className="hp-hero" style={{ backgroundImage: `url(${heroBg})` }}>
+        <div className="hp-hero-veil" aria-hidden="true" />
+        <div className="hp-hero-inner">
+          <p className="aca-volume">{t(language, 'home.welcome')}</p>
+          <h1 className="hp-title">{t(language, 'home.brand')}</h1>
+          <p className="hp-tagline">{t(language, 'home.tagline')}</p>
+          <div className="hp-cta">
+            <button type="button" className="aca-btn-primary" onClick={onStartCamera}>
+              {t(language, 'home.liveScan')}
+            </button>
+            <button type="button" className="aca-btn-secondary" onClick={onBrowse}>
+              {t(language, 'home.browse')}
+            </button>
+            <button type="button" className="aca-btn-ghost" onClick={onOpenKnowledgeGraph}>
+              {t(language, 'home.knowledgeGraph')}
+            </button>
           </div>
         </div>
       </section>
 
-      {/* ── Footer ── */}
-      <footer className="hp-footer">
+      <section className="hp-intro">
+        <p className="aca-dropcap hp-intro-copy">{t(language, 'home.intro')}</p>
+        <div className="aca-ornate-divider" aria-hidden="true" />
+      </section>
+
+      <section className="hp-volumes">
+        <article className="aca-card aca-flourish hp-volume">
+          <p className="aca-volume">{t(language, 'home.volume1')}</p>
+          <h2 className="hp-volume-title">{t(language, 'home.feature.browse.title')}</h2>
+          <p className="hp-volume-body">{t(language, 'home.feature.browse.body')}</p>
+          <button type="button" className="aca-btn-ghost" onClick={onBrowse}>
+            {t(language, 'home.browse')}
+          </button>
+        </article>
+
+        <div className="aca-ornate-divider" aria-hidden="true" />
+
+        <article className="aca-card aca-flourish hp-volume">
+          <p className="aca-volume">{t(language, 'home.volume2')}</p>
+          <h2 className="hp-volume-title">{t(language, 'home.feature.kg.title')}</h2>
+          <p className="hp-volume-body">{t(language, 'home.feature.kg.body')}</p>
+          <button type="button" className="aca-btn-ghost" onClick={onOpenKnowledgeGraph}>
+            {t(language, 'home.knowledgeGraph')}
+          </button>
+        </article>
+
+        <div className="aca-ornate-divider" aria-hidden="true" />
+
+        <article className="aca-card aca-flourish hp-volume">
+          <p className="aca-volume">{t(language, 'home.volume3')}</p>
+          <h2 className="hp-volume-title">{t(language, 'home.feature.scan.title')}</h2>
+          <p className="hp-volume-body">{t(language, 'home.feature.scan.body')}</p>
+          <button type="button" className="aca-btn-ghost" onClick={onStartCamera}>
+            {t(language, 'home.liveScan')}
+          </button>
+        </article>
+      </section>
+
+      <footer className="aca-footer hp-footer">
         <p>{t(language, 'home.footer')}</p>
         {typeof onOpenCurator === 'function' ? (
-          <p className="hp-footer-curator">
-            <button type="button" className="hp-footer-curator-btn" onClick={onOpenCurator}>
+          <p>
+            <button type="button" onClick={onOpenCurator}>
               {t(language, 'home.curator')}
             </button>
           </p>

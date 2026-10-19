@@ -42,6 +42,15 @@
   max-width: 11rem;
   object-fit: contain;
   display: block;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  transition: transform 180ms ease-out;
+  transform-origin: left center;
+}
+
+.hp-logo.is-egg-hint {
+  transform: scale(1.06);
 }
 
 .hp-header-actions {

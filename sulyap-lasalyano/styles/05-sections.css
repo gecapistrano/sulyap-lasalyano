@@ -20,7 +20,7 @@
   text-wrap:pretty;
 }
 
-/* Sulyap Lasalyano — EDUCATION-style portfolio strip (#nx-gallery) */
+/* Sulyap Lasalyano — EDUCATION-style portfolio strip (#about-sulyap-lasalyano) */
 .nx.nx-edu{
   --nx-edu-bg:#0a0c0b;
   --nx-edu-fg:#f2efe8;
@@ -58,24 +58,37 @@
 .nx.nx-edu .nx-edu-inner{
   position:relative;z-index:1;
   width:min(100%,1180px);margin:0 auto;
+  /* Fit single-line display titles to padded content width */
+  container-type:inline-size;container-name:nx-edu;
 }
 .nx.nx-edu .nx-edu-head{
   display:flex;align-items:baseline;justify-content:space-between;
   gap:clamp(12px,2vw,28px);flex-wrap:wrap;
   margin-bottom:clamp(28px,4vw,44px);
+  min-width:0;max-width:100%;box-sizing:border-box;
 }
 .nx.nx-edu .nx-edu-heading{
   display:flex;align-items:baseline;flex-wrap:nowrap;gap:.28em;
   font-family:var(--disp);font-weight:400;text-transform:uppercase;
-  font-size:clamp(2.1rem,5.5vw,3.75rem);line-height:.95;letter-spacing:.01em;
-  color:var(--nx-edu-fg);margin:0;min-width:0;white-space:nowrap;
+  /* Base: shrink with viewport minus gutters; cqi override below is tighter */
+  font-size:clamp(1.05rem,calc((100vw - 2 * var(--gut)) * .078),3.75rem);
+  line-height:.95;letter-spacing:.01em;
+  color:var(--nx-edu-fg);margin:0;
+  min-width:0;max-width:100%;width:max-content;box-sizing:border-box;
+  white-space:nowrap;overflow-wrap:normal;
+}
+@supports (font-size:1cqi){
+  .nx.nx-edu .nx-edu-heading{
+    /* Single-line fit inside .nx-edu-inner (padding already outside the container) */
+    font-size:clamp(1.05rem,7.6cqi,3.75rem);
+  }
 }
 .nx.nx-edu .nx-edu-kicker{
   font-size:.8em;line-height:1;letter-spacing:.02em;
   flex:none;
 }
 .nx.nx-edu .nx-edu-title{
-  font-size:1em;min-width:0;white-space:nowrap;
+  font-size:1em;min-width:0;max-width:100%;white-space:nowrap;
 }
 .nx.nx-edu .nx-edu-title .nx-edu-kicker{
   margin:0;letter-spacing:0;
@@ -376,7 +389,11 @@
   .nx.nx-edu .nx-edu-grid--2{grid-template-columns:1fr}
   .nx.nx-edu .nx-edu-also-list{grid-template-columns:1fr;gap:12px}
   .nx.nx-edu .nx-edu-also-list strong{display:inline;margin-bottom:0}
-  .nx.nx-edu .nx-edu-cats{white-space:normal}
+  .nx.nx-edu .nx-edu-head{
+    flex-direction:column;align-items:flex-start;justify-content:flex-start;
+  }
+  .nx.nx-edu .nx-edu-heading{width:100%;max-width:100%}
+  .nx.nx-edu .nx-edu-cats{white-space:normal;max-width:100%}
   .nx.nx-edu .nx-edu-why-toggle{margin-left:0;width:100%}
   .nx.nx-edu .nx-edu-also-toggle{margin-left:0;width:auto;max-width:100%}
 }

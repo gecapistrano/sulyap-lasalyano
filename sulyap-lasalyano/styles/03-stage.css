@@ -1,6 +1,6 @@
-/* About Gallery, AEAIRC parallax, blank about spacer */
+/* About DLSU Presidents’ Memorabilia, AEAIRC parallax, blank about spacer */
 
-.about-gallery{
+.about-dlsu-presidents-memorabilia{
   /* Keep in sync with .hero --hero-fade for a seamless handoff */
   --ag-bg:#122018;
   position:relative;
@@ -8,7 +8,7 @@
   color:var(--cream);
   padding:clamp(56px,10vh,120px) var(--gut) clamp(48px,8vh,96px);
 }
-.about-gallery-inner{width:min(100%,820px);margin:0 auto}
+.about-dlsu-presidents-memorabilia-inner{width:min(100%,820px);margin:0 auto}
 .ag-copy{
   font-size:clamp(1.05rem,2.2vw,1.35rem);
   line-height:1.75;

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>404 — President’s Memorabilia</title>
+<title>404 — Sulyap Lasalyano</title>
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#00703C">
 <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
@@ -76,21 +76,22 @@
     color:var(--quiet);border-top:1px solid var(--line);
   }
 </style>
+<script defer src="/scripts/02-i18n.js?v=92"></script>
 </head>
 <body>
   <div class="top">
     <a class="brand" href="/">
       <svg viewBox="0 0 100 100" aria-hidden="true"><path fill-rule="evenodd" d="M20 0H80A20 20 0 0 1 100 20V80A20 20 0 0 1 80 100H0V20A20 20 0 0 1 20 0ZM28 28H44V44H72V60H44V72H28V28Z"/></svg>
-      President’s Memorabilia
+      Sulyap Lasalyano
     </a>
-    <span class="status">404 · not found</span>
+    <span class="status">404</span>
   </div>
   <main>
     <p class="code" aria-hidden="true">404</p>
-    <h1>Route not found</h1>
-    <p>This path is not part of the collection. Head home to continue exploring the memorabilia.</p>
-    <a class="go" href="/">Back to home</a>
+    <h1 data-i="404.title">Route not found</h1>
+    <p data-i="404.body">This path is not part of the collection. Head home.</p>
+    <a class="go" href="/" data-i="404.home">Back to home</a>
   </main>
-  <footer>De La Salle University–Dasmariñas</footer>
+  <footer data-i="foot.copy">© 2026 De La Salle University–Dasmariñas</footer>
 </body>
 </html>

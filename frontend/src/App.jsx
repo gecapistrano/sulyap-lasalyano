@@ -253,7 +253,8 @@ export default function App({
         )
 
       case 'curator':
-        return <CuratorDesk language={language} darkMode={darkMode} onBack={() => setScreen('home')} />
+        /* Back navigates to static sulyap-lasalyano home (see goToStaticHome in CuratorDesk). */
+        return <CuratorDesk language={language} />
 
       case 'camera':
         return (

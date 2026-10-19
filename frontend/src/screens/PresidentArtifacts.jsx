@@ -12,12 +12,12 @@ import './PresidentArtifacts.css'
 
 function formatServiceYears(service) {
   if (!service) return ''
-  const parts = service.split(' - ')
+  const parts = service.split(/\s*[-–—]\s*/)
   if (parts.length === 2) {
     const start = parts[0].trim()
     const end = parts[1].trim()
     if (start === end) return start
-    return `${start} - ${end}`
+    return `${start}–${end}`
   }
   return service
 }

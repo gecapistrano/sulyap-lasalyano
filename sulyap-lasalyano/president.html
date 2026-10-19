@@ -1,0 +1,106 @@
+<!-- vercel-root:sulyap-lasalyano -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>President — Sulyap Lasalyano</title>
+<meta name="description" content="DLSU-D president profile from the Presidents’ Memorabilia collection.">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=11">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=11">
+<meta name="theme-color" content="#0a140f">
+<meta name="color-scheme" content="dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Instrument+Sans:ital,wght@0,400;0,500;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script>
+(function(){
+  try{ localStorage.removeItem('pm-theme'); }catch(e){}
+  document.documentElement.setAttribute('data-theme', 'dark');
+})();
+</script>
+<link rel="stylesheet" href="/styles/01-tokens.css?v=17">
+<link rel="stylesheet" href="/styles/13-presidents.css?v=9">
+<script defer src="/scripts/02-i18n.js?v=92"></script>
+<script defer src="/scripts/09-a11y.js?v=2"></script>
+<script defer src="/scripts/16-presidents.js?v=8"></script>
+</head>
+<body class="pres-page">
+<a class="skiplink" href="#presMain" data-i="skip">Skip to content</a>
+
+<div class="pres-shell">
+  <header class="pres-chrome">
+    <button type="button" class="pres-back" id="presBack" data-i="pres.back" data-i-label="pres.backLabel" aria-label="Go back">← Back</button>
+    <h1 class="pres-chrome-title"><span class="pres-chrome-brand">DLSU Philippines Presidents</span></h1>
+    <div class="lang-dd pres-lang" data-lang-dd>
+      <button type="button" class="lang lang-dd-btn pres-lang-btn" aria-expanded="false" aria-haspopup="listbox" aria-controls="lang-menu-pres" data-i-label="lang">
+        <span class="lang-dd-val">EN</span>
+      </button>
+      <ul class="lang-dd-menu pres-lang-menu" id="lang-menu-pres" role="listbox" hidden>
+        <li role="option" data-value="en" aria-selected="true">English</li>
+        <li role="option" data-value="fil" aria-selected="false">Filipino</li>
+        <li role="option" data-value="es" aria-selected="false">Spanish</li>
+        <li role="option" data-value="fr" aria-selected="false">French</li>
+        <li role="option" data-value="zh" aria-selected="false">Chinese</li>
+        <li role="option" data-value="ko" aria-selected="false">Korean</li>
+        <li role="option" data-value="ja" aria-selected="false">Japanese</li>
+      </ul>
+    </div>
+  </header>
+
+  <main id="presMain" class="pres-main" role="main">
+    <div id="presMissing" class="pres-missing" hidden>
+      <p class="pres-missing-title" data-i="pres.missing">President not found.</p>
+      <p class="pres-missing-hint" data-i="pres.missingHint">Return home to browse the collection.</p>
+      <a class="pres-missing-home" href="/" data-i="nav.home">Home</a>
+    </div>
+
+    <article id="presProfile" class="pres-profile" hidden>
+      <div class="pres-hero">
+        <figure class="pres-portrait">
+          <img id="presPhoto" src="" alt="" width="480" height="480" decoding="async">
+        </figure>
+        <div class="pres-identity">
+          <p class="pres-kicker" id="presYears"></p>
+          <h2 class="pres-display" id="presDisplay">—</h2>
+          <dl class="pres-meta">
+            <div class="pres-meta-row">
+              <dt data-i="pres.realName">Real name</dt>
+              <dd id="presRealName" data-i="pres.realNamePh">[Full legal name to be confirmed]</dd>
+            </div>
+            <div class="pres-meta-row">
+              <dt data-i="pres.nickname">Nickname</dt>
+              <dd id="presNickname" data-i="pres.nicknamePh">[Nickname to be confirmed]</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      <section class="pres-section" aria-labelledby="presHistoryHeading">
+        <h3 id="presHistoryHeading" class="pres-section-title" data-i="pres.history">History / bibliography</h3>
+        <div class="pres-prose" id="presHistory" data-i="pres.historyBody">
+          A short biography and bibliography will appear here. [Placeholder pending curatorial research.]
+        </div>
+      </section>
+
+      <section class="pres-section pres-memories" aria-labelledby="presMemoriesHeading">
+        <h3 id="presMemoriesHeading" class="pres-section-title" data-i="pres.memories">Photos &amp; memories</h3>
+        <div class="pres-masonry" id="presMasonry" role="list"></div>
+      </section>
+    </article>
+  </main>
+
+  <!-- Cursor flashlight: soft radial lift over dark page (fine pointer only) -->
+  <div class="pres-spotlight" aria-hidden="true"></div>
+</div>
+
+<dialog class="pres-lightbox" id="presLightbox" aria-labelledby="presLightboxCaption">
+  <button type="button" class="pres-lightbox-close" id="presLightboxClose" data-i-label="pres.lightboxClose" aria-label="Close">&times;</button>
+  <figure class="pres-lightbox-figure">
+    <img class="pres-lightbox-img" id="presLightboxImg" src="" alt="">
+    <figcaption class="pres-lightbox-caption" id="presLightboxCaption" data-i="pres.lightboxCaption">[Short memory description — placeholder]</figcaption>
+  </figure>
+</dialog>
+</body>
+</html>

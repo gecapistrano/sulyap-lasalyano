@@ -1,5 +1,6 @@
 /* Hanging-sign hero + flipView API. Soft wipe when past the stage.
-   Parallax matches reference: translate3d(0, scrollY * data-speed, 0). */
+   Parallax matches reference: translate3d(0, scrollY * data-speed, 0).
+   Home enter: replay plaque/chip/CTA in-anim when splash is skipped or bfcache restores. */
 (function(){
   var chip = document.getElementById('flip');
   var wipe = document.getElementById('wipe');
@@ -7,6 +8,8 @@
   var sign = document.getElementById('sign');
   var hero = document.querySelector('.hero');
   var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var landTimer = 0;
+  var enterBusy = false;
 
   function setWarm(warm){
     document.body.classList.toggle('warm', warm);
@@ -39,7 +42,7 @@
     else goWarm(!document.documentElement.classList.contains('warm'));
   };
 
-  /* Cool home: data-nav on #flip scrolls to #nx-gallery. Warm: return home. */
+  /* Cool home: data-nav on #flip scrolls to #about-sulyap-lasalyano. Warm: return home. */
   if(chip){
     chip.addEventListener('click', function(e){
       e.stopPropagation();
@@ -48,7 +51,90 @@
         location.hash = '#/';
       }
     });
-    setTimeout(function(){ chip.classList.add('landed'); }, 1700);
+  }
+
+  function scheduleChipLand(ms){
+    if(!chip) return;
+    clearTimeout(landTimer);
+    landTimer = setTimeout(function(){
+      chip.classList.add('landed');
+      /* Keep html.home-enter — removing it would re-fire base sign-drop. */
+    }, ms);
+  }
+
+  /* First-load splash path: chip lands after default CSS chip-in delay. */
+  if(chip && !window.__homeEnter){
+    scheduleChipLand(1700);
+  }
+
+  function restartAnim(el){
+    if(!el) return;
+    el.style.animation = 'none';
+    void el.offsetWidth;
+    el.style.animation = '';
+  }
+
+  function playHomeEnter(opts){
+    opts = opts || {};
+    var root = document.documentElement;
+    var fromBfcache = !!(opts.bfcache || window.__homeEnterBfcache);
+    window.__homeEnter = false;
+    window.__homeEnterBfcache = false;
+
+    if(reduced){
+      root.classList.remove('home-enter-hold', 'home-enter');
+      if(chip) chip.classList.add('landed');
+      return;
+    }
+    if(enterBusy && !fromBfcache) return;
+    enterBusy = true;
+
+    try{ scrollTo(0, 0); }catch(e){}
+
+    if(chip) chip.classList.remove('landed');
+
+    var drop = document.querySelector('.sign-drop');
+    var swing = document.querySelector('.sign-swing');
+    var cta = document.querySelector('.hero-cta');
+
+    /* bfcache: animations already finished — hard restart before applying snappy enter. */
+    if(fromBfcache || !root.classList.contains('home-enter-hold')){
+      restartAnim(drop);
+      restartAnim(swing);
+      restartAnim(chip);
+      restartAnim(cta);
+    }
+
+    root.classList.remove('home-enter');
+    void root.offsetWidth;
+    root.classList.add('home-enter');
+    root.classList.remove('home-enter-hold');
+
+    /* Snappier return: chip-in ~0.4s delay + 0.45s → land ~950ms */
+    scheduleChipLand(950);
+
+    if(window.pmSiteGuide && typeof window.pmSiteGuide.replayEntrance === 'function'){
+      try{ window.pmSiteGuide.replayEntrance(); }catch(e){}
+    }
+
+    setTimeout(function(){ enterBusy = false; }, 1200);
+  }
+
+  window.pmHomeEnter = playHomeEnter;
+
+  function onHomeEnter(e){
+    var detail = (e && e.detail) || {};
+    /* Defer one frame so held keyframes paint before release. */
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        playHomeEnter({ bfcache: !!detail.bfcache });
+      });
+    });
+  }
+
+  document.addEventListener('homeenter', onHomeEnter);
+  if(window.__homeEnter){
+    onHomeEnter({ detail:{ bfcache: !!window.__homeEnterBfcache } });
   }
 
   /* ============ Parallax + scroll push on the hanging board (reference) ============ */

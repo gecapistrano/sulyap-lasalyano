@@ -5,7 +5,7 @@
   var pageHome = document.getElementById('page-home');
   var pageGal = document.getElementById('page-gallery');
   var nxHome = document.getElementById('nx-home');
-  var nxGal = document.getElementById('nx-gallery');
+  var nxGal = document.getElementById('about-sulyap-lasalyano');
   var wipe = document.getElementById('wipe');
   var fromFlip = false;
   var boot = true;

@@ -14,6 +14,6 @@
     "security:gate": "npm run security:check && npm run security:lint && python -m pip_audit -r backend/requirements.txt && python -m compileall backend/app"
   },
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "concurrently": "^10.0.6"
   }
 }

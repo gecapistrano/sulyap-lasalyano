@@ -15,8 +15,7 @@
   }
 
   /* Desktop: full bar at top → pill when scrolled past hero head.
-     Mobile: .on reveals brand lockup. rAF-coalesce scroll to avoid mid-frame toggles. */
-  var barRaf = 0;
+     Mobile: .on reveals brand lockup. */
   function syncBar(){
     if(!bar) return;
     var past = scrollY > 48;
@@ -28,14 +27,7 @@
     bar.classList.toggle('on', past || mobile);
     bar.classList.toggle('bar--pill', !mobile && past);
   }
-  function syncBarRaf(){
-    if(barRaf) return;
-    barRaf = requestAnimationFrame(function(){
-      barRaf = 0;
-      syncBar();
-    });
-  }
-  addEventListener('scroll', syncBarRaf, {passive:true});
+  addEventListener('scroll', syncBar, {passive:true});
   addEventListener('resize', syncBar);
   syncBar();
 

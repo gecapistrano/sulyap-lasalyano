@@ -1,28 +1,25 @@
 /* Sticky bar + mobile menu sheet */
 
-/* Default = mobile-style full-width bar.
-   Desktop pill centers via left/right + margin-inline:auto (no left↔translate fight). */
+/* Default = mobile-style full-width bar */
 .bar{
-  --bar-ease:cubic-bezier(.22,1,.36,1);
-  --bar-dur:.32s;
   position:fixed;top:0;left:0;right:0;z-index:60;
   display:flex;align-items:center;justify-content:space-between;gap:16px;
-  width:100%;max-width:100%;margin-inline:auto;
   padding:12px clamp(16px,3vw,40px);
   background:var(--bar-bg);
-  border:1px solid transparent;border-bottom-color:var(--bar-line);
-  color:var(--cream);border-radius:0;box-shadow:none;
+  border-bottom:1px solid var(--bar-line);color:var(--cream);
+  translate:0 0;
   overflow:visible;
   transition:
-    top var(--bar-dur) var(--bar-ease),
-    width var(--bar-dur) var(--bar-ease),
-    max-width var(--bar-dur) var(--bar-ease),
-    border-radius var(--bar-dur) var(--bar-ease),
-    padding var(--bar-dur) var(--bar-ease),
-    gap var(--bar-dur) var(--bar-ease),
-    box-shadow var(--bar-dur) var(--bar-ease),
-    background var(--bar-dur) var(--bar-ease),
-    border-color var(--bar-dur) var(--bar-ease);
+    translate .34s cubic-bezier(.32,.72,0,1),
+    width .4s cubic-bezier(.32,.72,0,1),
+    left .4s cubic-bezier(.32,.72,0,1),
+    top .34s cubic-bezier(.32,.72,0,1),
+    border-radius .34s ease,
+    padding .34s ease,
+    box-shadow .34s ease,
+    max-width .4s cubic-bezier(.32,.72,0,1),
+    background .3s ease,
+    border-color .3s ease;
 }
 /* Dust-mote canvas: behind logo/nav/lang, clipped by pill overflow:hidden */
 .bar-particles{
@@ -75,7 +72,6 @@
 
 /* Desktop: full-width bar at top; collapses to centered pill on scroll */
 @media (min-width:861px){
-  .bar{overflow:hidden}
   .bar-logo{height:36px}
   .bar-nav{display:flex}
   .menu-btn{display:none}
@@ -83,12 +79,15 @@
   section[id],aside[id],footer[id]{scroll-margin-top:88px}
 
   .bar.bar--pill{
-    top:16px;
+    left:50%;right:auto;top:16px;
+    translate:-50% 0;
     width:max-content;max-width:97vw;
     justify-content:flex-start;gap:clamp(12px,1.6vw,24px);
     padding:8px 12px 8px 18px;
-    border-color:var(--bar-line);border-radius:999px;
+    border:1px solid var(--bar-line);border-radius:999px;
+    border-bottom-width:1px;
     box-shadow:0 16px 40px rgba(0,30,15,.28);
+    overflow:hidden;
   }
 }
 
@@ -101,15 +100,14 @@
 
 /* Full bar: no bottom accent hairline — progress shows as pill wash only */
 .bar-prog{
-  position:absolute;inset:0;height:auto;
+  position:absolute;left:0;right:0;bottom:0;height:3px;
   background:var(--accent);transform-origin:left center;
-  scale:var(--p,0) 1;pointer-events:none;z-index:0;
-  opacity:0;border-radius:inherit;
-  transition:opacity var(--bar-dur, .32s) var(--bar-ease, cubic-bezier(.22,1,.36,1));
+  scale:var(--p,0) 1;pointer-events:none;
+  opacity:0;transition:none;
 }
 /* Pill mode: soft full-height wash that grows with --p (not a bottom strip) */
 .bar.bar--pill .bar-prog{
-  opacity:.12;
+  bottom:auto;top:0;height:100%;opacity:.12;border-radius:999px;z-index:0;
 }
 
 .wipe{

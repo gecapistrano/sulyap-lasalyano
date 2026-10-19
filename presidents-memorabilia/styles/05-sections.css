@@ -29,9 +29,8 @@
   --nx-edu-dash:var(--brand-green);
   position:relative;isolation:isolate;overflow:hidden;
   margin:0;padding-inline:0;
-  /* Flush to AEAIRC; 1px brand-green hairline at the join (same as .aea-info-btn) */
+  /* Flush to AEAIRC — no divider line */
   border:none;border-radius:0;
-  border-top:2px solid var(--brand-green-deep,#004D29);
   background:var(--nx-edu-bg);color:var(--nx-edu-fg);
   display:block;
 }
@@ -283,14 +282,45 @@
   max-width:none;
   width:100%;
 }
+.nx.nx-edu .nx-edu-also-toggle{
+  display:flex;align-items:center;justify-content:flex-start;gap:.55em;
+  margin:0;padding:0;width:fit-content;max-width:100%;
+  list-style:none;cursor:pointer;
+  color:inherit;
+}
+.nx.nx-edu .nx-edu-also-toggle::-webkit-details-marker{display:none}
+.nx.nx-edu .nx-edu-also-toggle::marker{content:none}
+.nx.nx-edu .nx-edu-also-toggle:focus{outline:none}
+.nx.nx-edu .nx-edu-also-toggle:focus-visible{
+  outline:2px solid var(--nx-edu-fg);outline-offset:4px;
+  border-radius:2px;
+}
 .nx.nx-edu .nx-edu-also-title{
-  margin:0 0 12px;
+  margin:0;
   font-family:var(--mono);
   font-weight:700;
   font-size:clamp(10px,.75vw,12px);
   letter-spacing:.14em;
   text-transform:uppercase;
   color:var(--nx-edu-muted);
+}
+.nx.nx-edu .nx-edu-also[open] > .nx-edu-also-toggle{margin-bottom:12px}
+.nx.nx-edu .nx-edu-also-chevron{
+  flex:none;
+  display:block;width:.42em;height:.42em;
+  margin-top:-.06em;
+  border-right:2px solid currentColor;
+  border-bottom:2px solid currentColor;
+  color:var(--nx-edu-muted);
+  transform:rotate(45deg);
+  transition:transform .22s ease;
+}
+.nx.nx-edu .nx-edu-also[open] > .nx-edu-also-toggle .nx-edu-also-chevron{
+  transform:rotate(225deg);
+  margin-top:.1em;
+}
+@media (prefers-reduced-motion:reduce){
+  .nx.nx-edu .nx-edu-also-chevron{transition:none}
 }
 .nx.nx-edu .nx-edu-also-list{
   list-style:none;margin:0;padding:0;
@@ -320,6 +350,15 @@
   color:var(--nx-edu-muted);
   text-wrap:pretty;
 }
+.nx.nx-edu .nx-edu-inspire{
+  margin:10px 0 0;
+  max-width:none;
+  width:100%;
+  font-size:clamp(12.5px,1vw,13.5px);
+  line-height:1.55;
+  color:var(--nx-edu-muted);
+  text-wrap:pretty;
+}
 
 @media (max-width:900px){
   .nx.nx-edu .nx-edu-grid,
@@ -328,6 +367,7 @@
   .nx.nx-edu .nx-edu-also-list strong{display:inline;margin-bottom:0}
   .nx.nx-edu .nx-edu-cats{white-space:normal}
   .nx.nx-edu .nx-edu-why-toggle{margin-left:0;width:100%}
+  .nx.nx-edu .nx-edu-also-toggle{margin-left:0;width:100%}
 }
 @media (prefers-reduced-motion:reduce){
   .nx.nx-edu a.nx-edu-cta,

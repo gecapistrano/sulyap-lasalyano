@@ -10,7 +10,7 @@ import { useTranslatedText } from '../../i18n/useTranslatedText'
  * - onClose: called when the user swipes down far enough or closes via exit/backdrop
  * - onDragProgress: called with 0–1 during drag (0 = fully open, 1 = fully closed)
  */
-export default function InfoSheet({ artifact, language = 'English', darkMode, onClose, onDragProgress }) {
+export default function InfoSheet({ artifact, language = 'English', darkMode: _darkMode, onClose, onDragProgress }) {
   const info = artifact?.artifactInfo
 
   const sheetRef = useRef(null)
@@ -150,20 +150,21 @@ export default function InfoSheet({ artifact, language = 'English', darkMode, on
     if (t) { e.preventDefault(); handleDragStart(t.clientY, fromScroll) }
   }
 
-  const bg = darkMode ? 'bg-[#3a2e1f]/85' : 'bg-[#f2efd6]/75'
-  const borderT = darkMode ? 'border-[#5a4a38]/30' : 'border-[#d4c8a8]/30'
-  const handle = darkMode ? 'bg-[#d4c8a8]/30' : 'bg-[#5a4a38]/30'
-  const borderB = darkMode ? 'border-[#d4c8a8]/15' : 'border-[#5a4a38]/15'
-  const labelColor = darkMode ? 'text-[#d4c8a8]' : 'text-[#7a6a55]'
-  const titleColor = darkMode ? 'text-[#f2efd6]' : 'text-[#3a2e1f]'
-  const subColor = darkMode ? 'text-[#d4c8a8]/70' : 'text-[#5a4a38]/70'
-  const bodyColor = darkMode ? 'text-[#f2efd6]/85' : 'text-[#3a2e1f]/85'
-  const bodyLight = darkMode ? 'text-[#f2efd6]/75' : 'text-[#3a2e1f]/75'
-  const sectionHead = darkMode ? 'text-[#d4c8a8]' : 'text-[#5a4a38]'
-  const photoBorder = darkMode ? 'border-[#d4c8a8]/20' : 'border-[#5a4a38]/20'
-  const photoBg = darkMode ? 'bg-[#5a4a38]/30' : 'bg-[#d4c8a8]/30'
-  const photoStroke = darkMode ? '#d4c8a8' : '#5a4a38'
-  const fadeFrom = darkMode ? 'from-[#3a2e1f]' : 'from-[#f2efd6]'
+  /* Academia library theme — mahogany sheet regardless of legacy darkMode flag */
+  const bg = 'bg-background/90'
+  const borderT = 'border-border/60'
+  const handle = 'bg-accent/35'
+  const borderB = 'border-border/40'
+  const labelColor = 'text-accent font-display tracking-[0.18em]'
+  const titleColor = 'text-foreground font-heading'
+  const subColor = 'text-muted-foreground/90'
+  const bodyColor = 'text-foreground/90 font-body'
+  const bodyLight = 'text-foreground/75 font-body'
+  const sectionHead = 'text-accent font-display tracking-[0.14em]'
+  const photoBorder = 'border-accent/40'
+  const photoBg = 'bg-background-alt'
+  const photoStroke = '#C9A962'
+  const fadeFrom = 'from-background'
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-50" onClick={(e) => e.stopPropagation()}>

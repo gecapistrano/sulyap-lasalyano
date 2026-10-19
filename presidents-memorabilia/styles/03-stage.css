@@ -1,0 +1,506 @@
+/* About Gallery, AEAIRC parallax, blank about spacer */
+
+.about-gallery{
+  /* Keep in sync with .hero --hero-fade for a seamless handoff */
+  --ag-bg:#122018;
+  position:relative;
+  background:var(--ag-bg);
+  color:var(--cream);
+  padding:clamp(56px,10vh,120px) var(--gut) clamp(48px,8vh,96px);
+}
+.about-gallery-inner{width:min(100%,820px);margin:0 auto}
+.ag-copy{
+  font-size:clamp(1.05rem,2.2vw,1.35rem);
+  line-height:1.75;
+  color:rgba(247,244,239,.88);
+  max-width:62ch;
+  margin:0 0 clamp(40px,7vh,72px);
+  text-align:justify;
+  text-wrap:pretty;
+}
+.dropcap::first-letter{
+  font-family:var(--serif);
+  font-style:italic;
+  font-weight:600;
+  font-size:3.4em;
+  line-height:.78;
+  float:left;
+  margin:.08em .12em 0 0;
+  color:#EDE4D8;
+}
+
+/* Endless president-portrait marquee (right → left), drag to scrub — full-bleed past section gut */
+.marquee-wrap{
+  position:relative;
+  width:calc(100% + 2 * var(--gut));
+  margin-inline:calc(-1 * var(--gut));
+}
+.marquee{
+  overflow:hidden;
+  width:100%;
+  padding-block:clamp(24px,3.5vw,40px);
+  cursor:grab;
+  user-select:none;
+  -webkit-user-select:none;
+  touch-action:pan-y;
+}
+.marquee.is-dragging{cursor:grabbing}
+.marquee-track{
+  display:flex;width:max-content;
+  will-change:transform;
+  animation:marquee-rtl 48s linear infinite;
+}
+.marquee.is-dragging .marquee-track,
+.marquee.is-paused .marquee-track{animation-play-state:paused}
+.marquee-set{
+  display:flex;align-items:flex-start;gap:clamp(28px,5vw,56px);
+  padding-inline:clamp(14px,2.5vw,28px);
+}
+.marquee-item{
+  flex:none;
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  width:clamp(112px,16vw,160px);
+  text-decoration:none;color:inherit;
+  outline-offset:4px;
+  transition:transform .18s ease-out;
+}
+.marquee-item:hover{transform:translateY(-2px)}
+.marquee-item:focus-visible{
+  outline:2px solid var(--accent);
+}
+.marquee-item img{
+  width:100%;
+  aspect-ratio:1;
+  height:auto;
+  object-fit:cover;
+  object-position:center 20%;
+  border-radius:50%;
+  display:block;
+  pointer-events:none;
+  box-shadow:0 10px 22px rgba(0,0,0,.28);
+}
+.marquee-name{
+  display:block;width:100%;
+  font-family:var(--body);
+  font-size:clamp(11px,1.35vw,13px);
+  font-weight:500;line-height:1.25;
+  letter-spacing:.01em;text-align:center;
+  text-wrap:balance;
+  color:rgba(247,244,239,.88);
+}
+@keyframes marquee-rtl{
+  from{transform:translate3d(0,0,0)}
+  to{transform:translate3d(-50%,0,0)}
+}
+@media (prefers-reduced-motion:reduce){
+  .marquee-track{animation:none}
+  .marquee-item:hover{transform:none}
+}
+
+/* AEAIRC — building art + museum info
+   ASSET: assets/aeairc.svg (viewBox ~1536×1024). Cover-crop via .aea-bg object-fit. */
+.about-aeairc,
+section.about-aeairc[data-view="cool"]{
+  position:relative;
+  /* ~80% of under-header viewport band */
+  min-height:calc((100vh - var(--hh) - env(safe-area-inset-top,0px)) * 0.8);
+  min-height:calc((100dvh - var(--hh) - env(safe-area-inset-top,0px)) * 0.8);
+  overflow:hidden;
+  isolation:isolate;
+  /* Neutral warm edge — never cool --sec-bg teal bleed */
+  background:#1c1b19;
+  border:none;border-bottom:none;
+}
+.aea-parallax{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.aea-bg{
+  position:absolute;
+  left:50%;
+  /* Tall plate so ±~0.28×vh travel at factor 0.4 never flashes the section fill */
+  top:-30vh;
+  width:100%;
+  height:calc(100% + 60vh);
+  max-width:none;
+  object-fit:cover;
+  object-position:center 28%;
+  /* Photo stays a photograph — no blur / wash filters */
+  filter:none;-webkit-filter:none;
+  image-rendering:auto;
+  will-change:transform;
+  transform:translate3d(-50%,calc(var(--aea-y,0) * 1px),0);
+}
+.aea-veil{
+  position:absolute;inset:0;pointer-events:none;z-index:1;
+  /* Mid-layer black wash: bg < veil < spotlight < title/info */
+  background:rgba(0,0,0,.5);
+}
+/* Soft ivory cursor light over building + veil; stays under title / info (parallax z:0) */
+.aea-spotlight{
+  --sx:50%;--sy:48%;
+  position:absolute;inset:0;z-index:2;pointer-events:none;
+  opacity:0;
+  background:radial-gradient(
+    circle 40vmin at var(--sx) var(--sy),
+    rgba(247,244,239,.75) 0%,
+    rgba(247,244,239,.30) 34%,
+    transparent 62%
+  );
+  mix-blend-mode:soft-light;
+  transition:opacity .3s ease-out;
+}
+.about-aeairc.is-lit .aea-spotlight{opacity:1}
+@media (hover:hover) and (pointer:fine){
+  .aea-spotlight{will-change:opacity}
+}
+@media (hover:none), (pointer:coarse), (prefers-reduced-motion:reduce){
+  .aea-spotlight{display:none}
+}
+.aea-title{
+  position:absolute;z-index:2;
+  left:clamp(14px,3.5vw,40px);top:clamp(12px,3vw,28px);
+  right:clamp(14px,18vw,120px);
+  margin:0;max-width:min(36ch,92%);
+  font-family:var(--serif);font-weight:400;text-transform:uppercase;
+  font-size:clamp(1.1rem,3.8vw,2.4rem);line-height:1.05;letter-spacing:.018em;
+  color:#fff;
+  text-shadow:0 1px 1px rgba(0,0,0,.55),0 6px 20px rgba(0,0,0,.42);
+  text-wrap:balance;pointer-events:none;
+}
+.aea-title-lead,.aea-title-rest{color:#fff}
+/* Anchor box = green i button; bubble is absolutely pinned above it */
+.aea-info-anchor{
+  position:absolute;z-index:3;
+  right:clamp(14px,3vw,28px);bottom:clamp(14px,3vw,28px);
+  width:44px;height:44px;
+}
+/* Museum caption bubble — ivory plaque, points at the i.
+   Cycle (3.4s) only while .about-aeairc.is-in-view:
+   soft pop-in 0.5s → hold ~2s → soft pop-out 0.4s → gap 0.5s → loop */
+.aea-info-bubble{
+  position:absolute;
+  right:0;
+  bottom:calc(100% + 10px);
+  margin:0;
+  max-width:11rem;
+  width:max-content;
+  padding:7px 11px 8px;
+  background:var(--brand-ivory,#F7F4EF);
+  color:#1A2E22;
+  border:1px solid rgba(61,46,34,.18);
+  border-radius:10px;
+  font-family:var(--serif);
+  font-size:clamp(.82rem,2.2vw,.95rem);
+  font-weight:500;
+  font-style:italic;
+  line-height:1.25;
+  letter-spacing:.01em;
+  text-wrap:balance;
+  box-shadow:0 4px 14px rgba(0,0,0,.22);
+  /* Origin at pointer tip (right ~19px, bottom) so pop grows from the i */
+  transform-origin:calc(100% - 19px) 100%;
+  isolation:isolate;
+  opacity:0;
+  transform:scale(.92);
+  pointer-events:none;
+  animation:none;
+}
+.about-aeairc.is-in-view .aea-info-bubble{
+  pointer-events:auto;
+  animation:aea-bubble-pop 3.4s ease infinite;
+}
+/* Soft plaque shimmer + tiny green glints (not neon glow) */
+.aea-info-bubble::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  pointer-events:none;
+  z-index:0;
+  background:
+    radial-gradient(circle 1.25px at 14% 32%,rgba(0,112,60,.55) 0%,transparent 100%),
+    radial-gradient(circle 1px at 86% 24%,rgba(46,155,95,.5) 0%,transparent 100%),
+    radial-gradient(circle 1.25px at 72% 78%,rgba(0,77,41,.4) 0%,transparent 100%),
+    linear-gradient(
+      112deg,
+      transparent 0%,
+      transparent 38%,
+      rgba(255,255,255,.55) 49%,
+      rgba(232,242,236,.35) 52%,
+      transparent 62%,
+      transparent 100%
+    );
+  background-size:100% 100%,100% 100%,100% 100%,220% 100%;
+  background-position:0 0,0 0,0 0,120% 0;
+  opacity:0;
+  animation:none;
+}
+.about-aeairc.is-in-view .aea-info-bubble::before{
+  animation:aea-bubble-sparkle 3.4s ease infinite;
+}
+.aea-info-bubble::after{
+  content:"";
+  position:absolute;
+  right:14px;bottom:-6px;
+  width:10px;height:10px;
+  background:var(--brand-ivory,#F7F4EF);
+  border-right:1px solid rgba(61,46,34,.18);
+  border-bottom:1px solid rgba(61,46,34,.18);
+  transform:rotate(45deg);
+  z-index:1;
+}
+.aea-info-bubble.is-dismissed,
+.about-aeairc.is-in-view .aea-info-bubble.is-dismissed,
+.aea-info-anchor.is-open .aea-info-bubble,
+.about-aeairc.is-in-view .aea-info-anchor.is-open .aea-info-bubble{
+  animation:none!important;
+  opacity:0!important;
+  visibility:hidden;
+  pointer-events:none!important;
+  transform:scale(.88);
+  transition:opacity .2s ease,visibility 0s linear .2s,transform .2s ease;
+}
+.aea-info-bubble.is-dismissed::before,
+.about-aeairc.is-in-view .aea-info-bubble.is-dismissed::before,
+.aea-info-anchor.is-open .aea-info-bubble::before,
+.about-aeairc.is-in-view .aea-info-anchor.is-open .aea-info-bubble::before{
+  animation:none!important;
+  opacity:0!important;
+}
+.aea-info-btn{
+  position:absolute;inset:0;
+  display:inline-flex;align-items:center;justify-content:center;
+  width:44px;height:44px;padding:0;
+  border-radius:50%;
+  border:1.5px solid rgba(255,255,255,.92);
+  background:var(--brand-green,#00703C);color:#fff;
+  font-family:var(--serif);
+  font-style:italic;
+  font-size:1.35rem;font-weight:600;line-height:1;
+  letter-spacing:0;text-transform:none;
+  cursor:pointer;
+  box-shadow:0 2px 10px rgba(0,0,0,.28);
+  transition:background .2s ease,border-color .2s ease,color .2s ease,transform .18s ease,box-shadow .2s ease;
+}
+.aea-info-btn:hover{
+  background:var(--brand-green-deep,#004D29);border-color:#fff;
+  box-shadow:0 3px 14px rgba(0,0,0,.34);
+}
+.aea-info-btn:focus-visible{
+  outline:2px solid #fff;outline-offset:3px;
+}
+.aea-info-btn:active{transform:scale(.96)}
+.aea-info-btn[aria-expanded="true"]{
+  background:var(--brand-ivory,#F7F4EF);color:#1A2E22;border-color:#fff;
+}
+.aea-info-btn .aea-info-glyph{display:block;translate:0 -.04em}
+.aea-info-btn .aea-info-close{display:none;font-style:normal;font-size:1.45rem;translate:0 -.08em}
+.aea-info-btn[aria-expanded="true"] .aea-info-open{display:none}
+.aea-info-btn[aria-expanded="true"] .aea-info-close{display:block}
+.aea-info-panel{
+  position:absolute;z-index:2;
+  inset:clamp(18px,4vw,40px);
+  max-height:calc(100% - 2 * clamp(18px,4vw,40px));
+  background:rgba(247,244,239,.94);
+  color:#1A2E22;
+  border-radius:4px;
+  padding:clamp(28px,5vw,52px);
+  padding-bottom:clamp(18px,3vw,28px);
+  display:flex;flex-direction:column;align-items:stretch;
+  min-height:0;
+  overflow:hidden;
+  box-shadow:0 18px 48px rgba(0,0,0,.32);
+  animation:aea-panel-in .32s cubic-bezier(.16,1,.3,1);
+}
+.aea-info-panel[hidden]{display:none!important;animation:none}
+.aea-info-panel.is-closing{animation:aea-panel-out .24s cubic-bezier(.4,0,.2,1) forwards;pointer-events:none}
+/* Two-col: left scrollable copy (title stays outside); right art. */
+.aea-info-layout{
+  display:grid;
+  grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);
+  gap:clamp(20px,3.5vw,40px);
+  align-items:stretch;
+  width:100%;
+  flex:1 1 auto;
+  min-height:0;
+  max-height:100%;
+}
+/* Body scrolls; title (.aea-title) stays outside. Bottom pad clears close + .skipto. */
+.aea-info-copy{
+  max-width:58ch;
+  width:100%;
+  min-width:0;
+  min-height:0;
+  max-height:100%;
+  overflow-x:hidden;
+  overflow-y:auto; /* only when content overflows — never force scroll */
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  padding-bottom:calc(5.5rem + env(safe-area-inset-bottom,0px));
+  /* Thin muted bar on cream — overrides global dark ::-webkit-scrollbar */
+  scrollbar-width:thin;
+  scrollbar-color:rgba(26,46,34,.28) transparent;
+}
+.aea-info-copy::-webkit-scrollbar{width:6px}
+.aea-info-copy::-webkit-scrollbar-track{background:transparent}
+.aea-info-copy::-webkit-scrollbar-thumb{
+  background:rgba(26,46,34,.28);
+  border-radius:3px;
+}
+.aea-info-copy::-webkit-scrollbar-thumb:hover{background:rgba(26,46,34,.45)}
+.aea-info-copy::-webkit-scrollbar-button{display:none;width:0;height:0}
+.aea-info-media{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:0;
+  min-height:0;
+  height:100%;
+  max-height:100%;
+  padding-bottom:calc(5.5rem + env(safe-area-inset-bottom,0px));
+}
+.aea-info-art{
+  display:block;
+  width:100%;
+  height:100%;
+  max-width:100%;
+  max-height:100%;
+  object-fit:contain;
+  object-position:center;
+}
+.aea-info-panel p{
+  margin:0;max-width:58ch;
+  font-size:clamp(1rem,2vw,1.2rem);line-height:1.7;
+  color:#1A2E22;
+  text-wrap:pretty;
+}
+.aea-info-panel p + p{margin-top:1em}
+.aea-info-panel p:empty{display:none}
+@media (max-width:720px){
+  .aea-info-layout{
+    grid-template-columns:1fr;
+    grid-template-rows:auto minmax(0,1fr);
+    gap:clamp(14px,3vw,22px);
+    overflow-x:hidden;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+    padding-bottom:calc(5.5rem + env(safe-area-inset-bottom,0px));
+    scrollbar-width:thin;
+    scrollbar-color:rgba(26,46,34,.28) transparent;
+  }
+  .aea-info-layout::-webkit-scrollbar{width:6px}
+  .aea-info-layout::-webkit-scrollbar-track{background:transparent}
+  .aea-info-layout::-webkit-scrollbar-thumb{
+    background:rgba(26,46,34,.28);
+    border-radius:3px;
+  }
+  .aea-info-layout::-webkit-scrollbar-thumb:hover{background:rgba(26,46,34,.45)}
+  .aea-info-layout::-webkit-scrollbar-button{display:none;width:0;height:0}
+  .aea-info-media{
+    order:-1;
+    max-height:min(38vh,220px);
+    padding-bottom:0;
+  }
+  .aea-info-copy{
+    max-width:none;
+    overflow:visible;
+    max-height:none;
+    padding-bottom:0;
+  }
+  .aea-info-art{
+    max-height:min(38vh,220px);
+  }
+}
+@keyframes aea-panel-in{from{opacity:0;scale:.96;translate:0 12px}to{opacity:1;scale:1;translate:0 0}}
+@keyframes aea-panel-out{from{opacity:1;scale:1}to{opacity:0;scale:.97;translate:0 8px}}
+/* Soft pop from the i (3.4s): in 0.5 → hold 2.0 → out 0.4 → gap 0.5 */
+@keyframes aea-bubble-pop{
+  0%{
+    opacity:0;
+    transform:scale(.92);
+  }
+  14.7%{
+    opacity:1;
+    transform:scale(1);
+  }
+  73.5%{
+    opacity:1;
+    transform:scale(1);
+  }
+  85.3%,100%{
+    opacity:0;
+    transform:scale(.92);
+  }
+}
+/* Shimmer while bubble is visible (synced to 3.4s pop loop) */
+@keyframes aea-bubble-sparkle{
+  0%,12%{
+    opacity:0;
+    background-position:0 0,0 0,0 0,130% 0;
+  }
+  20%{
+    opacity:.75;
+    background-position:0 0,0 0,0 0,70% 0;
+  }
+  40%{
+    opacity:.45;
+    background-position:0 0,0 0,0 0,20% 0;
+  }
+  60%{
+    opacity:.2;
+    background-position:0 0,0 0,0 0,-10% 0;
+  }
+  73.5%,100%{
+    opacity:0;
+    background-position:0 0,0 0,0 0,-30% 0;
+  }
+}
+@media (max-width:640px){
+  .about-aeairc,section.about-aeairc[data-view="cool"]{
+    /* Same 80% band; floor so short phones still show title + info */
+    min-height:max(420px,calc((100vh - var(--hh) - env(safe-area-inset-top,0px)) * 0.8));
+    min-height:max(420px,calc((100dvh - var(--hh) - env(safe-area-inset-top,0px)) * 0.8));
+  }
+  .aea-bg{object-position:center 22%}
+  .aea-title{
+    right:clamp(12px,4vw,24px);
+    max-width:100%;
+    font-size:clamp(1.15rem,6.2vw,1.7rem);
+    line-height:1.08;letter-spacing:.014em;
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  .aea-bg{
+    top:0;height:100%;
+    transform:translate3d(-50%,0,0)!important;will-change:auto
+  }
+  .aea-info-panel,.aea-info-panel.is-closing{animation:none!important}
+  .aea-info-bubble,
+  .about-aeairc.is-in-view .aea-info-bubble{
+    animation:none!important;
+    opacity:0;
+    transform:none;
+    pointer-events:none;
+  }
+  .about-aeairc.is-in-view .aea-info-bubble{
+    opacity:1;
+    pointer-events:auto;
+  }
+  .aea-info-bubble::before,
+  .about-aeairc.is-in-view .aea-info-bubble::before{
+    animation:none!important;opacity:0
+  }
+  .aea-info-bubble.is-dismissed,
+  .aea-info-anchor.is-open .aea-info-bubble{
+    opacity:0!important;
+    pointer-events:none;
+  }
+}
+
+/* What's next — roomy strip; edu layout overrides chrome in 05-sections */
+.nx--roomy{
+  margin-top:0;
+  margin-bottom:0;
+  padding:clamp(20px,3vw,36px) var(--gut) clamp(72px,12vh,140px);
+  border:none;
+  display:block;
+}

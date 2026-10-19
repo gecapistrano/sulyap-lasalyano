@@ -52,10 +52,10 @@ const EMPTY_PRESIDENT = {
 }
 
 const EDITOR_SECTIONS = [
-  { id: 'record', label: 'Record' },
-  { id: 'catalog', label: 'Catalog' },
-  { id: 'media', label: 'Media' },
-  { id: 'assist', label: 'AI' },
+  { id: 'record', labelKey: 'curator.section.record' },
+  { id: 'catalog', labelKey: 'curator.section.catalog' },
+  { id: 'media', labelKey: 'curator.section.media' },
+  { id: 'assist', labelKey: 'curator.section.assist' },
 ]
 
 function tagsFromRow(row) {
@@ -107,7 +107,7 @@ function artifactToForm(row, presidents = []) {
 }
 
 /** Auth-gated curator photo (cookies required; plain <img> often fails cross-port). */
-function CuratorPhoto({ artifactId, imageUrl }) {
+function CuratorPhoto({ artifactId, imageUrl, language = 'English' }) {
   const [src, setSrc] = useState('')
   const [missing, setMissing] = useState(false)
 
@@ -148,18 +148,18 @@ function CuratorPhoto({ artifactId, imageUrl }) {
   if (missing) {
     return (
       <div className="curator-photo-empty" aria-hidden>
-        <span>No photo</span>
+        <span>{t(language, 'curator.noPhoto')}</span>
       </div>
     )
   }
   if (!src) {
     return (
       <div className="curator-photo-empty">
-        <span>Loading…</span>
+        <span>{t(language, 'curator.loading')}</span>
       </div>
     )
   }
-  return <img className="curator-photo-preview" src={src} alt="Curator reference" />
+  return <img className="curator-photo-preview" src={src} alt={t(language, 'curator.photoAlt')} />
 }
 
 export default function CuratorDesk({ language = 'English', onBack, darkMode }) {
@@ -440,16 +440,16 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
       })
       await refreshList()
       selectArtifact(created.id)
-      setSaveMsg('Created draft artifact')
+      setSaveMsg(t(language, 'curator.createdDraft'))
     } catch {
-      setSaveError('Could not create artifact')
+      setSaveError(t(language, 'curator.createFail'))
     } finally {
       setBusy(false)
     }
   }
 
   const handleDeleteArtifact = async () => {
-    if (!selectedId || !window.confirm('Delete this artifact permanently?')) return
+    if (!selectedId || !window.confirm(t(language, 'curator.deleteConfirm'))) return
     setBusy(true)
     try {
       await deleteArtifact(selectedId)
@@ -457,7 +457,7 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
       setMobilePane('list')
       await refreshList()
     } catch {
-      setSaveError('Delete failed')
+      setSaveError(t(language, 'curator.deleteFail'))
     } finally {
       setBusy(false)
     }
@@ -469,7 +469,7 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
     if (!file || !selectedId) return
     const name = String(file.name || '').toLowerCase()
     if (!name.endsWith('.glb') && !name.endsWith('.obj')) {
-      setUploadError('Use a .glb or .obj file')
+      setUploadError(t(language, 'curator.modelTypeObj'))
       return
     }
     setBusy(true)
@@ -492,9 +492,9 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
     try {
       const updated = await uploadArtifactPhoto(selectedId, file)
       setRows((prev) => prev.map((row) => (row.id === updated.id ? updated : row)))
-      setUploadMsg('Photo saved (curator-only)')
+      setUploadMsg(t(language, 'curator.photoSaved'))
     } catch {
-      setUploadError('Photo upload failed')
+      setUploadError(t(language, 'curator.photoFail'))
     } finally {
       setBusy(false)
     }
@@ -512,7 +512,7 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
       const suggestion = await llmSuggest(selectedId)
       setAiSuggestion(suggestion)
     } catch {
-      setSaveError('AI assist unavailable or not configured')
+      setSaveError(t(language, 'curator.aiUnavailable'))
     } finally {
       setBusy(false)
     }
@@ -526,9 +526,9 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
       setRows((prev) => prev.map((row) => (row.id === updated.id ? updated : row)))
       setForm(artifactToForm(updated, presidents))
       setAiSuggestion(null)
-      setSaveMsg('AI suggestions applied')
+      setSaveMsg(t(language, 'curator.aiApplied'))
     } catch {
-      setSaveError('Could not apply AI suggestions')
+      setSaveError(t(language, 'curator.aiFail'))
     } finally {
       setBusy(false)
     }
@@ -560,7 +560,7 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
     setBusy(true)
     try {
       const created = await createPresident({
-        name: `New President ${presidents.length + 1}`,
+        name: t(language, 'curator.newPresident', { n: presidents.length + 1 }),
         service: '',
         published: false,
       })
@@ -569,7 +569,7 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
       setTab('presidents')
       setMobilePane('editor')
     } catch {
-      setSaveError('Could not create president')
+      setSaveError(t(language, 'curator.presidentCreateFail'))
     } finally {
       setBusy(false)
     }
@@ -589,7 +589,7 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
         <div className="curator-header-main">
           <h1 className="curator-title">{t(language, 'curator.title')}</h1>
           {user ? (
-            <nav className="curator-tabs" aria-label="Catalog sections">
+            <nav className="curator-tabs" aria-label={t(language, 'curator.sectionsAria')}>
               <button
                 type="button"
                 className={`curator-tab${tab === 'artifacts' ? ' is-active' : ''}`}
@@ -598,7 +598,7 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
                   setMobilePane('list')
                 }}
               >
-                Artifacts
+                {t(language, 'curator.tabArtifacts')}
               </button>
               <button
                 type="button"
@@ -608,7 +608,7 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
                   setMobilePane('list')
                 }}
               >
-                Presidents
+                {t(language, 'curator.tabPresidents')}
               </button>
             </nav>
           ) : null}
@@ -616,7 +616,7 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
         {user ? (
           <div className="curator-header-actions">
             <span className="curator-user-chip" title={user.email || ''}>
-              {user.email || 'Curator'}
+              {user.email || t(language, 'curator.role')}
             </span>
             <button type="button" className="curator-text-btn" onClick={handleLogout} disabled={busy}>
               {t(language, 'curator.logout')}
@@ -661,19 +661,19 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
           <aside className="curator-nav">
             <div className="curator-nav-toolbar">
               <button type="button" className="curator-primary curator-nav-add" onClick={handleCreateArtifact} disabled={busy}>
-                Add artifact
+                {t(language, 'curator.addArtifact')}
               </button>
               <label className="curator-nav-search">
-                <span className="curator-sr-only">Search artifacts</span>
+                <span className="curator-sr-only">{t(language, 'curator.searchArtifacts')}</span>
                 <input
                   className="curator-input"
-                  placeholder="Search ID, title, owner…"
+                  placeholder={t(language, 'curator.searchPlaceholder')}
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                 />
               </label>
               <label className="curator-label curator-nav-filter">
-                President
+                {t(language, 'curator.presidentFilter')}
                 <select
                   className="curator-input"
                   value={focusPresident}
@@ -683,23 +683,27 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
                     setOpenPresident(next || null)
                   }}
                 >
-                  <option value="">All presidents</option>
+                  <option value="">{t(language, 'curator.allPresidents')}</option>
                   {presidentFilterOptions.map((name) => (
                     <option key={name} value={name}>
-                      {name}
+                      {name === 'Unassigned' ? t(language, 'curator.unassigned') : name}
                     </option>
                   ))}
                 </select>
               </label>
               <p className="curator-list-meta">
-                {filtered.length} item{filtered.length === 1 ? '' : 's'}
-                {focusPresident ? ` · ${focusPresident}` : ` · ${artifactsByPresident.length} groups`}
+                {filtered.length === 1
+                  ? t(language, 'curator.itemCount', { count: filtered.length })
+                  : t(language, 'curator.itemsCount', { count: filtered.length })}
+                {focusPresident
+                  ? ` · ${focusPresident === 'Unassigned' ? t(language, 'curator.unassigned') : focusPresident}`
+                  : ` · ${t(language, 'curator.groupsCount', { count: artifactsByPresident.length })}`}
               </p>
             </div>
 
             <div className="curator-list curator-list-grouped">
               {artifactsByPresident.length === 0 ? (
-                <p className="curator-empty">No artifacts match this view.</p>
+                <p className="curator-empty">{t(language, 'curator.emptyArtifacts')}</p>
               ) : (
                 artifactsByPresident.map((group) => {
                   const expanded = focusPresident
@@ -720,7 +724,7 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
                           {expanded ? '▾' : '▸'}
                         </span>
                         <span className="curator-president-heading-text">
-                          <strong>{group.name}</strong>
+                          <strong>{group.name === 'Unassigned' ? t(language, 'curator.unassigned') : group.name}</strong>
                           {group.service ? <em>{group.service}</em> : null}
                         </span>
                         <span className="curator-president-count">{group.items.length}</span>
@@ -736,7 +740,7 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
                               >
                                 <span className="curator-list-code">{row.id_code || row.rd_code || `#${row.id}`}</span>
                                 <span className="curator-list-name">{row.title || '(no title)'}</span>
-                                {!row.published ? <span className="curator-pill">Draft</span> : null}
+                                {!row.published ? <span className="curator-pill">{t(language, 'curator.draft')}</span> : null}
                               </button>
                             </li>
                           ))}
@@ -752,9 +756,9 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
           <section className="curator-editor">
             {!selected ? (
               <div className="curator-editor-empty">
-                <p className="curator-empty-title">Select an artifact</p>
+                <p className="curator-empty-title">{t(language, 'curator.selectArtifact')}</p>
                 <p className="curator-muted">
-                  Browse by president on the left, or add a new draft to begin editing.
+                  {t(language, 'curator.selectArtifactHint')}
                 </p>
               </div>
             ) : (
@@ -765,23 +769,23 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
                     className="curator-text-btn curator-mobile-back"
                     onClick={() => setMobilePane('list')}
                   >
-                    ← List
+                    {t(language, 'curator.backToList')}
                   </button>
                   <div className="curator-editor-identity">
-                    <span className="curator-editor-code">{form.id_code || 'No accession ID'}</span>
-                    <h2 className="curator-editor-title">{form.title || '(Untitled artifact)'}</h2>
-                    <p className="curator-editor-owner">{form.owner_name || 'Unassigned'}</p>
+                    <span className="curator-editor-code">{form.id_code || t(language, 'curator.noAccessionId')}</span>
+                    <h2 className="curator-editor-title">{form.title || t(language, 'curator.untitledArtifact')}</h2>
+                    <p className="curator-editor-owner">{form.owner_name || t(language, 'curator.unassigned')}</p>
                   </div>
                   <div className="curator-editor-actions">
                     <label className="curator-check curator-check-inline">
                       <input type="checkbox" checked={form.published} onChange={onField('published')} />
-                      Published
+                      {t(language, 'curator.field.publishedShort')}
                     </label>
                     <button type="button" className="curator-text-btn curator-danger" onClick={handleDeleteArtifact} disabled={busy}>
-                      Delete
+                      {t(language, 'curator.delete')}
                     </button>
                     <button type="submit" className="curator-primary" disabled={busy}>
-                      Save
+                      {t(language, 'curator.save')}
                     </button>
                   </div>
                 </div>
@@ -793,7 +797,7 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
                   </div>
                 )}
 
-                <div className="curator-section-tabs" role="tablist" aria-label="Edit sections">
+                <div className="curator-section-tabs" role="tablist" aria-label={t(language, 'curator.editSectionsAria')}>
                   {EDITOR_SECTIONS.map((section) => (
                     <button
                       key={section.id}
@@ -803,7 +807,7 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
                       className={`curator-section-tab${editorSection === section.id ? ' is-active' : ''}`}
                       onClick={() => setEditorSection(section.id)}
                     >
-                      {section.label}
+                      {t(language, section.labelKey)}
                     </button>
                   ))}
                 </div>
@@ -812,11 +816,11 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
                   {editorSection === 'record' ? (
                     <div className="curator-section-grid">
                       <label className="curator-label">
-                        Accession ID
+                        {t(language, 'curator.field.accessionId')}
                         <input className="curator-input" value={form.id_code} onChange={onField('id_code')} />
                       </label>
                       <label className="curator-label">
-                        Owner / President
+                        {t(language, 'curator.field.owner')}
                         <select
                           className="curator-input"
                           value={form.president_id == null ? '' : String(form.president_id)}
@@ -835,7 +839,7 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
                             }))
                           }}
                         >
-                          <option value="">Unassigned</option>
+                          <option value="">{t(language, 'curator.unassigned')}</option>
                           {presidents.map((p) => (
                             <option key={p.id} value={String(p.id)}>
                               {p.name}
@@ -845,15 +849,15 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
                         </select>
                       </label>
                       <label className="curator-label curator-span-2">
-                        Title
+                        {t(language, 'curator.field.title')}
                         <input className="curator-input" value={form.title} onChange={onField('title')} />
                       </label>
                       <label className="curator-label curator-span-2">
-                        Subtitle
+                        {t(language, 'curator.field.subtitle')}
                         <input className="curator-input" value={form.subtitle} onChange={onField('subtitle')} />
                       </label>
                       <label className="curator-label curator-span-2">
-                        Description
+                        {t(language, 'curator.field.description')}
                         <textarea
                           className="curator-input curator-textarea"
                           rows={8}
@@ -862,7 +866,7 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
                         />
                       </label>
                       <label className="curator-label curator-span-2">
-                        Remarks (curator-only)
+                        {t(language, 'curator.field.remarks')}
                         <textarea
                           className="curator-input"
                           rows={3}
@@ -876,11 +880,11 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
                   {editorSection === 'catalog' ? (
                     <div className="curator-section-grid">
                       <label className="curator-label">
-                        Year acquired
+                        {t(language, 'curator.field.yearAcquired')}
                         <input className="curator-input" value={form.year_acquired} onChange={onField('year_acquired')} />
                       </label>
                       <label className="curator-label">
-                        Country of origin
+                        {t(language, 'curator.field.country')}
                         <input
                           className="curator-input"
                           value={form.country_of_origin}
@@ -888,18 +892,18 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
                         />
                       </label>
                       <label className="curator-label">
-                        Type
+                        {t(language, 'curator.field.type')}
                         <input className="curator-input" value={form.artifact_type} onChange={onField('artifact_type')} />
                       </label>
                       <label className="curator-label">
-                        Icon
+                        {t(language, 'curator.field.icon')}
                         <input className="curator-input" value={form.icon} onChange={onField('icon')} />
                       </label>
                       <div className="curator-label curator-span-2">
-                        Tags
-                        <div className="curator-tag-list" aria-label="Artifact tags">
+                        {t(language, 'curator.field.tags')}
+                        <div className="curator-tag-list" aria-label={t(language, 'curator.tagsAria')}>
                           {form.tags.length === 0 ? (
-                            <p className="curator-muted curator-inline-muted">No tags yet — add one below.</p>
+                            <p className="curator-muted curator-inline-muted">{t(language, 'curator.noTags')}</p>
                           ) : (
                             form.tags.map((tag) => (
                               <span key={tag} className="curator-tag-chip">
@@ -907,7 +911,7 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
                                 <button
                                   type="button"
                                   className="curator-tag-remove"
-                                  aria-label={`Remove tag ${tag}`}
+                                  aria-label={t(language, 'curator.removeTag', { tag })}
                                   onClick={() => removeTag(tag)}
                                 >
                                   ×
@@ -920,7 +924,7 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
                           <input
                             className="curator-input"
                             value={tagDraft}
-                            placeholder="Add a tag and press Enter"
+                            placeholder={t(language, 'curator.addTag')}
                             onChange={(e) => setTagDraft(e.target.value)}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') {
@@ -945,25 +949,25 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
                   {editorSection === 'media' ? (
                     <div className="curator-media-layout">
                       <div className="curator-media-preview">
-                        <p className="curator-media-label">Reference photo (curator-only)</p>
-                        <CuratorPhoto artifactId={selected.id} imageUrl={selected.image_url} />
+                        <p className="curator-media-label">{t(language, 'curator.photoLabel')}</p>
+                        <CuratorPhoto language={language} artifactId={selected.id} imageUrl={selected.image_url} />
                         <label className="curator-file-btn">
-                          Upload photo
+                          {t(language, 'curator.uploadPhoto')}
                           <input type="file" accept="image/*" onChange={handlePhotoUpload} disabled={busy} />
                         </label>
                       </div>
                       <div className="curator-media-model">
-                        <p className="curator-media-label">3D model (.glb or .obj)</p>
+                        <p className="curator-media-label">{t(language, 'curator.modelLabel')}</p>
                         <label className="curator-file-btn">
-                          Upload model
+                          {t(language, 'curator.uploadModel')}
                           <input type="file" accept=".glb,.obj" onChange={handleModelUpload} disabled={busy} />
                         </label>
                         {selected.model_url ? (
                           <p className="curator-model-current">
-                            Current: <span>{selected.model_url}</span>
+                            {t(language, 'curator.modelCurrent')} <span>{selected.model_url}</span>
                           </p>
                         ) : (
-                          <p className="curator-muted curator-inline-muted">No model on file.</p>
+                          <p className="curator-muted curator-inline-muted">{t(language, 'curator.noModel')}</p>
                         )}
                         {uploadMsg ? <p className="curator-ok">{uploadMsg}</p> : null}
                         {uploadError ? <p className="curator-error">{uploadError}</p> : null}
@@ -979,15 +983,15 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
                           checked={form.llm_assist_enabled}
                           onChange={onField('llm_assist_enabled')}
                         />
-                        Allow AI assist for this item
+                        {t(language, 'curator.aiAllow')}
                       </label>
                       <div className="curator-assist-actions">
                         <button type="button" className="curator-text-btn" onClick={handleAiSuggest} disabled={busy}>
-                          Suggest with AI
+                          {t(language, 'curator.aiSuggest')}
                         </button>
                         {aiSuggestion ? (
                           <button type="button" className="curator-primary" onClick={handleAiAccept} disabled={busy}>
-                            Accept suggestions
+                            {t(language, 'curator.aiAccept')}
                           </button>
                         ) : null}
                       </div>
@@ -995,7 +999,7 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
                         <pre className="curator-ai-preview">{JSON.stringify(aiSuggestion, null, 2)}</pre>
                       ) : (
                         <p className="curator-muted curator-inline-muted">
-                          Suggestions fill empty catalog fields. Review before accepting.
+                          {t(language, 'curator.aiHint')}
                         </p>
                       )}
                     </div>
@@ -1010,10 +1014,12 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
           <aside className="curator-nav">
             <div className="curator-nav-toolbar">
               <button type="button" className="curator-primary curator-nav-add" onClick={handleCreatePresident} disabled={busy}>
-                Add president
+                {t(language, 'curator.addPresident')}
               </button>
               <p className="curator-list-meta">
-                {presidents.length} president{presidents.length === 1 ? '' : 's'}
+                {presidents.length === 1
+                  ? t(language, 'curator.presidentCount', { count: presidents.length })
+                  : t(language, 'curator.presidentsCount', { count: presidents.length })}
               </p>
             </div>
             <ul className="curator-list">
@@ -1025,8 +1031,8 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
                     onClick={() => selectPresident(p.id)}
                   >
                     <span className="curator-list-name">{p.name}</span>
-                    <span className="curator-list-code">{p.service || 'No service years'}</span>
-                    {!p.published ? <span className="curator-pill">Draft</span> : null}
+                    <span className="curator-list-code">{p.service || t(language, 'curator.noServiceYears')}</span>
+                    {!p.published ? <span className="curator-pill">{t(language, 'curator.draft')}</span> : null}
                   </button>
                 </li>
               ))}
@@ -1036,8 +1042,8 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
           <section className="curator-editor">
             {!selectedPresident ? (
               <div className="curator-editor-empty">
-                <p className="curator-empty-title">Select a president</p>
-                <p className="curator-muted">Edit biography, service years, and portrait for the visitor browse mode.</p>
+                <p className="curator-empty-title">{t(language, 'curator.selectPresident')}</p>
+                <p className="curator-muted">{t(language, 'curator.selectPresidentHint')}</p>
               </div>
             ) : (
               <form className="curator-editor-form" onSubmit={handleSavePresident}>
@@ -1047,11 +1053,11 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
                     className="curator-text-btn curator-mobile-back"
                     onClick={() => setMobilePane('list')}
                   >
-                    ← List
+                    {t(language, 'curator.backToList')}
                   </button>
                   <div className="curator-editor-identity">
-                    <span className="curator-editor-code">{presidentForm.service || 'Service years'}</span>
-                    <h2 className="curator-editor-title">{presidentForm.name || '(Untitled)'}</h2>
+                    <span className="curator-editor-code">{presidentForm.service || t(language, 'curator.serviceYears')}</span>
+                    <h2 className="curator-editor-title">{presidentForm.name || t(language, 'curator.untitled')}</h2>
                   </div>
                   <div className="curator-editor-actions">
                     <label className="curator-check curator-check-inline">
@@ -1060,10 +1066,10 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
                         checked={presidentForm.published}
                         onChange={(e) => setPresidentForm((f) => ({ ...f, published: e.target.checked }))}
                       />
-                      Published
+                      {t(language, 'curator.field.publishedShort')}
                     </label>
                     <button type="submit" className="curator-primary" disabled={busy}>
-                      Save
+                      {t(language, 'curator.save')}
                     </button>
                   </div>
                 </div>
@@ -1078,7 +1084,7 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
                 <div className="curator-section-body">
                   <div className="curator-section-grid">
                     <label className="curator-label">
-                      Name
+                      {t(language, 'curator.field.name')}
                       <input
                         className="curator-input"
                         value={presidentForm.name}
@@ -1086,7 +1092,7 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
                       />
                     </label>
                     <label className="curator-label">
-                      Service years
+                      {t(language, 'curator.field.service')}
                       <input
                         className="curator-input"
                         value={presidentForm.service}
@@ -1094,7 +1100,7 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
                       />
                     </label>
                     <label className="curator-label curator-span-2">
-                      Biography
+                      {t(language, 'curator.field.biography')}
                       <textarea
                         className="curator-input curator-textarea"
                         rows={10}
@@ -1103,7 +1109,7 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
                       />
                     </label>
                     <label className="curator-label curator-span-2">
-                      Portrait URL
+                      {t(language, 'curator.field.portraitUrl')}
                       <input
                         className="curator-input"
                         value={presidentForm.photo_url}

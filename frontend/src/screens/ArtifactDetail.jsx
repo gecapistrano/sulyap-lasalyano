@@ -10,8 +10,8 @@ import { getRelatedTagsForArtifact } from '../lib/relatedTags'
 import './ArtifactDetail.css'
 
 /** Center header: catalog RD code (e.g. RD204) from artifact fields or embedded in title. */
-function getArtifactRdHeaderLabel(artifact) {
-  if (!artifact) return 'Artifact'
+function getArtifactRdHeaderLabel(artifact, fallback = 'Artifact') {
+  if (!artifact) return fallback
   const raw =
     artifact.rdCode ??
     artifact.rd_code ??
@@ -25,7 +25,7 @@ function getArtifactRdHeaderLabel(artifact) {
   const name = String(artifact.name ?? '')
   const m = name.match(/\bRD\d{2,}\b/i)
   if (m) return m[0].toUpperCase()
-  return 'Artifact'
+  return fallback
 }
 
 export default function ArtifactDetail({ language = 'English', artifact, onBack, onViewKnowledgeGraph, onRelatedTag, darkMode }) {
@@ -68,14 +68,18 @@ export default function ArtifactDetail({ language = 'English', artifact, onBack,
     typeof artifact?.description === 'string' && artifact.description.trim()
       ? artifact.description
       : t(language, 'detail.fallbackDesc')
+  const sourceTitle = typeof artifact?.name === 'string' ? artifact.name : ''
+  const sourceOwner = typeof artifact?.owner === 'string' ? artifact.owner : ''
   const { text: translatedDescription, loading: translating } = useTranslatedText(sourceDescription, language)
+  const { text: translatedTitle } = useTranslatedText(sourceTitle, language)
+  const { text: translatedOwner } = useTranslatedText(sourceOwner, language)
 
   if (!artifact) return null
 
-  const title = artifact.name ?? t(language, 'detail.artifact')
-  const owner = artifact.owner ?? '\u2014'
+  const title = translatedTitle || t(language, 'detail.artifact')
+  const owner = translatedOwner || '\u2014'
   const year = artifact.year ?? '\u2014'
-  const headerRdLabel = getArtifactRdHeaderLabel(artifact)
+  const headerRdLabel = getArtifactRdHeaderLabel(artifact, t(language, 'detail.artifact'))
   const description = translating ? t(language, 'detail.translating') : translatedDescription
   const descLong = typeof description === 'string' && description.length > 280
   const visibleDescription =
@@ -126,7 +130,7 @@ export default function ArtifactDetail({ language = 'English', artifact, onBack,
           <p className="ad-model-caption">{t(language, 'detail.rotate')}</p>
         </section>
 
-        <section className="ad-info" aria-label="Artifact information">
+        <section className="ad-info" aria-label={t(language, 'detail.infoAria')}>
           <div className="ad-info-scroll" ref={copyScrollRef}>
             <div className="ad-info-head">
               <div className="ad-info-head-text">
@@ -139,7 +143,7 @@ export default function ArtifactDetail({ language = 'English', artifact, onBack,
                 <p className="ad-year">{year}</p>
               </div>
 
-              <div className="ad-president-photo" role="img" aria-label="President portrait (placeholder)">
+              <div className="ad-president-photo" role="img" aria-label={t(language, 'detail.presidentPhotoAria')}>
                 <span aria-hidden>👤</span>
               </div>
             </div>
@@ -150,7 +154,7 @@ export default function ArtifactDetail({ language = 'English', artifact, onBack,
             <p className="ad-description">{visibleDescription}</p>
             {descLong ? (
               <button type="button" className="ad-related-tag" onClick={() => setDescExpanded((v) => !v)}>
-                {descExpanded ? 'Show less' : 'Show more'}
+                {descExpanded ? t(language, 'detail.showLess') : t(language, 'detail.showMore')}
               </button>
             ) : null}
 

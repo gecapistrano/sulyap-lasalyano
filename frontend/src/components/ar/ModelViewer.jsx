@@ -279,7 +279,7 @@ export default function ModelViewer({
   }, [dimmed])
 
   const viewerRole = onTap ? 'button' : 'application'
-  const viewerLabel = onTap ? 'Model viewer — tap for details' : '3D model — drag to rotate'
+  const viewerLabel = onTap ? t(language, 'model.viewerTap') : t(language, 'model.viewerDrag')
 
   return (
     <div

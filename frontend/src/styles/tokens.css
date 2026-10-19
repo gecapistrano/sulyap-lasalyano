@@ -1,0 +1,78 @@
+/**
+ * Academia / Classical design tokens — Sulyap Lasalyano
+ * Source of truth for colors, type, radii, motion.
+ */
+:root {
+  /* Foundation */
+  --aca-bg: #1c1714;
+  --aca-bg-alt: #251e19;
+  --aca-fg: #e8dfd4;
+  --aca-muted: #3d332b;
+  --aca-muted-fg: #9c8b7a;
+  --aca-border: #4a3f35;
+
+  /* Accents */
+  --aca-accent: #c9a962;
+  --aca-accent-bright: #d4b872;
+  --aca-accent-deep: #b8953f;
+  --aca-crimson: #8b2635;
+  /* Lasallian grove — sparse academic accent (not primary interaction) */
+  --aca-grove: #00703c;
+  --aca-grove-bright: #0a8250;
+  --aca-grove-soft: color-mix(in srgb, #00703c 18%, transparent);
+  --aca-accent-fg: #1c1714;
+
+  /* Type */
+  --font-display: 'Cinzel', serif;
+  --font-heading: 'Cormorant Garamond', serif;
+  --font-body: 'Crimson Pro', serif;
+
+  /* Shape */
+  --aca-radius: 4px;
+  --aca-arch: 40% 40% 0 0 / 20% 20% 0 0;
+
+  /* Motion */
+  --aca-ease: ease-out;
+  --aca-fast: 150ms;
+  --aca-base: 300ms;
+  --aca-slow: 500ms;
+  --aca-dramatic: 700ms;
+
+  /* Effects */
+  --aca-brass-gradient: linear-gradient(180deg, #d4b872 0%, #c9a962 50%, #b8953f 100%);
+  --aca-engraved: 1px 1px 1px rgba(0, 0, 0, 0.4), -1px -1px 1px rgba(255, 255, 255, 0.1);
+  --aca-sepia: sepia(0.6) contrast(0.95) brightness(0.9);
+  --aca-header-h: 3.5rem;
+
+  /* Legacy aliases → academia (visitor screens migrating off --brw-*) */
+  --brw-bg: var(--aca-bg);
+  --brw-ink: var(--aca-fg);
+  --brw-muted: var(--aca-muted-fg);
+  --brw-line: var(--aca-border);
+  --brw-panel: var(--aca-bg-alt);
+  --brw-accent: var(--aca-accent);
+  --ff-serif: var(--font-heading);
+  --ff-sans: var(--font-body);
+  --ff-mono: var(--font-display);
+}
+
+/* Light — parchment reading room (high-contrast ink on paper) */
+[data-theme='light'] {
+  --aca-bg: #f2efd6;
+  --aca-bg-alt: #e4dcc0;
+  --aca-fg: #1a140f;
+  --aca-muted: #b5a88a;
+  --aca-muted-fg: #3a2e1f;
+  --aca-border: #8f8168;
+  --aca-accent: #6b5528;
+  --aca-accent-bright: #856b32;
+  --aca-accent-deep: #4f3f1c;
+  --aca-crimson: #7a1f2c;
+  --aca-grove: #005c32;
+  --aca-grove-bright: #00703c;
+  --aca-grove-soft: color-mix(in srgb, #005c32 16%, transparent);
+  --aca-accent-fg: #f2efd6;
+  --aca-brass-gradient: linear-gradient(180deg, #b8953f 0%, #8a7340 55%, #6b5528 100%);
+  --aca-engraved: 1px 1px 0 rgba(255, 255, 255, 0.35), -1px -1px 0 rgba(0, 0, 0, 0.12);
+  --aca-sepia: sepia(0.35) contrast(0.98) brightness(1.02);
+}

@@ -18,8 +18,8 @@
   height: 13rem;
   flex-shrink: 0;
   border-radius: 50%;
-  background: var(--brw-card-bg, rgba(242, 239, 214, 0.4));
-  border: 2.5px solid var(--brw-card-border, rgba(58, 46, 31, 0.1));
+  background: var(--brw-card-bg, var(--aca-bg-alt));
+  border: 2px solid var(--aca-accent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -31,13 +31,19 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  filter: var(--aca-sepia);
+  transition: filter var(--aca-dramatic) var(--aca-ease);
+}
+
+.pa-profile-photo:hover img {
+  filter: none;
 }
 
 .pa-profile-name {
-  font-family: var(--ff-serif, 'Cormorant Garamond', Georgia, serif);
+  font-family: var(--ff-serif, var(--font-heading));
   font-size: 1.65rem;
-  font-weight: 700;
-  color: var(--brw-text, #3a2e1f);
+  font-weight: 500;
+  color: var(--brw-text, var(--aca-fg));
   line-height: 1.25;
   margin: 0.3rem 0 0;
   text-align: center;
@@ -45,12 +51,13 @@
 
 .pa-profile-years {
   margin: -0.2rem 0 0;
-  font-family: var(--ff-mono, 'DM Mono', ui-monospace, monospace);
-  font-size: 0.85rem;
+  font-family: var(--font-display);
+  font-size: 0.7rem;
   font-weight: 500;
-  letter-spacing: 0.08em;
-  color: var(--brw-text-soft, #5a4a38);
-  opacity: 0.7;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--brw-text-soft, var(--aca-muted-fg));
+  opacity: 0.9;
 }
 
 /* ── Item count ── */
@@ -60,12 +67,13 @@
   z-index: 1;
   flex-shrink: 0;
   margin: 0 1.25rem 0.5rem;
-  font-family: var(--ff-mono, 'DM Mono', ui-monospace, monospace);
-  font-size: 0.7rem;
+  font-family: var(--font-display);
+  font-size: 0.65rem;
   font-weight: 500;
-  letter-spacing: 0.06em;
-  color: var(--brw-text-soft, #5a4a38);
-  opacity: 0.65;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--brw-text-soft, var(--aca-muted-fg));
+  opacity: 0.85;
 }
 
 /* ── Empty state ── */
@@ -73,9 +81,9 @@
 .president-artifacts-empty {
   padding: 2rem 1.25rem;
   text-align: center;
-  font-size: 0.9rem;
-  color: var(--brw-text-soft, #5a4a38);
-  border: 1px dashed var(--brw-card-border, rgba(58, 46, 31, 0.1));
-  border-radius: 1rem;
+  font-size: 0.95rem;
+  color: var(--brw-text-soft, var(--aca-muted-fg));
+  border: 1px dashed var(--brw-card-border, var(--aca-border));
+  border-radius: var(--aca-radius);
   opacity: 0.7;
 }

@@ -469,22 +469,22 @@ export default function ARCamera({ language = 'English', onBrowse, onHome, darkM
         label: rdCode || '—',
         confidence: prettyConf,
         artifactInfo: {
-          name: rdCode ? `${rdCode}` : 'Unknown item',
+          name: rdCode ? `${rdCode}` : t(language, 'scan.unknownItem'),
           president: '',
           year: '',
           origin: '',
           category: rdCode || '',
           tags: rdCode ? [rdCode] : [],
           description: rdCode
-            ? `No published catalog record found for ${rdCode}. A curator can add it in Curator Desk.`
-            : 'No catalog record found for this detection.',
+            ? t(language, 'scan.noCatalogFor', { code: rdCode })
+            : t(language, 'scan.noCatalog'),
           historical_context: '',
         },
       })
     }
     dragProgressRef.current = 0
     setMode('INFO_OPEN')
-  }, [])
+  }, [language])
 
   const openArtifactFromDetection = useCallback(
     async (detectedClass, confidence) => {
@@ -504,7 +504,7 @@ export default function ARCamera({ language = 'English', onBrowse, onHome, darkM
           origin: '',
           category: rdCode,
           tags: rdCode ? [rdCode] : [],
-          description: 'Loading catalog details…',
+          description: t(language, 'scan.loadingCatalogDetails'),
           historical_context: '',
         },
       })
@@ -527,7 +527,7 @@ export default function ARCamera({ language = 'English', onBrowse, onHome, darkM
         if (reqId === openRequestIdRef.current) setInfoLoading(false)
       }
     },
-    [applyDetectionRecord],
+    [applyDetectionRecord, language],
   )
 
   const handleSelectOutline = useCallback(

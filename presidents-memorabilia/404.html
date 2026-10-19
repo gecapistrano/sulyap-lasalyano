@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>404 — President’s Memorabilia</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#00703C">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Instrument+Sans:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Standalone: a 404 may be served at any depth, so tokens are inlined. */
+  :root{
+    --card:#122018; --cream:#F7F4EF; --cream-dim:#C9B8A4;
+    --line:#2A3F34; --pill:#3A5244; --quiet:#C9B8A4;
+    --accent:#00703C; --brown:#6F4E37;
+    --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+    --body:'Instrument Sans',ui-sans-serif,system-ui,sans-serif;
+    --disp:'Anton',Haettenschweiler,'Arial Narrow',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:var(--card);color:var(--cream);
+    font-family:var(--body);font-size:16px;line-height:1.6;
+    min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;
+    -webkit-font-smoothing:antialiased;
+  }
+  @supports (min-height:100dvh){body{min-height:100dvh}}
+  ::selection{background:var(--accent);color:#fff}
+  a{color:inherit}
+  a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:3px}
+  .top{
+    display:flex;align-items:center;justify-content:space-between;gap:20px;
+    padding:clamp(18px,3vw,32px) clamp(20px,4vw,64px);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{
+    display:flex;align-items:center;gap:12px;text-decoration:none;
+    font-weight:700;font-size:clamp(17px,2vw,22px);letter-spacing:-.02em;
+  }
+  .brand svg{width:clamp(28px,3vw,36px);height:auto;flex:none}
+  .brand path{fill:currentColor}
+  .brand:hover{color:var(--accent)}
+  .status{
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--quiet);
+  }
+  main{
+    flex:1;display:flex;flex-direction:column;justify-content:center;
+    padding:clamp(40px,8vh,90px) clamp(20px,4vw,64px);
+    max-width:1100px;width:100%;margin:0 auto;
+  }
+  .code{
+    font-family:var(--disp);font-weight:400;line-height:.82;
+    font-size:clamp(96px,26vw,280px);letter-spacing:.02em;
+    color:transparent;-webkit-text-stroke:3px var(--cream);
+  }
+  @media (max-width:600px){.code{-webkit-text-stroke-width:2px}}
+  h1{
+    font-family:var(--disp);font-weight:400;text-transform:uppercase;
+    font-size:clamp(28px,5vw,48px);margin:12px 0 16px;line-height:1.05;
+  }
+  p{max-width:42ch;color:var(--cream-dim);margin-bottom:28px}
+  .go{
+    display:inline-flex;align-items:center;min-height:48px;padding:0 26px;
+    font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+    text-decoration:none;background:var(--accent);color:#fff;border-radius:99px;
+  }
+  .go:hover{filter:brightness(1.08)}
+  footer{
+    padding:20px clamp(20px,4vw,64px);
+    font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--quiet);border-top:1px solid var(--line);
+  }
+</style>
+</head>
+<body>
+  <div class="top">
+    <a class="brand" href="/">
+      <svg viewBox="0 0 100 100" aria-hidden="true"><path fill-rule="evenodd" d="M20 0H80A20 20 0 0 1 100 20V80A20 20 0 0 1 80 100H0V20A20 20 0 0 1 20 0ZM28 28H44V44H72V60H44V72H28V28Z"/></svg>
+      President’s Memorabilia
+    </a>
+    <span class="status">404 · not found</span>
+  </div>
+  <main>
+    <p class="code" aria-hidden="true">404</p>
+    <h1>Route not found</h1>
+    <p>This path is not part of the collection. Head home to continue exploring the memorabilia.</p>
+    <a class="go" href="/">Back to home</a>
+  </main>
+  <footer>De La Salle University–Dasmariñas</footer>
+</body>
+</html>

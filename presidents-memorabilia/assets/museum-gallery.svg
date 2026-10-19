@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-label="Museum gallery parallax reference">
+  <!-- Simplified layers on white — inlined in index.html -->
+  <rect width="1200" height="720" fill="#fff"/>
+  <rect x="380" y="140" width="440" height="260" fill="#100E0A" stroke="#6B5338" stroke-width="4"/>
+  <polygon points="0,90 180,150 180,640 0,720" fill="#0A100C"/>
+  <polygon points="1200,90 1020,150 1020,640 1200,720" fill="#0A100C"/>
+  <rect x="330" y="440" width="100" height="280" fill="#4A3826"/>
+  <rect x="770" y="440" width="100" height="280" fill="#4A3826"/>
+  <rect x="880" y="480" width="260" height="40" fill="#3D2E1E"/>
+</svg>

@@ -4,6 +4,8 @@ Sulyap Lasalyano is a web-based AR + ML museum experience for the DLSU-D AEA-IRC
 
 Visitors can point a phone camera at supported memorabilia and the system attempts real-time recognition using a YOLO/ONNX pipeline, then presents contextual content in an interactive UI.
 
+> **Layout note:** The primary public UI is `presidents-memorabilia/` (static site). `backend/` remains for API integration. The older `frontend/` app is legacy if present and is not the primary visitor surface.
+
 ## Core Features
 
 - Browser-based camera scanner with on-device model inference
@@ -14,22 +16,24 @@ Visitors can point a phone camera at supported memorabilia and the system attemp
 
 ## Tech Stack
 
-- Frontend: **Next.js** (App Router), React, Tailwind, onnxruntime-web
+- Primary UI: static site in `presidents-memorabilia/`
+- Legacy frontend (optional): Next.js / React app under `frontend/`
 - Backend: FastAPI, Pydantic, SQLAlchemy
 - ML: Ultralytics YOLOv8, PyTorch, ONNX
-- Deployment: Vercel (Next.js), Render (FastAPI) — see `docs/DEPLOYMENT.md`
+- Deployment: Vercel (`presidents-memorabilia/`), Render (FastAPI) — see `docs/DEPLOYMENT.md`
 - Database: Supabase Postgres via `DATABASE_URL` (SQLite still ok for local smoke tests)
 
 ## Repository Structure
 
 ```text
 sulyap-lasalyano/
-+-- frontend/          # Next.js app (browse, scan, curator, knowledge graph)
-+-- backend/           # FastAPI API and security middleware
-+-- supabase/          # Postgres schema + catalog seed for Supabase
-+-- data/imports/      # Local memorabilia workbook copies (gitignored binaries)
-+-- ml/                # Training scripts, datasets, runs, weights
-+-- docs/              # DEPLOYMENT.md, OPS_RUNBOOK.md, SUPABASE_SETUP.md
++-- presidents-memorabilia/  # Primary public UI (static)
++-- backend/                 # FastAPI API and security middleware
++-- frontend/                # Legacy Next.js app (kept for reference / API clients)
++-- supabase/                # Postgres schema + catalog seed for Supabase
++-- data/imports/            # Local memorabilia workbook copies (gitignored binaries)
++-- ml/                      # Training scripts, datasets, runs, weights
++-- docs/                    # DEPLOYMENT.md, OPS_RUNBOOK.md, SUPABASE_SETUP.md
 +-- README.md
 ```
 
@@ -45,7 +49,16 @@ npm install
 
 Running `npm install` at the repository root sets `core.hooksPath` to `.githooks/`. The `commit-msg` hook removes any line containing `cursoragent@cursor.com` from the final commit message so automated Cursor co-author trailers are not pushed to GitHub.
 
-### 2) Frontend
+### 2) Primary UI (`presidents-memorabilia/`)
+
+Serve the static site locally (any static server), for example:
+
+```bash
+cd presidents-memorabilia
+npx --yes serve .
+```
+
+### 3) Legacy frontend (optional)
 
 ```bash
 cd frontend
@@ -53,9 +66,9 @@ npm install
 npm run dev
 ```
 
-Frontend default URL: `http://localhost:3000` (Next.js)
+Legacy frontend default URL: `http://localhost:3000` (Next.js)
 
-### 3) Backend
+### 4) Backend
 
 ```bash
 cd backend

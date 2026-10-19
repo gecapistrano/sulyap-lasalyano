@@ -1,0 +1,75 @@
+---
+description: Anti-AI-looking design checklist for frontend and museum surfaces
+globs: frontend/**/*.{css,jsx,tsx,js,html},presidents-memorabilia/**/*.{css,js,html}
+alwaysApply: false
+---
+
+# Anti-AI Design Checklist
+
+Apply on every UI edit in matching paths. Prefer existing Magpantay / museum / Sulyap craft over generic redesigns.
+
+## Brand exceptions (OK when intentional)
+
+- **La Salle green** `#00703C` (and deep/soft greens) as the single accent — not purple/indigo defaults.
+- **Walnut / wood plaque** browns (`#6F4E37`, `#3D2E22`, ivory on green) for museum identity.
+- Museum SVG, hanging-board, campus stage — keep; do not swap for stock “AI SaaS” chrome.
+
+## Symptoms (AI-looking tells)
+
+- Inter / Roboto / Arial / Open Sans / Helvetica as the face people notice
+- Purple→indigo / blue→purple hero gradients; rainbow accents; mixed warm+cool greys
+- Title Case On Every Word; vague hype (“Build the future”, “Start exploring”)
+- Everything in cards; identical radii; `shadow-lg` everywhere; `z-index: 9999`
+- Fabricated testimonials, metrics, or social proof
+- Auto-playing marquees/carousels with no pause; motion ignoring `prefers-reduced-motion`
+- `height: 100vh` clipping mobile browser chrome; scroll listeners for simple reveals
+- Hero packed with stats, chips, overlays, and secondary promos
+
+## Don’t
+
+- Default purple/indigo themes or multi-hue “AI” gradients
+- Card-wrap non-interactive content; nest card-in-card
+- Fake quotes, star ratings, or vanity metrics
+- Em-dash spam and aspirational filler copy
+- Decorative motion that cannot be paused (WCAG 2.2.2)
+- Redesign the whole site to “fix” one tell
+
+## Do
+
+- Distinctive **display + body** pairing from tokens (e.g. Anton / Cormorant + Instrument Sans + IBM Plex Mono)
+- Sentence case for UI sentences; reserved ALL CAPS only via intentional display/mono styles
+- `text-wrap: balance` on headings; `text-wrap: pretty` on paragraphs
+- One accent (brand green); one neutral family per surface (cool home vs warm gallery — don’t mix randomly)
+- `min-height: 100dvh` (with `100vh` fallback if needed) for full-viewport shells/heroes
+- Pause control + `prefers-reduced-motion` for marquees and auto-motion
+- `IntersectionObserver` for enter-view / offscreen pause; reserve scroll listeners for parallax/progress/spy
+- Real stacking context (`isolation`, modest z-index scale) — never `9999`
+- Hover / `:focus-visible` / `:active` on CTAs and nav
+- Concentric radii when nesting (inner radius ≤ outer − padding)
+- Cards only when they are the interaction container
+
+## Craft areas
+
+| Area | Aim |
+|------|-----|
+| Typography | Scale discipline; optical tracking on display; readable body 15–18px / ~1.5–1.7 |
+| Color | Tokenized brand ramp; WCAG AA; gradients stay in one hue family |
+| Layout | One composition per first viewport; brand-first; one job per section |
+| Surfaces | Hairlines + light elevation over glass/glow everywhere |
+| Motion | 2–3 intentional beats; ease-out; interruptible; reduced-motion safe |
+| Copy | Specific, human, museum voice; no competitor-generic CTAs |
+
+## Fix order (highest impact first)
+
+1. **Typography** — faces, case, wrap, scale
+2. **Color** — kill purple/indigo; one accent; consistent greys
+3. **Viewport / motion a11y** — `100dvh`; marquee pause + reduced motion; prefer IO
+4. **Stacking / honesty** — fix z-index; remove fake social proof
+5. **Cards / states / copy** — unwrap chrome; hover/focus/active; tone down hype and em dashes
+
+## Composition reminders (landings / branded pages)
+
+- First viewport = one composition (not a dashboard)
+- Brand is hero-level; headline must not overpower the brand
+- Full-bleed hero plane by default; no floating hero cards or detached overlay chips
+- Hero budget: brand, one headline, one short line, one CTA group, one dominant image

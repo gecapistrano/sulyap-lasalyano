@@ -1,11 +1,47 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: [
-    './app/**/*.{js,jsx}',
-    './src/**/*.{js,jsx}',
-  ],
+  content: ['./app/**/*.{js,jsx}', './src/**/*.{js,jsx}'],
   theme: {
     extend: {
+      colors: {
+        background: '#1C1714',
+        'background-alt': '#251E19',
+        foreground: '#E8DFD4',
+        muted: {
+          DEFAULT: '#3D332B',
+          foreground: '#9C8B7A',
+        },
+        border: '#4A3F35',
+        accent: {
+          DEFAULT: '#C9A962',
+          bright: '#D4B872',
+          deep: '#B8953F',
+          foreground: '#1C1714',
+        },
+        crimson: '#8B2635',
+        grove: {
+          DEFAULT: '#00703C',
+          bright: '#0A8250',
+        },
+      },
+      fontFamily: {
+        display: ['var(--font-cinzel)', 'Cinzel', 'serif'],
+        heading: ['var(--font-cormorant)', 'Cormorant Garamond', 'serif'],
+        body: ['var(--font-crimson)', 'Crimson Pro', 'serif'],
+      },
+      borderRadius: {
+        DEFAULT: '4px',
+        aca: '4px',
+      },
+      transitionTimingFunction: {
+        aca: 'ease-out',
+      },
+      transitionDuration: {
+        aca: '300ms',
+        'aca-fast': '150ms',
+        'aca-slow': '500ms',
+        'aca-dramatic': '700ms',
+      },
       keyframes: {
         'slide-up': {
           '0%': { transform: 'translateY(100%)' },

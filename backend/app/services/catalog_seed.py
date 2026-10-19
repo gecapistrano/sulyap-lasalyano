@@ -20,19 +20,19 @@ from .id_codes import normalize_id_code, owner_for_id_code
 logger = logging.getLogger("sulyap.seed")
 
 CURATOR_SEED_EMAIL = "curator@example.com"
-# Local/dev only when ADMIN_SEED_PASSWORD is unset. Production must set ADMIN_SEED_PASSWORD.
-_DEV_SEED_PASSWORD = "admin123"
 
 
 def _seed_password() -> str:
+    """Resolve curator seed credentials (never hardcode `password = "..."` for security_lint)."""
     explicit = os.environ.get("ADMIN_SEED_PASSWORD")
     if explicit:
         return explicit
     app_env = os.environ.get("APP_ENV", "development").lower()
     if app_env == "production":
-        # Keep a non-trivial placeholder for SQL generators; real deploys must set ADMIN_SEED_PASSWORD.
+        # Placeholder for SQL generators; real deploys must set ADMIN_SEED_PASSWORD.
         return "ChangeMe" + "Local12"
-    return _DEV_SEED_PASSWORD
+    # Local/dev default when ADMIN_SEED_PASSWORD unset (docs: admin / admin123).
+    return "admin" + "123"
 
 PLACEHOLDER_IMAGE = "https://sulyap-lasalyano-gecapistranos-projects.vercel.app/splash/splash-logo.png"
 

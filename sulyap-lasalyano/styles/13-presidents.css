@@ -24,28 +24,6 @@
   isolation:isolate;
 }
 
-/* Museum flashlight: soft radial lift over dark content; under sticky chrome */
-.pres-spotlight{
-  --sx:50%;--sy:42%;
-  position:absolute;inset:0;z-index:10;pointer-events:none;
-  opacity:0;
-  background:radial-gradient(
-    circle 40vmin at var(--sx) var(--sy),
-    rgba(247,244,239,.75) 0%,
-    rgba(247,244,239,.30) 34%,
-    transparent 62%
-  );
-  mix-blend-mode:soft-light;
-  transition:opacity .3s ease-out;
-}
-.pres-shell.is-lit .pres-spotlight{opacity:1}
-@media (hover:hover) and (pointer:fine){
-  .pres-spotlight{will-change:opacity}
-}
-@media (hover:none), (pointer:coarse), (prefers-reduced-motion:reduce){
-  .pres-spotlight{display:none}
-}
-
 .pres-chrome{
   position:sticky;
   top:0;
@@ -352,36 +330,6 @@
   background:var(--pres-mid);
   box-shadow:0 8px 22px rgba(0,0,0,.28);
   cursor:zoom-in;
-  transition:border-color var(--mo, .25s) ease-out, box-shadow var(--mo, .25s) ease-out;
-}
-.pres-masonry-item::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  border-radius:inherit;
-  pointer-events:none;
-  z-index:1;
-  background:linear-gradient(
-    180deg,
-    rgba(0,0,0,.72) 0%,
-    rgba(0,0,0,.28) 18%,
-    transparent 38%,
-    transparent 62%,
-    rgba(0,0,0,.28) 82%,
-    rgba(0,0,0,.72) 100%
-  );
-  opacity:0;
-  transition:opacity calc(var(--mo, .25s) * 1.4) var(--mo-ease, cubic-bezier(.32,.72,0,1));
-}
-.pres-masonry-item:hover,
-.pres-masonry-item:focus-visible{
-  border-color:rgba(134,239,172,.42);
-  box-shadow:0 14px 32px rgba(0,0,0,.4);
-  z-index:1;
-}
-.pres-masonry-item:hover::after,
-.pres-masonry-item:focus-visible::after{
-  opacity:1;
 }
 .pres-masonry-item:focus-visible{
   outline:2px solid rgba(134,239,172,.7);
@@ -394,12 +342,6 @@
   object-fit:cover;
   object-position:center top;
   pointer-events:none;
-  transform-origin:center center;
-  transition:scale calc(var(--mo, .25s) * 2) var(--mo-ease, cubic-bezier(.32,.72,0,1));
-}
-.pres-masonry-item:hover img,
-.pres-masonry-item:focus-visible img{
-  scale:1.05;
 }
 
 /* Memory photo lightbox — Magpantay .lb layout (fullscreen dim + floating shot) */
@@ -535,11 +477,6 @@
 
 @media (prefers-reduced-motion:reduce){
   .pres-lang-menu,.pres-lang-menu.is-closing{animation:none!important}
-  .pres-masonry-item,
-  .pres-masonry-item::after,
-  .pres-masonry-item img{transition:none}
-  .pres-masonry-item:hover img,
-  .pres-masonry-item:focus-visible img{scale:1}
   .pres-lightbox[open],
   .pres-lightbox-figure{animation:none!important}
 }

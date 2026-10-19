@@ -24,6 +24,28 @@
   isolation:isolate;
 }
 
+/* Museum flashlight on page background only — under chrome + photos (no soft-light on images) */
+.pres-spotlight{
+  --sx:50%;--sy:42%;
+  position:absolute;inset:0;z-index:1;pointer-events:none;
+  opacity:0;
+  background:radial-gradient(
+    circle 40vmin at var(--sx) var(--sy),
+    rgba(247,244,239,.75) 0%,
+    rgba(247,244,239,.30) 34%,
+    transparent 62%
+  );
+  mix-blend-mode:soft-light;
+  transition:opacity .3s ease-out;
+}
+.pres-shell.is-lit .pres-spotlight{opacity:1}
+@media (hover:hover) and (pointer:fine){
+  .pres-spotlight{will-change:opacity}
+}
+@media (hover:none), (pointer:coarse), (prefers-reduced-motion:reduce){
+  .pres-spotlight{display:none}
+}
+
 .pres-chrome{
   position:sticky;
   top:0;
@@ -171,6 +193,8 @@
 }
 
 .pres-main{
+  position:relative;
+  z-index:2;
   width:min(920px, 100%);
   margin:0 auto;
   padding:1.25rem max(1.1rem, env(safe-area-inset-left)) max(3rem, env(safe-area-inset-bottom)) max(1.1rem, env(safe-area-inset-right));

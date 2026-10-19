@@ -163,7 +163,7 @@ function CuratorPhoto({ artifactId, imageUrl, language = 'English' }) {
   return <img className="curator-photo-preview" src={src} alt={t(language, 'curator.photoAlt')} />
 }
 
-export default function CuratorDesk({ language = 'English', onBack }) {
+export default function CuratorDesk({ language = 'English' }) {
   const handleBack = useCallback(() => {
     /* Always leave Next for the static sulyap-lasalyano home (not in-app home). */
     goToStaticHome()

@@ -283,20 +283,21 @@
   width:100%;
 }
 .nx.nx-edu .nx-edu-also-toggle{
-  display:flex;align-items:center;justify-content:flex-start;gap:.55em;
-  margin:0;padding:0;width:fit-content;max-width:100%;
+  display:inline-flex;align-items:center;justify-content:flex-start;gap:.5em;
+  margin:0;padding:0;width:auto;max-width:100%;
+  flex-wrap:nowrap;white-space:nowrap;
   list-style:none;cursor:pointer;
   color:inherit;
 }
 .nx.nx-edu .nx-edu-also-toggle::-webkit-details-marker{display:none}
-.nx.nx-edu .nx-edu-also-toggle::marker{content:none}
+.nx.nx-edu .nx-edu-also-toggle::marker{content:none;display:none}
 .nx.nx-edu .nx-edu-also-toggle:focus{outline:none}
 .nx.nx-edu .nx-edu-also-toggle:focus-visible{
   outline:2px solid var(--nx-edu-fg);outline-offset:4px;
   border-radius:2px;
 }
 .nx.nx-edu .nx-edu-also-title{
-  margin:0;
+  margin:0;display:inline;
   font-family:var(--mono);
   font-weight:700;
   font-size:clamp(10px,.75vw,12px);
@@ -307,17 +308,16 @@
 .nx.nx-edu .nx-edu-also[open] > .nx-edu-also-toggle{margin-bottom:12px}
 .nx.nx-edu .nx-edu-also-chevron{
   flex:none;
-  display:block;width:.42em;height:.42em;
-  margin-top:-.06em;
+  display:inline-block;width:.38em;height:.38em;
+  margin:0;
   border-right:2px solid currentColor;
   border-bottom:2px solid currentColor;
   color:var(--nx-edu-muted);
-  transform:rotate(45deg);
+  transform:rotate(-45deg); /* closed: points right */
   transition:transform .22s ease;
 }
 .nx.nx-edu .nx-edu-also[open] > .nx-edu-also-toggle .nx-edu-also-chevron{
-  transform:rotate(225deg);
-  margin-top:.1em;
+  transform:rotate(45deg); /* open: points down */
 }
 @media (prefers-reduced-motion:reduce){
   .nx.nx-edu .nx-edu-also-chevron{transition:none}
@@ -350,14 +350,19 @@
   color:var(--nx-edu-muted);
   text-wrap:pretty;
 }
-.nx.nx-edu .nx-edu-inspire{
-  margin:10px 0 0;
+.nx.nx-edu .nx-edu-also .nx-edu-inspire{
+  margin:clamp(16px,2.5vw,22px) 0 0;
   max-width:none;
   width:100%;
-  font-size:clamp(12.5px,1vw,13.5px);
+  /* Match .nx-edu-also-list body copy */
+  font-size:clamp(13px,1.05vw,14.5px);
   line-height:1.55;
-  color:var(--nx-edu-muted);
+  color:rgba(242,239,232,.68);
   text-wrap:pretty;
+}
+.nx.nx-edu .nx-edu-also .nx-edu-inspire .nx-edu-cats-link{
+  color:rgba(242,239,232,.82);
+  border-bottom-color:rgba(0,112,60,.55);
 }
 
 @media (max-width:900px){
@@ -367,7 +372,7 @@
   .nx.nx-edu .nx-edu-also-list strong{display:inline;margin-bottom:0}
   .nx.nx-edu .nx-edu-cats{white-space:normal}
   .nx.nx-edu .nx-edu-why-toggle{margin-left:0;width:100%}
-  .nx.nx-edu .nx-edu-also-toggle{margin-left:0;width:100%}
+  .nx.nx-edu .nx-edu-also-toggle{margin-left:0;width:auto;max-width:100%}
 }
 @media (prefers-reduced-motion:reduce){
   .nx.nx-edu a.nx-edu-cta,

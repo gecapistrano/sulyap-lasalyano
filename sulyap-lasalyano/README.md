@@ -86,7 +86,7 @@ EN / FIL via `window.T` and `data-i` / `data-i-label`. Bracketed `[placeholders]
 
 ## Deploying
 
-Vercel static — set **Root Directory** to `presidents-memorabilia`. `404.html` at that root is used for unmatched routes.
+Vercel static — set **Root Directory** to `sulyap-lasalyano`. `404.html` at that root is used for unmatched routes.
 
 ## Accessibility
 

@@ -4,7 +4,7 @@ Sulyap Lasalyano is a web-based AR + ML museum experience for the DLSU-D AEA-IRC
 
 Visitors can point a phone camera at supported memorabilia and the system attempts real-time recognition using a YOLO/ONNX pipeline, then presents contextual content in an interactive UI.
 
-> **Layout note:** The primary public UI is `presidents-memorabilia/` (static site). `backend/` remains for API integration. The older `frontend/` app is legacy if present and is not the primary visitor surface.
+> **Layout note:** The primary public UI is `sulyap-lasalyano/` (static site). `backend/` remains for API integration. The older `frontend/` app is legacy if present and is not the primary visitor surface.
 
 ## Core Features
 
@@ -16,18 +16,18 @@ Visitors can point a phone camera at supported memorabilia and the system attemp
 
 ## Tech Stack
 
-- Primary UI: static site in `presidents-memorabilia/`
+- Primary UI: static site in `sulyap-lasalyano/`
 - Legacy frontend (optional): Next.js / React app under `frontend/`
 - Backend: FastAPI, Pydantic, SQLAlchemy
 - ML: Ultralytics YOLOv8, PyTorch, ONNX
-- Deployment: Vercel (`presidents-memorabilia/`), Render (FastAPI) — see `docs/DEPLOYMENT.md`
+- Deployment: Vercel (`sulyap-lasalyano/`), Render (FastAPI) — see `docs/DEPLOYMENT.md`
 - Database: Supabase Postgres via `DATABASE_URL` (SQLite still ok for local smoke tests)
 
 ## Repository Structure
 
 ```text
 sulyap-lasalyano/
-+-- presidents-memorabilia/  # Primary public UI (static)
++-- sulyap-lasalyano/         # Primary public UI (static)
 +-- backend/                 # FastAPI API and security middleware
 +-- frontend/                # Legacy Next.js app (kept for reference / API clients)
 +-- supabase/                # Postgres schema + catalog seed for Supabase
@@ -49,12 +49,12 @@ npm install
 
 Running `npm install` at the repository root sets `core.hooksPath` to `.githooks/`. The `commit-msg` hook removes any line containing `cursoragent@cursor.com` from the final commit message so automated Cursor co-author trailers are not pushed to GitHub.
 
-### 2) Primary UI (`presidents-memorabilia/`)
+### 2) Primary UI (`sulyap-lasalyano/`)
 
 Serve the static site locally (any static server), for example:
 
 ```bash
-cd presidents-memorabilia
+cd sulyap-lasalyano
 npx --yes serve .
 ```
 

@@ -19,18 +19,12 @@
 
 .aca-vignette {
   z-index: 9997;
-  background:
-    radial-gradient(
-      ellipse 55% 40% at 12% 88%,
-      color-mix(in srgb, var(--aca-grove) 14%, transparent) 0%,
-      transparent 70%
-    ),
-    radial-gradient(
-      ellipse at center,
-      transparent 0%,
-      transparent 50%,
-      rgba(28, 23, 20, 0.4) 100%
-    );
+  background: radial-gradient(
+    ellipse at center,
+    transparent 0%,
+    transparent 50%,
+    color-mix(in srgb, var(--aca-bg) 40%, transparent) 100%
+  );
 }
 
 /* ── Buttons ── */
@@ -88,9 +82,9 @@
 }
 
 .aca-btn-secondary:hover:not(:disabled) {
-  border-color: var(--aca-crimson);
-  background: var(--aca-crimson);
-  color: var(--aca-fg);
+  border-color: #ffffff;
+  background: #ffffff;
+  color: #1c1714;
 }
 
 .aca-btn-ghost {
@@ -235,15 +229,6 @@ img.aca-sepia:hover {
   text-transform: uppercase;
   color: var(--aca-accent);
   margin: 0 0 0.5rem;
-}
-
-.aca-volume::after {
-  content: '';
-  display: block;
-  width: 2.5rem;
-  height: 1px;
-  margin-top: 0.45rem;
-  background: linear-gradient(90deg, var(--aca-grove), transparent);
 }
 
 /* ── Drop cap ── */

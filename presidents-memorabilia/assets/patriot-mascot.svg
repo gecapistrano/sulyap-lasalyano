@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Pat Riotik — DLSU-D Patriot mascot">
+  <title>Pat Riotik</title>
+
+  <!-- Shoulders / green shirt -->
+  <path d="M34 200 Q34 150 100 150 Q166 150 166 200 Z" fill="#1f7a3d"/>
+  <path d="M34 200 Q34 150 100 150 Q166 150 166 200" fill="none" stroke="#165a2d" stroke-width="3"/>
+
+  <!-- Neck -->
+  <rect x="88" y="136" width="24" height="20" rx="8" fill="#e9b38a"/>
+
+  <!-- Neckerchief -->
+  <path d="M76 152 Q100 164 124 152 L100 182 Z" fill="#f4ecd8"/>
+  <path d="M76 152 Q100 164 124 152" fill="none" stroke="#d8cba8" stroke-width="2"/>
+
+  <!-- Ears -->
+  <circle cx="63" cy="108" r="7" fill="#f2c19b"/>
+  <circle cx="137" cy="108" r="7" fill="#f2c19b"/>
+
+  <!-- Head -->
+  <circle cx="100" cy="106" r="38" fill="#f6c9a5"/>
+
+  <!-- Salakot hat: brim -->
+  <ellipse cx="100" cy="80" rx="76" ry="14" fill="#c99a4b"/>
+  <ellipse cx="100" cy="77" rx="76" ry="13" fill="#e2b868"/>
+  <!-- Salakot hat: crown -->
+  <path d="M48 78 Q100 -4 152 78 Z" fill="#edc77c"/>
+  <!-- Hat weave lines -->
+  <path d="M62 66 Q100 24 138 66" fill="none" stroke="#d1a456" stroke-width="2" stroke-linecap="round"/>
+  <path d="M54 74 Q100 8 146 74" fill="none" stroke="#d1a456" stroke-width="2" stroke-linecap="round"/>
+  <!-- Hat band -->
+  <path d="M50 73 Q100 86 150 73 L152 79 Q100 92 48 79 Z" fill="#1f7a3d"/>
+  <!-- Hat tip -->
+  <circle cx="100" cy="37" r="5" fill="#c99a4b"/>
+
+  <!-- Face (animatable groups) -->
+  <g id="pat-face" class="pat-face">
+    <ellipse class="pat-blush" cx="74" cy="118" rx="7" ry="4.5" fill="#f2998f" opacity="0.65"/>
+    <ellipse class="pat-blush" cx="126" cy="118" rx="7" ry="4.5" fill="#f2998f" opacity="0.65"/>
+
+    <g id="pat-eyes" class="pat-eyes">
+      <g id="pat-eye-l" class="pat-eye pat-eye--l">
+        <circle cx="86" cy="106" r="4.5" fill="#2b1d16"/>
+        <circle cx="87.6" cy="104.4" r="1.5" fill="#fff"/>
+      </g>
+      <g id="pat-eye-r" class="pat-eye pat-eye--r">
+        <circle cx="114" cy="106" r="4.5" fill="#2b1d16"/>
+        <circle cx="115.6" cy="104.4" r="1.5" fill="#fff"/>
+      </g>
+    </g>
+
+    <path id="pat-smile" class="pat-smile" d="M91 118 Q100 127 109 118" fill="none" stroke="#2b1d16" stroke-width="3" stroke-linecap="round"/>
+  </g>
+</svg>

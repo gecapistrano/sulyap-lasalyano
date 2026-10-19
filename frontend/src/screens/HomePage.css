@@ -35,13 +35,58 @@
   -webkit-backdrop-filter: blur(12px);
 }
 
-.hp-brand {
+.hp-logo {
+  flex-shrink: 0;
+  height: 2.35rem;
+  width: auto;
+  max-width: 11rem;
+  object-fit: contain;
+  display: block;
+}
+
+.hp-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-left: auto;
   flex-shrink: 0;
 }
 
-.hp-nav {
-  flex: 1;
+.hp-theme-btn {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0.4rem;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--aca-accent);
+  cursor: pointer;
+  border-radius: var(--aca-radius);
+  transition:
+    color var(--aca-base) var(--aca-ease),
+    border-color var(--aca-base) var(--aca-ease),
+    background var(--aca-base) var(--aca-ease);
+}
+
+.hp-theme-btn:hover {
+  border-color: color-mix(in srgb, var(--aca-accent) 40%, transparent);
+  background: color-mix(in srgb, var(--aca-accent) 8%, transparent);
+  color: var(--aca-accent-bright);
+}
+
+.hp-theme-btn:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--aca-bg),
+    0 0 0 4px var(--aca-accent);
+}
+
+.hp-theme-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  display: block;
 }
 
 .hp-lang {
@@ -53,6 +98,11 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+  min-width: 2.75rem;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
 }
 
 .hp-lang-arrow {
@@ -130,9 +180,13 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 50% 35% at 85% 15%, color-mix(in srgb, var(--aca-grove) 16%, transparent), transparent 65%),
-    linear-gradient(180deg, rgba(28, 23, 20, 0.55) 0%, rgba(28, 23, 20, 0.72) 45%, rgba(28, 23, 20, 0.92) 100%),
-    radial-gradient(ellipse at center, transparent 0%, rgba(28, 23, 20, 0.35) 100%);
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--aca-bg) 55%, transparent) 0%,
+      color-mix(in srgb, var(--aca-bg) 72%, transparent) 45%,
+      color-mix(in srgb, var(--aca-bg) 92%, transparent) 100%
+    ),
+    radial-gradient(ellipse at center, transparent 0%, color-mix(in srgb, var(--aca-bg) 35%, transparent) 100%);
   pointer-events: none;
 }
 
@@ -168,7 +222,24 @@
   flex-wrap: wrap;
   gap: 0.75rem;
   justify-content: center;
-  align-items: center;
+  align-items: stretch;
+  width: min(100%, 22rem);
+  margin-inline: auto;
+}
+
+/* Visual weight matches product hierarchy */
+.hp-cta .aca-btn-primary {
+  flex: 1 1 100%;
+  min-height: 3rem;
+}
+.hp-cta .aca-btn-secondary {
+  flex: 1 1 100%;
+  min-height: 2.75rem;
+}
+.hp-cta .aca-btn-ghost {
+  flex: 1 1 auto;
+  justify-content: center;
+  opacity: 0.92;
 }
 
 /* Intro + volumes */
@@ -215,23 +286,24 @@
 
 @media (max-width: 768px) {
   .hp-header {
-    flex-wrap: wrap;
     padding: 0.65rem 1rem;
   }
 
-  .hp-nav {
-    order: 3;
-    width: 100%;
-    justify-content: flex-start;
-    gap: 0.5rem 1rem;
+  .hp-logo {
+    height: 2rem;
+    max-width: 9rem;
   }
 
   .hp-cta {
     flex-direction: column;
+    width: 100%;
+    max-width: 20rem;
   }
 
   .hp-cta .aca-btn-ghost {
-    width: auto;
+    width: 100%;
+    min-height: 2.5rem;
+    font-size: 0.95em;
   }
 
   .hp-hero-inner {

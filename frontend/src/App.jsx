@@ -27,10 +27,30 @@ import { preloadRdScanner } from './lib/rdClassifier'
 import { emptySnapshot, mergeSnapshot, sanitizeSnapshot } from './lib/navigationHistory'
 import { findMockArtifactById, getAllMockArtifacts } from './data/artifactBrowseMocks'
 import { findPresidentById } from './data/presidentBrowseMocks'
-import { languageToCode, loadStoredLanguage, persistLanguage } from './i18n'
+import { languageToCode, loadStoredLanguage, persistLanguage, t } from './i18n'
 import { getCatalogArtifactByIdCode, isBackendConfigured } from './lib/archiveApi'
 
 const darkModeLogo = '/logo/LOGO_Dark-Mode.png'
+const lightModeLogo = '/logo/LOGO_Light-Mode.png'
+const DARK_MODE_KEY = 'sl_darkMode'
+
+function loadStoredDarkMode() {
+  try {
+    const raw = localStorage.getItem(DARK_MODE_KEY)
+    if (raw === null) return true
+    return raw !== 'false'
+  } catch {
+    return true
+  }
+}
+
+function persistDarkMode(value) {
+  try {
+    localStorage.setItem(DARK_MODE_KEY, value ? 'true' : 'false')
+  } catch {
+    // ignore quota / private mode
+  }
+}
 
 const ARCamera = lazy(() => import('./screens/ARCamera'))
 
@@ -70,12 +90,20 @@ export default function App({
     setLanguageState(next)
     persistLanguage(next)
   }, [])
-  // Academia / Classical is a single dark “library at night” theme.
-  const darkMode = true
+  // SSR + first paint default dark; restore preference after mount.
+  const [darkMode, setDarkModeState] = useState(true)
+  const toggleDarkMode = useCallback(() => {
+    setDarkModeState((prev) => {
+      const next = !prev
+      persistDarkMode(next)
+      return next
+    })
+  }, [])
 
   useEffect(() => {
     const stored = loadStoredLanguage()
     if (stored && stored !== 'English') setLanguageState(stored)
+    setDarkModeState(loadStoredDarkMode())
   }, [])
 
   useEffect(() => {
@@ -83,13 +111,15 @@ export default function App({
   }, [language])
 
   useEffect(() => {
+    document.documentElement.dataset.theme = darkMode ? 'dark' : 'light'
+    const logo = darkMode ? darkModeLogo : lightModeLogo
     document.querySelectorAll("link[rel='icon'], link[rel='apple-touch-icon']").forEach((link) => {
-      link.setAttribute('href', darkModeLogo)
+      link.setAttribute('href', logo)
       if (link.getAttribute('rel') === 'icon') {
         link.setAttribute('type', 'image/png')
       }
     })
-  }, [])
+  }, [darkMode])
 
   const [browseArtifact, setBrowseArtifact] = useState(null)
 
@@ -208,6 +238,8 @@ export default function App({
           <HomePage
             language={language}
             onLanguageChange={setLanguage}
+            darkMode={darkMode}
+            onToggleDarkMode={toggleDarkMode}
             onStartCamera={() => setScreen('onboarding')}
             onOpenKnowledgeGraph={() => {
               setScreen('knowledge-graph', { kgReturnScreen: 'home' })
@@ -228,7 +260,7 @@ export default function App({
           <Suspense
             fallback={
               <div className="grid h-full place-items-center font-body text-sm text-[var(--aca-muted-fg)]">
-                Loading scanner…
+                {t(language, 'app.loadingScanner')}
               </div>
             }
           >
@@ -332,6 +364,8 @@ export default function App({
           <HomePage
             language={language}
             onLanguageChange={setLanguage}
+            darkMode={darkMode}
+            onToggleDarkMode={toggleDarkMode}
             onStartCamera={() => setScreen('onboarding')}
             onOpenKnowledgeGraph={() => {
               setScreen('knowledge-graph', { kgReturnScreen: 'home' })
@@ -347,7 +381,7 @@ export default function App({
   }
 
   return (
-    <div className="relative w-screen min-h-[100dvh] h-[100dvh] overflow-hidden bg-[var(--aca-bg)] text-[var(--aca-fg)] app-dark">
+    <div className={`relative w-screen min-h-[100dvh] h-[100dvh] overflow-hidden bg-[var(--aca-bg)] text-[var(--aca-fg)]${darkMode ? ' app-dark' : ' app-light'}`}>
       <div className="relative z-10 h-full w-full">
         <div
           className={`absolute inset-0 z-20 transition-opacity duration-500 ease-out ${

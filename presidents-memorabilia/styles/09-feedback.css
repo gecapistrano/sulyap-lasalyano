@@ -1,0 +1,100 @@
+/* Loading curtain, toasts, failed images, connection loss, no-JS */
+.pre{display:none}
+html.js .pre{
+  position:fixed;inset:0;z-index:300;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:clamp(14px,2.5vh,22px);
+  /* Matches splash-logo.png black field — one continuous surface */
+  background:var(--splash-brown,#000);color:#F7F4EF;
+  transition:opacity .5s ease-out,visibility .5s ease-out;
+}
+html.js.ready .pre{opacity:0;visibility:hidden;pointer-events:none}
+
+/* While the curtain is up (and mid-fade), keep the page under it on the
+   splash field — not themed --card — so the crossfade stays seamless. */
+html.js:not(.pre-gone),
+html.js:not(.pre-gone) body,
+html.js:not(.pre-gone) .sheet{
+  background:var(--splash-brown,#000) !important;
+  color:#F7F4EF;
+}
+html.js:not(.pre-gone) .hero{
+  background:var(--sky-top,#fff) !important;
+  color:#F7F4EF;
+}
+
+.pre-logo{
+  position:relative;width:clamp(200px,52vw,300px);height:clamp(200px,52vw,300px);
+  display:grid;place-items:center;
+  background:var(--splash-brown,#000);
+}
+.pre-logo-img{
+  width:100%;height:100%;object-fit:contain;display:block;
+  background:var(--splash-brown,#000);
+}
+
+.pre-rail{
+  position:relative;width:min(62vw,240px);height:2px;
+  background:rgba(247,244,239,.22);border-radius:2px;overflow:hidden;
+}
+.pre-fill{
+  position:absolute;inset:0;background:#F7F4EF;
+  transform-origin:left center;scale:var(--lp,.02) 1;
+  transition:scale .4s cubic-bezier(.32,.72,0,1);
+}
+.pre-meta{
+  font-family:var(--mono);font-size:clamp(14px,1.6vw,17px);letter-spacing:.1em;text-transform:uppercase;
+  color:rgba(247,244,239,.72);font-variant-numeric:tabular-nums;
+}
+html.loading .sheet *{animation-play-state:paused!important}
+@media (prefers-reduced-motion:reduce){
+  html.js .pre{transition:opacity .01s linear,visibility .01s linear}
+  .pre-fill{transition:none}
+}
+
+.toasts{
+  position:fixed;left:clamp(12px,2vw,24px);bottom:clamp(12px,2vw,24px);z-index:150;
+  display:flex;flex-direction:column-reverse;gap:10px;
+  width:min(86vw,370px);pointer-events:none;
+}
+.toast{
+  display:flex;align-items:flex-start;gap:11px;pointer-events:auto;
+  background:var(--card);color:var(--cream);
+  border:1.5px solid var(--pill-line);border-left:3px solid var(--accent);
+  border-radius:14px;padding:13px 15px;
+  box-shadow:0 14px 34px rgba(0,0,0,.38);
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.05em;line-height:1.55;
+  animation:toast-in .32s cubic-bezier(.16,1,.3,1);
+}
+.toast.ok{border-left-color:var(--green)}
+.toast.err{border-left-color:var(--pink)}
+.toast.out{animation:toast-out .24s ease-in forwards}
+@keyframes toast-in{from{opacity:0;translate:-14px 0;scale:.97}}
+@keyframes toast-out{to{opacity:0;translate:-10px 0;scale:.97}}
+.toast-dot{
+  width:7px;height:7px;border-radius:50%;flex:none;margin-top:.42em;background:var(--accent);
+}
+.toast.ok .toast-dot{background:var(--green)}
+.toast.err .toast-dot{background:var(--pink)}
+.toast b{display:block;font-weight:500;color:var(--cream)}
+.toast span{display:block;color:var(--cream-dim);letter-spacing:.03em}
+@media (max-width:860px){.toasts{bottom:calc(clamp(12px,2vw,24px) + 62px)}}
+@media (prefers-reduced-motion:reduce){.toast,.toast.out{animation:none}}
+
+.art.img-fail,.photo.img-fail{
+  display:grid;place-items:center;background:var(--panel);min-height:120px;
+}
+.art.img-fail::after,.photo.img-fail::after{
+  content:attr(data-fail);
+  font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--meta);text-align:center;padding:12px;
+}
+
+.nojs{
+  position:relative;z-index:1;
+  margin:0;padding:14px clamp(20px,4vw,64px);
+  background:var(--accent);color:#fff;
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.05em;line-height:1.6;
+}
+html.js .nojs{display:none}
+.nojs a{color:#fff;text-underline-offset:3px}

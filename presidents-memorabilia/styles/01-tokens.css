@@ -1,0 +1,142 @@
+/* Brand palette — dark-only for now
+   La Salle Green #00703C · Walnut brown #6F4E37 · ivory on deep green
+   VIEW (cool vs warm) = radius/pace only (no light polarity). */
+:root{
+  --brand-green:#00703C;
+  --brand-green-deep:#004D29;
+  --brand-green-soft:#E8F2EC;
+  --brand-brown:#6F4E37;
+  --brand-brown-deep:#3D2E22;
+  --brand-brown-soft:#EDE4D8;
+  --brand-white:#FFFFFF;
+  --brand-ivory:#F7F4EF;
+  /* Splash curtain — matches dark-mode splash-logo.png field */
+  --splash-brown:#000000;
+
+  --matte:#8A7A6A;
+  --cyan:#7DC0A0;
+  --pink:#C45B6A;
+  --yellow:#E8D48A;
+  --green:#2E9B5F;
+  --gut:clamp(20px,4vw,64px);
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+  /* Distinctive faces first — never Inter/Roboto/Open Sans as the noticed face */
+  --body:'Instrument Sans',ui-sans-serif,system-ui,sans-serif;
+  --disp:'Anton',Haettenschweiler,'Arial Narrow',sans-serif;
+  --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  /* Type scale (snap clamps here) */
+  --fs-xs:11px; --fs-sm:12.5px; --fs-md:16px; --fs-lg:18px;
+  --hh:64px;
+
+  /* Cool tight — Home / History (dark) */
+  --card:#122018;
+  --cream:var(--brand-ivory);
+  --cream-dim:#C9B8A4;
+  --panel:#1A2A22;
+  --light:#0E1814;
+  --line:#2A3F34;
+  --ink:var(--brand-ivory);
+  --accent:#2E9B5F;
+  --brown:#C4A484;
+  --bar-bg:#122018;
+  --bar-line:#2A3F34;
+  --pill-line:#3A5244;
+  --pill-quiet:#2A3A32;
+  --pill-fg:#C9B8A4;
+  --thumb:#3A5244;
+  --thumb-hi:#2E9B5F;
+  --rail:#2E9B5F;
+  --lens-hi:#1A2A22;
+  --cue:#2E9B5F;
+  --chip-bg:var(--brand-ivory);
+  --chip-fg:#122018;
+  --meta:#C9B8A4;
+  --meta-strong:#EDE4D8;
+  --sec-bg:#122018;
+  --sec-hi:#1A2A22;
+  --rad:16px; --mo:.25s; --mo-ease:cubic-bezier(.32,.72,0,1);
+}
+
+/* Warm soft — Gallery (dark) */
+html.warm{
+  --card:#1A1612;
+  --cream:#F5EFE6;
+  --cream-dim:#C9B8A4;
+  --panel:#2A241E;
+  --light:#14110E;
+  --line:#3D342C;
+  --ink:#F5EFE6;
+  --accent:#2E9B5F;
+  --brown:#C4A484;
+  --bar-bg:#1A1612;
+  --bar-line:#3D342C;
+  --pill-line:#4A4036;
+  --pill-quiet:#322C26;
+  --pill-fg:#C9B8A4;
+  --thumb:#4A4036;
+  --thumb-hi:#C4A484;
+  --rail:#2E9B5F;
+  --lens-hi:#2A241E;
+  --cue:#C4A484;
+  --chip-bg:#F5EFE6;
+  --chip-fg:#1A1612;
+  --meta:#C9B8A4;
+  --meta-strong:#EDE4D8;
+  --sec-bg:#1A1612;
+  --sec-hi:#2A241E;
+  --rad:26px; --mo:.45s; --mo-ease:cubic-bezier(.22,.61,.36,1);
+}
+
+@media (min-width:1900px){
+  :root{--gut:max(64px,calc((100vw - 1800px) / 2))}
+}
+html.warm .stage-panel{background-image:none}
+
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth;scroll-padding-top:calc(var(--hh) + env(safe-area-inset-top,0px))}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .flip-chip{opacity:1}
+}
+body{
+  background:var(--card);color:var(--ink);
+  font-family:var(--body);font-size:var(--fs-md);line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  text-wrap:pretty;
+}
+h1,h2,h3,h4,.sec-head h2,.gallery h1,.board h1,.site-footer .enjoy{
+  text-wrap:balance;
+}
+::selection{background:var(--accent);color:#fff}
+a{color:inherit}
+a:focus-visible,button:focus-visible,[tabindex]:focus-visible,
+input:focus-visible,select:focus-visible,textarea:focus-visible{
+  outline:2px solid var(--accent);outline-offset:3px;border-radius:3px;
+}
+.skiplink{
+  position:fixed;left:12px;top:-120px;z-index:200;
+  background:var(--accent);color:#fff;text-decoration:none;
+  font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+  padding:12px 18px;border-radius:10px;transition:top .18s ease-out;
+}
+.skiplink:focus{top:12px}
+::-webkit-scrollbar{width:10px}
+::-webkit-scrollbar-track{background:var(--card)}
+::-webkit-scrollbar-thumb{background:var(--thumb);border-radius:5px}
+::-webkit-scrollbar-thumb:hover{background:var(--thumb-hi)}
+html{scrollbar-color:var(--thumb) var(--card);scrollbar-width:thin}
+
+.sheet{margin:0 auto;background:var(--light);overflow:hidden;min-height:100vh;min-height:100dvh}
+
+section[data-view="cool"]{
+  background:var(--sec-bg);color:var(--cream);
+  --ink:var(--cream); --light:var(--sec-bg);
+  --line:var(--pill-line); --meta:var(--pill-fg); --meta-strong:var(--cream-dim);
+}
+
+.ph{border-bottom:1.5px dotted var(--brown, var(--accent))}
+.panel-dark .ph,.hero .ph{border-color:currentColor}

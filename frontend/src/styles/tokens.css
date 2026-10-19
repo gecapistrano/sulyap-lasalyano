@@ -55,3 +55,24 @@
   --ff-sans: var(--font-body);
   --ff-mono: var(--font-display);
 }
+
+/* Light — parchment reading room (high-contrast ink on paper) */
+[data-theme='light'] {
+  --aca-bg: #f2efd6;
+  --aca-bg-alt: #e4dcc0;
+  --aca-fg: #1a140f;
+  --aca-muted: #b5a88a;
+  --aca-muted-fg: #3a2e1f;
+  --aca-border: #8f8168;
+  --aca-accent: #6b5528;
+  --aca-accent-bright: #856b32;
+  --aca-accent-deep: #4f3f1c;
+  --aca-crimson: #7a1f2c;
+  --aca-grove: #005c32;
+  --aca-grove-bright: #00703c;
+  --aca-grove-soft: color-mix(in srgb, #005c32 16%, transparent);
+  --aca-accent-fg: #f2efd6;
+  --aca-brass-gradient: linear-gradient(180deg, #b8953f 0%, #8a7340 55%, #6b5528 100%);
+  --aca-engraved: 1px 1px 0 rgba(255, 255, 255, 0.35), -1px -1px 0 rgba(0, 0, 0, 0.12);
+  --aca-sepia: sepia(0.35) contrast(0.98) brightness(1.02);
+}

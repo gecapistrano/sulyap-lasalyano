@@ -112,7 +112,7 @@ export default function Onboarding({ language = 'English', onFinish, onBack, dar
       </button>
 
       <header className="onb-header">
-        <img src={darkMode ? nameLogoDark : nameLogoLight} alt="Sulyap Lasalyano" className="onb-name-logo" />
+        <img src={darkMode ? nameLogoDark : nameLogoLight} alt={t(language, 'home.brand')} className="onb-name-logo" />
       </header>
 
       <main className="onb-main" key={slide.id} aria-live="polite">

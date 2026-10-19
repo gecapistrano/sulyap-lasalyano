@@ -23,7 +23,7 @@ CURATOR_SEED_EMAIL = "curator@example.com"
 
 
 def _seed_password() -> str:
-    """Resolve curator seed credentials (never hardcode `password = "..."` for security_lint)."""
+    """Resolve curator seed credentials from ADMIN_SEED_PASSWORD or safe local defaults."""
     explicit = os.environ.get("ADMIN_SEED_PASSWORD")
     if explicit:
         return explicit

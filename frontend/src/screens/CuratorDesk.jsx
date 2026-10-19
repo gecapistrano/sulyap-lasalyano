@@ -779,7 +779,11 @@ export default function CuratorDesk({ language = 'English' }) {
                               >
                                 <span className="curator-list-code">{row.id_code || row.rd_code || `#${row.id}`}</span>
                                 <span className="curator-list-name">{row.title || '(no title)'}</span>
-                                {!row.published ? <span className="curator-pill">{t(language, 'curator.draft')}</span> : null}
+                                {row.published ? (
+                                  <span className="curator-pill curator-pill--published">{t(language, 'curator.field.publishedShort')}</span>
+                                ) : (
+                                  <span className="curator-pill curator-pill--draft">{t(language, 'curator.draft')}</span>
+                                )}
                               </button>
                             </li>
                           ))}
@@ -1079,9 +1083,13 @@ export default function CuratorDesk({ language = 'English' }) {
                     className={p.id === selectedPresidentId ? 'curator-list-item is-active' : 'curator-list-item'}
                     onClick={() => selectPresident(p.id)}
                   >
-                    <span className="curator-list-name">{p.name}</span>
-                    <span className="curator-list-code">{p.service || t(language, 'curator.noServiceYears')}</span>
-                    {!p.published ? <span className="curator-pill">{t(language, 'curator.draft')}</span> : null}
+                    <span className="curator-list-name curator-list-name--president">{p.name}</span>
+                    <span className="curator-list-service">{p.service || t(language, 'curator.noServiceYears')}</span>
+                    {p.published ? (
+                      <span className="curator-pill curator-pill--published">{t(language, 'curator.field.publishedShort')}</span>
+                    ) : (
+                      <span className="curator-pill curator-pill--draft">{t(language, 'curator.draft')}</span>
+                    )}
                   </button>
                 </li>
               ))}
@@ -1105,7 +1113,9 @@ export default function CuratorDesk({ language = 'English' }) {
                     {t(language, 'curator.backToList')}
                   </button>
                   <div className="curator-editor-identity">
-                    <span className="curator-editor-code">{presidentForm.service || t(language, 'curator.serviceYears')}</span>
+                    <span className="curator-editor-code curator-editor-code--service">
+                      {presidentForm.service || t(language, 'curator.serviceYears')}
+                    </span>
                     <h2 className="curator-editor-title">{presidentForm.name || t(language, 'curator.untitled')}</h2>
                   </div>
                   <div className="curator-editor-actions">

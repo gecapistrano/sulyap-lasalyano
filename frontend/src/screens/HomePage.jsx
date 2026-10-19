@@ -1,12 +1,17 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import './HomePage.css'
 import { LANGUAGE_OPTIONS, languageToCode, t } from '../i18n'
 
 const heroBg = '/images/aea_images/homepage-cover.png'
 const logoDark = '/logo/LOGO_Dark-Mode.png'
 const logoLight = '/logo/LOGO_Light-Mode.png'
+
+/** Staff easter egg: long-press logo (~3s) → Curator desk (no nav link). */
+const CURATOR_HOLD_MS = 3000
+const CURATOR_HINT_MS = 1500
+const CURATOR_MOVE_PX = 16
 
 function langShort(language) {
   const code = languageToCode(language)
@@ -100,7 +105,19 @@ export default function HomePage({
   onOpenCurator,
 }) {
   const rootRef = useRef(null)
+  const logoRef = useRef(null)
+  const holdRef = useRef({
+    timer: null,
+    hintTimer: null,
+    startX: 0,
+    startY: 0,
+    startT: 0,
+    armed: false,
+    opened: false,
+    activeId: null,
+  })
   const [headerScrolled, setHeaderScrolled] = useState(false)
+  const [logoHint, setLogoHint] = useState(false)
 
   useEffect(() => {
     const root = rootRef.current
@@ -110,13 +127,133 @@ export default function HomePage({
     return () => root.removeEventListener('scroll', onScroll)
   }, [])
 
+  const clearHoldTimers = useCallback(() => {
+    const state = holdRef.current
+    if (state.timer) {
+      clearTimeout(state.timer)
+      state.timer = null
+    }
+    if (state.hintTimer) {
+      clearTimeout(state.hintTimer)
+      state.hintTimer = null
+    }
+  }, [])
+
+  const disarmHold = useCallback(() => {
+    clearHoldTimers()
+    const state = holdRef.current
+    state.armed = false
+    state.activeId = null
+    setLogoHint(false)
+  }, [clearHoldTimers])
+
+  const openCuratorEgg = useCallback(() => {
+    const state = holdRef.current
+    if (state.opened || typeof onOpenCurator !== 'function') return
+    state.opened = true
+    disarmHold()
+    try {
+      if (navigator.vibrate) navigator.vibrate(12)
+    } catch {
+      /* ignore */
+    }
+    onOpenCurator()
+  }, [disarmHold, onOpenCurator])
+
+  useEffect(() => {
+    const el = logoRef.current
+    if (!el || typeof onOpenCurator !== 'function') return undefined
+
+    const heldLongEnough = () => {
+      const state = holdRef.current
+      return state.startT > 0 && Date.now() - state.startT >= CURATOR_HOLD_MS - 30
+    }
+
+    const onPointerDown = (e) => {
+      if (e.isPrimary === false) return
+      if (typeof e.button === 'number' && e.button !== 0) return
+      if (e.pointerType === 'touch' || e.pointerType === 'pen') {
+        try {
+          e.preventDefault()
+        } catch {
+          /* ignore */
+        }
+      }
+      const state = holdRef.current
+      state.opened = false
+      state.armed = true
+      state.activeId = e.pointerId
+      state.startX = e.clientX
+      state.startY = e.clientY
+      state.startT = Date.now()
+      try {
+        el.setPointerCapture(e.pointerId)
+      } catch {
+        /* ignore */
+      }
+      clearHoldTimers()
+      setLogoHint(false)
+      state.hintTimer = setTimeout(() => {
+        if (!holdRef.current.armed || holdRef.current.opened) return
+        setLogoHint(true)
+      }, CURATOR_HINT_MS)
+      state.timer = setTimeout(openCuratorEgg, CURATOR_HOLD_MS)
+    }
+
+    const onPointerMove = (e) => {
+      const state = holdRef.current
+      if (!state.armed || (state.activeId != null && e.pointerId !== state.activeId)) return
+      const dx = e.clientX - state.startX
+      const dy = e.clientY - state.startY
+      if (dx * dx + dy * dy > CURATOR_MOVE_PX * CURATOR_MOVE_PX) disarmHold()
+    }
+
+    const onPointerUp = (e) => {
+      const state = holdRef.current
+      if (state.activeId != null && e.pointerId !== state.activeId) return
+      if (state.armed && heldLongEnough()) {
+        openCuratorEgg()
+        return
+      }
+      disarmHold()
+    }
+
+    const onPointerCancel = (e) => {
+      const state = holdRef.current
+      if (state.activeId != null && e.pointerId !== state.activeId) return
+      if (state.armed && heldLongEnough()) {
+        openCuratorEgg()
+        return
+      }
+      disarmHold()
+    }
+
+    const onContextMenu = (e) => e.preventDefault()
+
+    el.addEventListener('pointerdown', onPointerDown)
+    el.addEventListener('pointermove', onPointerMove)
+    el.addEventListener('pointerup', onPointerUp)
+    el.addEventListener('pointercancel', onPointerCancel)
+    el.addEventListener('contextmenu', onContextMenu)
+    return () => {
+      disarmHold()
+      el.removeEventListener('pointerdown', onPointerDown)
+      el.removeEventListener('pointermove', onPointerMove)
+      el.removeEventListener('pointerup', onPointerUp)
+      el.removeEventListener('pointercancel', onPointerCancel)
+      el.removeEventListener('contextmenu', onContextMenu)
+    }
+  }, [clearHoldTimers, disarmHold, onOpenCurator, openCuratorEgg])
+
   return (
     <div className="hp-root" ref={rootRef}>
       <header className={`hp-header${headerScrolled ? ' is-scrolled' : ''}`}>
         <img
-          className="hp-logo"
+          ref={logoRef}
+          className={`hp-logo${logoHint ? ' is-egg-hint' : ''}`}
           src={darkMode ? logoDark : logoLight}
           alt={t(language, 'home.brand')}
+          draggable={false}
         />
         <div className="hp-header-actions">
           {typeof onToggleDarkMode === 'function' ? (
@@ -187,13 +324,6 @@ export default function HomePage({
 
       <footer className="aca-footer hp-footer">
         <p>{t(language, 'home.footer')}</p>
-        {typeof onOpenCurator === 'function' ? (
-          <p>
-            <button type="button" onClick={onOpenCurator}>
-              {t(language, 'home.curator')}
-            </button>
-          </p>
-        ) : null}
       </footer>
     </div>
   )

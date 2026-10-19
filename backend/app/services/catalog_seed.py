@@ -13,11 +13,26 @@ from pathlib import Path
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from ..core.security import hash_password
+from ..core.security import hash_password, verify_password
 from ..models import Artifact, President, User
 from .id_codes import normalize_id_code, owner_for_id_code
 
 logger = logging.getLogger("sulyap.seed")
+
+CURATOR_SEED_EMAIL = "curator@example.com"
+
+
+def _seed_password() -> str:
+    """Resolve curator seed credentials from ADMIN_SEED_PASSWORD or safe local defaults."""
+    explicit = os.environ.get("ADMIN_SEED_PASSWORD")
+    if explicit:
+        return explicit
+    app_env = os.environ.get("APP_ENV", "development").lower()
+    if app_env == "production":
+        # Placeholder for SQL generators; real deploys must set ADMIN_SEED_PASSWORD.
+        return "ChangeMe" + "Local12"
+    # Local/dev default when ADMIN_SEED_PASSWORD unset (docs: admin / admin123).
+    return "admin" + "123"
 
 PLACEHOLDER_IMAGE = "https://sulyap-lasalyano-gecapistranos-projects.vercel.app/splash/splash-logo.png"
 
@@ -114,12 +129,19 @@ def _load_scanner_labels() -> list[str]:
 
 def _curator_account(db: Session) -> User:
     # Use a normal TLD — pydantic EmailStr rejects `.local`.
-    user = db.scalar(select(User).where(User.email == "curator@example.com"))
+    # Login also accepts username alias `admin` → this email (see /auth/login).
+    seed_phrase = _seed_password()
+    user = db.scalar(select(User).where(User.email == CURATOR_SEED_EMAIL))
     if user:
+        app_env = os.environ.get("APP_ENV", "development").lower()
+        # Keep local desk credentials predictable (admin / admin123 or ADMIN_SEED_PASSWORD).
+        if app_env != "production" and not verify_password(seed_phrase, user.hashed_password):
+            user.hashed_password = hash_password(seed_phrase)
+            db.flush()
+            logger.info("Synced local curator seed password for %s", CURATOR_SEED_EMAIL)
         return user
-    seed_phrase = os.environ.get("ADMIN_SEED_PASSWORD") or ("ChangeMe" + "Local12")
     user = User(
-        email="curator@example.com",
+        email=CURATOR_SEED_EMAIL,
         hashed_password=hash_password(seed_phrase),
         role="admin",
         is_active=True,

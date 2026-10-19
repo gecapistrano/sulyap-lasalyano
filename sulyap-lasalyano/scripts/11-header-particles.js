@@ -1,5 +1,6 @@
 /* Warm ivory/gold dust motes + soft shooting streaks.
-   Mounts on sticky header (#bar) and Sulyap section (#nx-gallery).
+   Mounts on sticky header (#bar) — home pill chrome —
+   and Sulyap section (#about-sulyap-lasalyano).
    Canvas sits behind content; pauses when offscreen or tab-hidden. */
 (function(){
   var COLORS = [
@@ -217,9 +218,11 @@
   }
 
   var bar = document.getElementById('bar');
-  mountParticles(bar, {className:'bar-particles', density:3000, min:18, max:40});
+  if(bar){
+    mountParticles(bar, {className:'bar-particles', density:3000, min:18, max:40});
+  }
 
-  var nx = document.getElementById('nx-gallery');
+  var nx = document.getElementById('about-sulyap-lasalyano');
   if(nx){
     mountParticles(nx, {
       className:'nx-edu-particles',

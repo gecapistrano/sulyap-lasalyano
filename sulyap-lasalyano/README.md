@@ -84,9 +84,22 @@ EN / FIL via `window.T` and `data-i` / `data-i-label`. Bracketed `[placeholders]
 | `#/history` | Home, scroll to collection (cool) |
 | `#/gallery` | Gallery (warm) |
 
+## Live Scan
+
+`scan.html` (also `/scan`) is the on-device artifact scanner: rear camera + YOLOv8 detection ONNX (`models/model.onnx`, 640×640, 47 RD classes in `labels.txt`) via onnxruntime-web (`vendor/onnxruntime-web/`). The hero CTA and Live Scan “Try” link open this page.
+
+- **Local:** from this folder run `node serve.mjs` (default `http://127.0.0.1:8765`), then open `/scan`. Do **not** use Python `http.server` — it serves `.mjs` as `text/plain`, which blocks ORT’s WASM loader and shows “Could not load the recognition model.”
+- **Assets:** `models/` + `vendor/onnxruntime-web/` must be present in this folder (and committed for Vercel). Sync from the Next app with `node scripts/sync-scan-assets.mjs`; deploy checks via `node scripts/check-scan-assets.mjs`.
+- **Catalog details:** set `api` query (`/scan?api=http://127.0.0.1:8000`) or edit `SL_SCAN_CONFIG.apiBaseUrl` in `scan.html` to your FastAPI host. Without it, detections still lock and show RD codes with a “no catalog record” fallback. Add the static origin to backend `FRONTEND_ORIGINS` for CORS.
+- **Deploy:** `vercel.json` allows `camera=(self)` and WASM eval only on `/scan` / `/scan.html`; the rest of the site keeps `camera=()`.
+
+## Curator desk (staff, direct URL only)
+
+`/curator` → `curator.html` is **not** linked from the public home. Long-press (~3s) the hanging plaque’s Sulyap logo to open it. Locally it auto-bridges to the Next.js Curator Desk at `http://127.0.0.1:3000/curator` (override with `SL_CURATOR_CONFIG.nextAppOrigin` or `?next=https://…`; use `?stay=1` to keep the bridge page). Full edit UI stays on the Next + FastAPI stack (auth cookie + CSRF). Local/dev login: `admin` / `admin123`.
+
 ## Deploying
 
-Vercel static — set **Root Directory** to `sulyap-lasalyano`. `404.html` at that root is used for unmatched routes.
+Vercel static — set **Root Directory** to `sulyap-lasalyano`. `404.html` at that root is used for unmatched routes. `/scan` rewrites to `scan.html`.
 
 ## Accessibility
 

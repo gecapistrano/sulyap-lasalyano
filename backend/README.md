@@ -13,10 +13,11 @@
 
 Visitor browse/scan reads use public `GET /catalog/*` (published collection only). Admin mutations stay on `/artifacts` with auth + CSRF.
 
-Local curator seed (created on first empty DB):
-- email: `curator@example.com`
-- password: `ChangeMeLocal12` (override with env `ADMIN_SEED_PASSWORD` before first seed)
-- UI: Home footer → **Curator desk**
+Local curator seed (created / synced on non-production startup):
+- username alias: `admin` (maps to `curator@example.com`)
+- password: `admin123` when `APP_ENV` is not `production` and `ADMIN_SEED_PASSWORD` is unset
+- production: set a strong `ADMIN_SEED_PASSWORD` before first seed (never rely on `admin123`)
+- UI: static home plaque long-press → `/curator` bridge → Next.js Curator Desk (not linked in public nav)
 
 Hosted DB: set `DATABASE_URL` to a Supabase Postgres URI (see `docs/SUPABASE_SETUP.md`). Schema/seed live under `supabase/`. Smoke-check with `python scripts/check_db.py` from `backend/`.
 

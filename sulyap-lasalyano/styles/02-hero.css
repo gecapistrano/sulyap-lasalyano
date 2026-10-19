@@ -1,7 +1,7 @@
 /* Hero: parallax layers stay absolute; chip + plaque + CTAs flow in a column */
 .hero{
   --sky-top:#fff;
-  /* Strong wash into floor — matches .about-gallery --ag-bg / --sec-bg */
+  /* Strong wash into floor — matches .about-dlsu-presidents-memorabilia --ag-bg / --sec-bg */
   --hero-fade:#122018;
   --hero-cta-reserve:clamp(210px,31vh,285px);
   position:relative;isolation:isolate;overflow:hidden;
@@ -82,7 +82,7 @@
 }
 .flip-chip{
   /* In-flow above plaque — avoid left:50% + translate:-50% (wiggle overwrites translate) */
-  position:relative;order:1;flex:none;z-index:6;
+  position:relative;order:1;flex:none;z-index:250;
   width:max-content;margin:clamp(10px,2.2vh,22px) auto 0;
   rotate:-3deg;
   pointer-events:auto;cursor:pointer;-webkit-appearance:none;appearance:none;
@@ -254,6 +254,31 @@ html.warm .flip-chip{color:rgba(26,22,18,.8)}
 @keyframes sign-settle{0%{rotate:0deg}12%{rotate:6deg}30%{rotate:-4.5deg}50%{rotate:3.2deg}72%{rotate:-2.6deg}100%{rotate:-2deg}}
 @keyframes sign-sway{from{rotate:-2deg}to{rotate:2deg}}
 
+/* Return from subpages / bfcache: hold then snappy enter (no splash curtain). */
+html.home-enter-hold .sign-drop,
+html.home-enter-hold .sign-swing,
+html.home-enter-hold .flip-chip,
+html.home-enter-hold .hero-cta{
+  animation-play-state:paused!important;
+}
+html.home-enter .sign-drop{
+  animation:sign-drop .95s cubic-bezier(.3,.85,.4,1) both;
+}
+html.home-enter .sign-swing{
+  animation:sign-settle 2.4s ease-out .5s both,sign-sway 5.2s ease-in-out 2.9s infinite alternate;
+}
+html.home-enter .flip-chip{
+  animation:chip-in .45s cubic-bezier(.16,1,.3,1) .35s backwards;
+}
+html.home-enter .flip-chip.landed{animation:wiggle 3.2s ease-in-out infinite}
+html.home-enter .hero-cta{
+  animation:home-cta-in .48s ease-out .4s both;
+}
+@keyframes home-cta-in{
+  from{opacity:0;translate:0 14px}
+  to{opacity:1;translate:0 0}
+}
+
 /* Thin metal suspension wires + eye hooks */
 .ropes{display:flex;justify-content:space-between;padding:0 16%;height:var(--rope);align-items:flex-end}
 .rope{
@@ -373,6 +398,12 @@ html.warm .flip-chip{color:rgba(26,22,18,.8)}
   border-radius:0;overflow:visible;
   background:transparent;box-shadow:none;
   transition:scale .18s ease-out;
+  /* none: keep long-press for curator egg; callout/selection already off */
+  touch-action:none;
+  -webkit-user-select:none;user-select:none;
+  -webkit-touch-callout:none;
+  user-drag:none;
+  -webkit-user-drag:none;
 }
 .board .partner-logo:hover{scale:1.04}
 .board .partner-logo img{
@@ -395,7 +426,11 @@ html.warm .flip-chip{color:rgba(26,22,18,.8)}
 }
 
 @media (prefers-reduced-motion:reduce){
-  .sign-drop,.sign-swing,.flip-chip{animation:none}
+  .sign-drop,.sign-swing,.flip-chip,.hero-cta{animation:none}
+  html.home-enter .sign-drop,
+  html.home-enter .sign-swing,
+  html.home-enter .flip-chip,
+  html.home-enter .hero-cta{animation:none}
 }
 
 .btn{

@@ -18,8 +18,9 @@ class StrictSchema(BaseModel):
 
 
 class LoginRequest(StrictSchema):
-    email: EmailStr
-    password: str = Field(min_length=10, max_length=128)
+    # Email, or local/dev username alias `admin` (resolved in /auth/login).
+    email: str = Field(min_length=1, max_length=320)
+    password: str = Field(min_length=1, max_length=128)
 
 
 class UserPublic(StrictSchema):

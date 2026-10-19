@@ -109,7 +109,11 @@ def login(
     db: Session = Depends(get_db),
 ) -> UserPublic:
     del request
-    user = db.scalar(select(User).where(User.email == payload.email))
+    identifier = payload.email.strip().lower()
+    # Local/dev convenience: username `admin` maps to the seeded curator account.
+    if identifier == "admin":
+        identifier = "curator@example.com"
+    user = db.scalar(select(User).where(User.email == identifier))
     if not user or not verify_password(payload.password, user.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     if not user.is_active:

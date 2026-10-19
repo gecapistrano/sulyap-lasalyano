@@ -74,6 +74,11 @@ Run against production (or staging with the same cookie/CORS shape).
 - [ ] Artifact detail: full description + **Show more**; related tags; no photo/remarks
 - [ ] Related tag list loads from `/catalog/artifacts/related`
 - [ ] Live Scan opens; ONNX + `labels.txt` load from `/models`
+- [ ] Curator Desk is reachable at `/curator` (Next.js) or static `/curator` bridge — **not** linked from the public home
+
+### Static site (`sulyap-lasalyano/`)
+
+Separate Vercel project with Root Directory `sulyap-lasalyano`. Local: `node serve.mjs` (correct `.mjs` MIME). Ensure `models/model.onnx`, `models/labels.txt`, and `vendor/onnxruntime-web/*` are deployed (build runs `scripts/check-scan-assets.mjs`). Catalog: `/scan?api=https://<api-host>` and add that static origin to `FRONTEND_ORIGINS`.
 
 ### Import / ML (ops)
 

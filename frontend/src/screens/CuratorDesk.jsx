@@ -8,6 +8,7 @@ import {
   createArtifact,
   createPresident,
   deleteArtifact,
+  deletePresident,
   getMe,
   isBackendConfigured,
   listArtifacts,
@@ -21,7 +22,7 @@ import {
   uploadArtifactModel,
   uploadArtifactPhoto,
 } from '../lib/archiveApi'
-import { env } from '../config/env'
+import { env, goToStaticHome } from '../config/env'
 import { t } from '../i18n'
 import './CuratorDesk.css'
 
@@ -162,10 +163,15 @@ function CuratorPhoto({ artifactId, imageUrl, language = 'English' }) {
   return <img className="curator-photo-preview" src={src} alt={t(language, 'curator.photoAlt')} />
 }
 
-export default function CuratorDesk({ language = 'English', onBack, darkMode }) {
+export default function CuratorDesk({ language = 'English' }) {
+  const handleBack = useCallback(() => {
+    /* Always leave Next for the static sulyap-lasalyano home (not in-app home). */
+    goToStaticHome()
+  }, [])
+
   const [tab, setTab] = useState('artifacts')
   const [user, setUser] = useState(null)
-  const [email, setEmail] = useState('curator@example.com')
+  const [email, setEmail] = useState('admin')
   const [password, setPassword] = useState('')
   const [authError, setAuthError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -500,6 +506,23 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
     }
   }
 
+  const handleRemoveModel = async () => {
+    if (!selectedId || !selected?.model_url) return
+    if (!window.confirm(t(language, 'curator.modelRemoveConfirm'))) return
+    setBusy(true)
+    setUploadMsg('')
+    setUploadError('')
+    try {
+      const updated = await updateArtifact(selectedId, { model_url: '' })
+      setRows((prev) => prev.map((row) => (row.id === updated.id ? updated : row)))
+      setUploadMsg(t(language, 'curator.modelCleared'))
+    } catch {
+      setUploadError(t(language, 'curator.modelFail'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const handleAiSuggest = async () => {
     if (!selectedId) return
     setBusy(true)
@@ -575,16 +598,32 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
     }
   }
 
+  const handleDeletePresident = async () => {
+    if (!selectedPresidentId || !window.confirm(t(language, 'curator.deletePresidentConfirm'))) return
+    setBusy(true)
+    setSaveError('')
+    try {
+      await deletePresident(selectedPresidentId)
+      setSelectedPresidentId(null)
+      setMobilePane('list')
+      await refreshList()
+    } catch {
+      setSaveError(t(language, 'curator.presidentDeleteFail'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const selectPresident = (id) => {
     setSelectedPresidentId(id)
     setMobilePane('editor')
   }
 
   return (
-    <div className={`curator-root${darkMode ? ' curator-dark' : ''}${user ? ' is-authed' : ''}`}>
+    <div className={`curator-root curator-dark${user ? ' is-authed' : ''}`}>
       <header className="curator-header">
-        <button type="button" className="curator-back" onClick={onBack} aria-label={t(language, 'nav.back')}>
-          ←
+        <button type="button" className="curator-back" onClick={handleBack} aria-label={t(language, 'nav.back')}>
+          ← Back
         </button>
         <div className="curator-header-main">
           <h1 className="curator-title">{t(language, 'curator.title')}</h1>
@@ -637,7 +676,7 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
           <p className="curator-muted">{t(language, 'curator.hint')}</p>
           <label className="curator-label">
             {t(language, 'curator.email')}
-            <input className="curator-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="username" />
+            <input className="curator-input" type="text" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="username" inputMode="email" />
           </label>
           <label className="curator-label">
             {t(language, 'curator.password')}
@@ -646,7 +685,7 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              minLength={10}
+              minLength={1}
               required
               autoComplete="current-password"
             />
@@ -740,7 +779,11 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
                               >
                                 <span className="curator-list-code">{row.id_code || row.rd_code || `#${row.id}`}</span>
                                 <span className="curator-list-name">{row.title || '(no title)'}</span>
-                                {!row.published ? <span className="curator-pill">{t(language, 'curator.draft')}</span> : null}
+                                {row.published ? (
+                                  <span className="curator-pill curator-pill--published">{t(language, 'curator.field.publishedShort')}</span>
+                                ) : (
+                                  <span className="curator-pill curator-pill--draft">{t(language, 'curator.draft')}</span>
+                                )}
                               </button>
                             </li>
                           ))}
@@ -963,9 +1006,19 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
                           <input type="file" accept=".glb,.obj" onChange={handleModelUpload} disabled={busy} />
                         </label>
                         {selected.model_url ? (
-                          <p className="curator-model-current">
-                            {t(language, 'curator.modelCurrent')} <span>{selected.model_url}</span>
-                          </p>
+                          <>
+                            <p className="curator-model-current">
+                              {t(language, 'curator.modelCurrent')} <span>{selected.model_url}</span>
+                            </p>
+                            <button
+                              type="button"
+                              className="curator-text-btn curator-danger"
+                              onClick={handleRemoveModel}
+                              disabled={busy}
+                            >
+                              {t(language, 'curator.modelRemove')}
+                            </button>
+                          </>
                         ) : (
                           <p className="curator-muted curator-inline-muted">{t(language, 'curator.noModel')}</p>
                         )}
@@ -1030,9 +1083,13 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
                     className={p.id === selectedPresidentId ? 'curator-list-item is-active' : 'curator-list-item'}
                     onClick={() => selectPresident(p.id)}
                   >
-                    <span className="curator-list-name">{p.name}</span>
-                    <span className="curator-list-code">{p.service || t(language, 'curator.noServiceYears')}</span>
-                    {!p.published ? <span className="curator-pill">{t(language, 'curator.draft')}</span> : null}
+                    <span className="curator-list-name curator-list-name--president">{p.name}</span>
+                    <span className="curator-list-service">{p.service || t(language, 'curator.noServiceYears')}</span>
+                    {p.published ? (
+                      <span className="curator-pill curator-pill--published">{t(language, 'curator.field.publishedShort')}</span>
+                    ) : (
+                      <span className="curator-pill curator-pill--draft">{t(language, 'curator.draft')}</span>
+                    )}
                   </button>
                 </li>
               ))}
@@ -1056,7 +1113,9 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
                     {t(language, 'curator.backToList')}
                   </button>
                   <div className="curator-editor-identity">
-                    <span className="curator-editor-code">{presidentForm.service || t(language, 'curator.serviceYears')}</span>
+                    <span className="curator-editor-code curator-editor-code--service">
+                      {presidentForm.service || t(language, 'curator.serviceYears')}
+                    </span>
                     <h2 className="curator-editor-title">{presidentForm.name || t(language, 'curator.untitled')}</h2>
                   </div>
                   <div className="curator-editor-actions">
@@ -1068,6 +1127,9 @@ export default function CuratorDesk({ language = 'English', onBack, darkMode }) 
                       />
                       {t(language, 'curator.field.publishedShort')}
                     </label>
+                    <button type="button" className="curator-text-btn curator-danger" onClick={handleDeletePresident} disabled={busy}>
+                      {t(language, 'curator.delete')}
+                    </button>
                     <button type="submit" className="curator-primary" disabled={busy}>
                       {t(language, 'curator.save')}
                     </button>

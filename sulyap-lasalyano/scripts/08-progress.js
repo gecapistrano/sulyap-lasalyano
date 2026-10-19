@@ -27,16 +27,16 @@
   */
   var NAV_SECTIONS = [
     { id: 'hero', key: 'hero' },
-    { id: 'about-gallery', key: 'gallery' },
+    { id: 'about-dlsu-presidents-memorabilia', key: 'gallery' },
     { id: 'about-aeairc', key: 'library' },
-    { id: 'nx-gallery', key: 'soon' },
+    { id: 'about-sulyap-lasalyano', key: 'soon' },
     { id: 'footer', key: 'soon' }
   ];
   var SECTION_TO_NAV = {
     hero: 'hero',
-    'about-gallery': 'gallery',
+    'about-dlsu-presidents-memorabilia': 'gallery',
     'about-aeairc': 'library',
-    'nx-gallery': 'soon',
+    'about-sulyap-lasalyano': 'soon',
     footer: 'soon'
   };
   var lockKey = null;
@@ -133,9 +133,9 @@
   /* DOM order: museum → AEAIRC → Sulyap edu → gallery page → footer.
      #history was renamed to #about-aeairc — old id made AEAIRC drop out of the list. */
   var targets = [
-    document.getElementById('about-gallery'),
+    document.getElementById('about-dlsu-presidents-memorabilia'),
     document.getElementById('about-aeairc'),
-    document.getElementById('nx-gallery'),
+    document.getElementById('about-sulyap-lasalyano'),
     document.getElementById('page-gallery'),
     document.getElementById('footer') || document.querySelector('.site-footer')
   ].filter(Boolean);

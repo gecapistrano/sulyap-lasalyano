@@ -70,8 +70,8 @@ On Render (or wherever the API runs), add env var `DATABASE_URL` with the **same
 
 Curator after seed:
 
-- email: `curator@example.com`
-- password: `ChangeMeLocal12` (override before first seed with `ADMIN_SEED_PASSWORD`)
+- username / email: `admin` or `curator@example.com`
+- password: `admin123` locally when `ADMIN_SEED_PASSWORD` is unset (set a strong `ADMIN_SEED_PASSWORD` before first production seed)
 
 ---
 

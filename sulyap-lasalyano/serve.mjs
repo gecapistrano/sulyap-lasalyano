@@ -63,6 +63,10 @@ function rewriteUrlPath(urlPath) {
 }
 
 const server = http.createServer((req, res) => {
+  // Aborted client connections (ORT cancels, page reload) must not crash the process.
+  res.on('error', () => {})
+  req.on('error', () => {})
+
   const method = (req.method || 'GET').toUpperCase()
   if (method !== 'GET' && method !== 'HEAD') {
     return send(res, 405, 'Method not allowed')
@@ -78,18 +82,19 @@ const server = http.createServer((req, res) => {
       filePath = path.join(filePath, 'index.html')
       fs.stat(filePath, (dirErr, dirSt) => {
         if (dirErr || !dirSt.isFile()) return send(res, 404, 'Not found')
-        streamFile(res, filePath, dirSt.size, method === 'HEAD')
+        streamFile(req, res, filePath, dirSt.size, method === 'HEAD')
       })
       return
     }
     if (err || !st.isFile()) return send(res, 404, 'Not found')
-    streamFile(res, filePath, st.size, method === 'HEAD')
+    streamFile(req, res, filePath, st.size, method === 'HEAD')
   })
 })
 
-function streamFile(res, filePath, size, headOnly) {
+function streamFile(req, res, filePath, size, headOnly) {
   const ext = path.extname(filePath).toLowerCase()
   const type = TYPES[ext] || 'application/octet-stream'
+  if (res.writableEnded || res.destroyed) return
   res.writeHead(200, {
     'Content-Type': type,
     'Content-Length': size,
@@ -99,11 +104,30 @@ function streamFile(res, filePath, size, headOnly) {
     res.end()
     return
   }
-  fs.createReadStream(filePath).on('error', () => {
-    if (!res.headersSent) send(res, 500, 'Read error')
-    else res.destroy()
-  }).pipe(res)
+  const stream = fs.createReadStream(filePath)
+  const fail = () => {
+    stream.destroy()
+    if (!res.writableEnded) res.destroy()
+  }
+  req.on('aborted', fail)
+  stream.on('error', fail)
+  res.on('close', () => {
+    if (!stream.destroyed) stream.destroy()
+  })
+  stream.pipe(res)
 }
+
+server.on('error', (err) => {
+  console.error('[serve] server error:', err.message)
+  process.exitCode = 1
+})
+
+process.on('uncaughtException', (err) => {
+  console.error('[serve] uncaughtException:', err)
+})
+process.on('unhandledRejection', (err) => {
+  console.error('[serve] unhandledRejection:', err)
+})
 
 server.listen(PORT, '127.0.0.1', () => {
   console.log(`Sulyap static site: http://127.0.0.1:${PORT}/`)

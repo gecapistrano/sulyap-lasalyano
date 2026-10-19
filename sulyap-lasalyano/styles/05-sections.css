@@ -354,15 +354,21 @@
   margin:clamp(16px,2.5vw,22px) 0 0;
   max-width:none;
   width:100%;
-  /* Match .nx-edu-also-list body copy */
   font-size:clamp(13px,1.05vw,14.5px);
   line-height:1.55;
-  color:rgba(242,239,232,.68);
+  /* Same muted gray as thesis credit */
+  color:var(--nx-edu-muted);
   text-wrap:pretty;
 }
 .nx.nx-edu .nx-edu-also .nx-edu-inspire .nx-edu-cats-link{
-  color:rgba(242,239,232,.82);
-  border-bottom-color:rgba(0,112,60,.55);
+  color:inherit;
+  border-bottom-color:rgba(154,149,140,.45);
+  font-weight:500;
+}
+.nx.nx-edu .nx-edu-also .nx-edu-inspire .nx-edu-cats-link:hover,
+.nx.nx-edu .nx-edu-also .nx-edu-inspire .nx-edu-cats-link:focus-visible{
+  color:rgba(242,239,232,.78);
+  border-bottom-color:rgba(154,149,140,.75);
 }
 
 @media (max-width:900px){

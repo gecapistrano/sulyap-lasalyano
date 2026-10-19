@@ -296,8 +296,34 @@
     buildMasonry(id, pres);
   }
 
+  /* Cursor flashlight on page background (fine pointer / hover only) */
+  function bindSpotlight() {
+    var shell = document.querySelector('.pres-shell');
+    var spot = shell && shell.querySelector('.pres-spotlight');
+    var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var finePtr = matchMedia('(hover: hover) and (pointer: fine)').matches;
+    if (!shell || !spot || !finePtr || reduced) return;
+
+    var sx = 50, sy = 42, spotRaf = 0;
+    function paintSpot() {
+      spotRaf = 0;
+      spot.style.setProperty('--sx', sx.toFixed(2) + '%');
+      spot.style.setProperty('--sy', sy.toFixed(2) + '%');
+    }
+    shell.addEventListener('pointermove', function (e) {
+      var r = shell.getBoundingClientRect();
+      if (r.width < 1 || r.height < 1) return;
+      sx = ((e.clientX - r.left) / r.width) * 100;
+      sy = ((e.clientY - r.top) / r.height) * 100;
+      if (!spotRaf) spotRaf = requestAnimationFrame(paintSpot);
+    }, { passive: true });
+    shell.addEventListener('pointerenter', function () { shell.classList.add('is-lit'); });
+    shell.addEventListener('pointerleave', function () { shell.classList.remove('is-lit'); });
+  }
+
   function init() {
     bindLightboxChrome();
+    bindSpotlight();
 
     var backBtn = document.getElementById('presBack');
     if (backBtn) {

@@ -1,0 +1,3 @@
+public/models/*.onnx
+public/splash/*.mp4
+public/splash/*.webm

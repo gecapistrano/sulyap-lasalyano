@@ -8,6 +8,19 @@ const nextConfig = {
   outputFileTracingRoot: path.join(__dirname),
   eslint: { ignoreDuringBuilds: true },
   reactStrictMode: true,
+  async redirects() {
+    const hall = 'https://sulyap-lasalyano.vercel.app'
+    return [
+      { source: '/', destination: `${hall}/`, permanent: false },
+      { source: '/scan', destination: `${hall}/scan`, permanent: false },
+      { source: '/browse', destination: `${hall}/`, permanent: false },
+      { source: '/browse/:path*', destination: `${hall}/`, permanent: false },
+      { source: '/knowledge-graph', destination: `${hall}/knowledge-graph`, permanent: false },
+      { source: '/onboarding', destination: `${hall}/`, permanent: false },
+      { source: '/related', destination: `${hall}/`, permanent: false },
+      { source: '/artifacts/:path*', destination: `${hall}/`, permanent: false },
+    ]
+  },
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: '**' },

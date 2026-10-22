@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import re
+from pathlib import Path
 
 # Accession prefix → canonical president name (must match presidents catalog).
 # Verified against data/imports/presidents_memorabilia_collection.xlsb sheet tabs:
@@ -35,6 +36,23 @@ def normalize_id_code(value: str | None) -> str:
     if not raw:
         return ""
     return re.sub(r"\s+", "", raw)
+
+
+_FILENAME_CODE_RE = re.compile(r"([A-Z]{1,4}\d{1,4})", re.I)
+
+
+def accession_codes_from_filename(name: str | None) -> list[str]:
+    """Parse accession codes from a GLB/photo filename (AG001.glb, AG028-AG029.glb)."""
+    stem = Path(name or "").stem
+    found: list[str] = []
+    seen: set[str] = set()
+    for match in _FILENAME_CODE_RE.finditer(stem):
+        code = normalize_id_code(match.group(1))
+        if not code or code in seen:
+            continue
+        seen.add(code)
+        found.append(code)
+    return found
 
 
 def looks_like_id_code(value: str | None) -> bool:

@@ -54,7 +54,7 @@ export const MOCK_ARTIFACTS_BROWSE = [
     name: 'Charter Document',
     subtitle: 'Historic governance record',
     year: '2006',
-    owner: 'Br. Narciso S. Erguiza, FSC',
+    owner: 'Br. Rafael S. Donato, FSC',
     icon: '📜',
     description:
       'Governance charter document preserved in the memorabilia gallery. High-resolution scans and linked entities will appear here after backend wiring.',

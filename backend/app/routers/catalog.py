@@ -1,8 +1,7 @@
 """Public published-collection reads for museum visitors."""
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
@@ -11,9 +10,11 @@ from ..core.database import get_db
 from ..core.rate_limit import limiter
 from ..models import Artifact, ArtifactTag, President, Tag
 from ..schemas import CatalogArtifactOut, CatalogPresidentOut, TagOut
-from ..services.artifact_tags import collect_tags
+from ..services.artifact_tags import collect_tags, collect_tags_by_artifact_ids
 from ..services.id_codes import normalize_id_code
-from ..services.photo_uploads import photo_path_for_media_key
+from ..services.media_urls import passthrough_media_url, public_model_url
+from ..services.model_uploads import local_model_media_url
+from ..services.photo_uploads import find_local_photo, photo_file_or_redirect
 
 router = APIRouter(prefix="/catalog", tags=["catalog"])
 settings = get_settings()
@@ -23,14 +24,51 @@ def _year_value(artifact: Artifact) -> str:
     return (getattr(artifact, "year_acquired", None) or getattr(artifact, "year", None) or "") or ""
 
 
-def _to_catalog(db: Session, artifact: Artifact) -> CatalogArtifactOut:
+def _catalog_id_code(artifact: Artifact) -> str:
+    return normalize_id_code(getattr(artifact, "id_code", None) or getattr(artifact, "rd_code", None))
+
+
+def _catalog_image_url(artifact: Artifact) -> str:
+    stored = passthrough_media_url(getattr(artifact, "image_url", "") or "")
+    if not settings.catalog_prefer_local_media:
+        return stored
+    code = _catalog_id_code(artifact)
+    if find_local_photo(stored, id_code=code, artifact_id=getattr(artifact, "id", None)):
+        if code:
+            return f"/catalog/artifacts/id/{code}/photo"
+    return stored
+
+
+def _catalog_model_url(artifact: Artifact) -> str:
+    stored = getattr(artifact, "model_url", "") or ""
+    if settings.catalog_prefer_local_media:
+        local = local_model_media_url(stored, id_code=_catalog_id_code(artifact))
+        if local:
+            return local
+    return public_model_url(
+        stored,
+        public_base=settings.public_model_base_url,
+        omit_storage=settings.catalog_omit_storage_models,
+    )
+
+
+def _to_catalog(
+    db: Session,
+    artifact: Artifact,
+    *,
+    tags_by_id: dict[int, list[dict[str, str]]] | None = None,
+) -> CatalogArtifactOut:
+    if tags_by_id is not None:
+        tag_rows = tags_by_id.get(artifact.id, [])
+    else:
+        tag_rows = collect_tags(db, artifact)
     return CatalogArtifactOut(
         id=artifact.id,
-        id_code=normalize_id_code(getattr(artifact, "id_code", None) or getattr(artifact, "rd_code", None)),
+        id_code=_catalog_id_code(artifact),
         title=artifact.title,
         description=artifact.description,
-        image_url=getattr(artifact, "image_url", "") or "",
-        model_url=getattr(artifact, "model_url", "") or "",
+        image_url=_catalog_image_url(artifact),
+        model_url=_catalog_model_url(artifact),
         owner_name=artifact.owner_name,
         year_acquired=_year_value(artifact),
         country_of_origin=getattr(artifact, "country_of_origin", "") or "",
@@ -38,12 +76,13 @@ def _to_catalog(db: Session, artifact: Artifact) -> CatalogArtifactOut:
         subtitle=artifact.subtitle,
         icon=artifact.icon,
         president_id=getattr(artifact, "president_id", None),
-        tags=[TagOut(**t) for t in collect_tags(db, artifact)],
+        tags=[TagOut(**t) for t in tag_rows],
     )
 
 
 @router.get("/presidents", response_model=list[CatalogPresidentOut])
-def list_presidents(db: Session = Depends(get_db)) -> list[CatalogPresidentOut]:
+def list_presidents(response: Response, db: Session = Depends(get_db)) -> list[CatalogPresidentOut]:
+    response.headers["Cache-Control"] = "no-store"
     rows = db.scalars(
         select(President).where(President.published.is_(True)).order_by(President.id.asc())
     ).all()
@@ -54,7 +93,7 @@ def list_presidents(db: Session = Depends(get_db)) -> list[CatalogPresidentOut]:
             service=row.service,
             icon=row.icon,
             biography=getattr(row, "biography", "") or "",
-            photo_url=getattr(row, "photo_url", "") or "",
+            photo_url=passthrough_media_url(getattr(row, "photo_url", "") or ""),
         )
         for row in rows
     ]
@@ -70,6 +109,7 @@ def list_tags(db: Session = Depends(get_db)) -> list[TagOut]:
 @limiter.limit(settings.rate_limit_search)
 def list_catalog_artifacts(
     request: Request,
+    response: Response,
     search: str = Query(default="", min_length=0, max_length=100),
     owner_name: str = Query(default="", min_length=0, max_length=200),
     president_id: int | None = Query(default=None),
@@ -78,9 +118,11 @@ def list_catalog_artifacts(
     artifact_type: str = Query(default="", min_length=0, max_length=120),
     tag: str = Query(default="", min_length=0, max_length=120),
     sort: str = Query(default="id", min_length=1, max_length=40),
+    limit: int = Query(default=2000, ge=1, le=2000),
     db: Session = Depends(get_db),
 ) -> list[CatalogArtifactOut]:
     del request
+    response.headers["Cache-Control"] = "no-store"
     query = select(Artifact).where(Artifact.published.is_(True))
     if owner_name.strip():
         query = query.where(Artifact.owner_name == owner_name.strip())
@@ -118,8 +160,9 @@ def list_catalog_artifacts(
         "year": Artifact.year_acquired.asc(),
         "owner": Artifact.owner_name.asc(),
     }.get(sort, Artifact.id.asc())
-    artifacts = db.scalars(query.order_by(order).limit(500)).all()
-    return [_to_catalog(db, row) for row in artifacts]
+    artifacts = db.scalars(query.order_by(order).limit(limit)).all()
+    tags_by_id = collect_tags_by_artifact_ids(db, [row.id for row in artifacts])
+    return [_to_catalog(db, row, tags_by_id=tags_by_id) for row in artifacts]
 
 
 def _find_published(db: Session, id_code: str) -> Artifact | None:
@@ -131,7 +174,6 @@ def _find_published(db: Session, id_code: str) -> Artifact | None:
     )
     if artifact:
         return artifact
-    # Older rows may still store spaced codes until re-normalized.
     candidates = db.scalars(select(Artifact).where(Artifact.published.is_(True)).limit(500)).all()
     return next(
         (
@@ -153,16 +195,21 @@ def get_catalog_artifact_by_id(id_code: str, db: Session = Depends(get_db)) -> C
 
 @router.get("/artifacts/id/{id_code}/photo")
 @limiter.limit(settings.rate_limit_search)
-def get_catalog_artifact_photo(request: Request, id_code: str, db: Session = Depends(get_db)) -> FileResponse:
-    """Serve the curator-uploaded photo for a published artifact."""
+def get_catalog_artifact_photo(request: Request, id_code: str, db: Session = Depends(get_db)):
+    """Serve a published artifact photo (local file) or redirect to a stored http(s) URL."""
     del request
     artifact = _find_published(db, id_code)
     if not artifact:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Artifact not found")
-    path = photo_path_for_media_key(getattr(artifact, "image_url", "") or "")
-    if not path:
+    served = photo_file_or_redirect(
+        getattr(artifact, "image_url", "") or "",
+        id_code=_catalog_id_code(artifact),
+        artifact_id=artifact.id,
+        prefer_local=settings.catalog_prefer_local_media,
+    )
+    if not served:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Photo not found")
-    return FileResponse(path)
+    return served
 
 
 @router.get("/artifacts/rd/{rd_code}", response_model=CatalogArtifactOut)

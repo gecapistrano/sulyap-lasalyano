@@ -23,12 +23,14 @@ html.page-tx-leave{
 }
 html.page-tx-leave .sl-navload,
 html.page-tx-from .sl-navload,
+html.pres-booting .sl-navload,
 .sl-navload.is-on,
 .sl-navload.is-out{
   display:flex;
 }
 html.page-tx-leave .sl-navload,
 html.page-tx-from .sl-navload,
+html.pres-booting .sl-navload,
 .sl-navload.is-on{
   opacity:1;
   pointer-events:auto;
@@ -78,6 +80,39 @@ html.page-tx-from .sl-navload-icon,
   color:rgba(232,212,176,.72);
 }
 
+/* Thin ivory rail shared by KG, Live Scan, and the page-to-page overlay. */
+.sl-loadbar{
+  width:min(48vw, 11.75rem);
+  height:2px;
+  margin:.2rem 0 0;
+  background:rgba(247,244,239,.2);
+  border-radius:2px;
+  overflow:hidden;
+  transform:translateZ(0);
+}
+.sl-loadbar-fill{
+  display:block;
+  height:100%;
+  width:100%;
+  border-radius:inherit;
+  background:#F7F4EF;
+  transform-origin:left center;
+  transform:scaleX(.04);
+  animation:sl-loadbar-run 2.7s cubic-bezier(.18,.72,.12,1) forwards;
+}
+.sl-loadbar.is-complete .sl-loadbar-fill{
+  animation:none;
+  transform:scaleX(1);
+  transition:transform .36s cubic-bezier(.32,.72,0,1);
+}
+@keyframes sl-loadbar-run{
+  0%{ transform:scaleX(.04); }
+  22%{ transform:scaleX(.36); }
+  48%{ transform:scaleX(.62); }
+  74%{ transform:scaleX(.81); }
+  100%{ transform:scaleX(.9); }
+}
+
 @keyframes sl-navload-breathe{
   0%,100%{ opacity:.78; transform:translateZ(0) scale(.985); }
   50%{ opacity:1; transform:translateZ(0) scale(1); }
@@ -96,5 +131,13 @@ html.page-tx-from .sl-navload-icon,
     animation:none;
     opacity:1;
     transform:none;
+  }
+  .sl-loadbar-fill{
+    animation:none;
+    transform:scaleX(.55);
+    transition:none;
+  }
+  .sl-loadbar.is-complete .sl-loadbar-fill{
+    transform:scaleX(1);
   }
 }

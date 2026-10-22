@@ -11,7 +11,6 @@ import { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useRef, useSta
 
 import Onboarding from './screens/Onboarding'
 import HomePage from './screens/HomePage'
-import KnowledgeGraphPage from './screens/KnowledgeGraphPage'
 
 import ArtifactDetail from './screens/ArtifactDetail'
 
@@ -21,6 +20,7 @@ import PresidentArtifacts from './screens/PresidentArtifacts'
 
 import RelatedArtifacts from './screens/RelatedArtifacts'
 import CuratorDesk from './screens/CuratorDesk'
+import KnowledgeGraphPage from './screens/KnowledgeGraphPage'
 
 import SplashScreen from './screens/SplashScreen'
 import { preloadRdScanner } from './lib/rdClassifier'
@@ -154,9 +154,6 @@ export default function App({
   /** Back target from RelatedArtifacts (e.g. artifact-detail). */
   const [relatedArtifactsReturn, setRelatedArtifactsReturn] = useState('artifact-detail')
 
-  /** Screen to return to when leaving Knowledge Graph (home or artifact-detail). */
-  const [kgReturnScreen, setKgReturnScreen] = useState('home')
-
   const isPopstate = useRef(false)
 
   const hydrateFromSnapshot = useCallback((candidate) => {
@@ -221,13 +218,12 @@ export default function App({
         setSelectedPresident(null)
         setPresidentPending(false)
       }
-    } else if (s.screen !== 'artifact-detail' && s.screen !== 'related-artifacts' && s.screen !== 'knowledge-graph') {
+    } else if (s.screen !== 'artifact-detail' && s.screen !== 'related-artifacts') {
       setPresidentPending(false)
     }
     setRelatedArtifactsTag(s.relatedArtifactsTag || '')
     setArtifactDetailReturn(s.artifactDetailReturn)
     setRelatedArtifactsReturn(s.relatedArtifactsReturn || 'artifact-detail')
-    setKgReturnScreen(s.kgReturnScreen || 'home')
     setBrowseReturnScreen(s.browseReturnScreen || 'home')
     try {
       sessionStorage.setItem('sl_screen', s.screen)
@@ -308,14 +304,21 @@ export default function App({
             darkMode={darkMode}
             onToggleDarkMode={toggleDarkMode}
             onStartCamera={() => setScreen('onboarding')}
-            onOpenKnowledgeGraph={() => {
-              setScreen('knowledge-graph', { kgReturnScreen: 'home' })
-            }}
             onBrowse={() => {
               setBrowseListView('presidents')
               setScreen('browse', { browseReturnScreen: 'home' })
             }}
+            onOpenKnowledgeGraph={() => setScreen('knowledge-graph')}
             onOpenCurator={() => setScreen('curator')}
+          />
+        )
+
+      case 'knowledge-graph':
+        return (
+          <KnowledgeGraphPage
+            language={language}
+            onBack={() => setScreen('home')}
+            darkMode={darkMode}
           />
         )
 
@@ -402,9 +405,6 @@ export default function App({
                 relatedArtifactsReturn: 'artifact-detail',
               })
             }}
-            onViewKnowledgeGraph={() => {
-              setScreen('knowledge-graph', { kgReturnScreen: 'artifact-detail' })
-            }}
           />
         )
       case 'related-artifacts':
@@ -425,15 +425,6 @@ export default function App({
             }}
           />
         )
-      case 'knowledge-graph':
-        return (
-          <KnowledgeGraphPage
-            language={language}
-            darkMode={darkMode}
-            onBack={() => setScreen(kgReturnScreen)}
-          />
-        )
-
       default:
         return (
           <HomePage
@@ -442,13 +433,11 @@ export default function App({
             darkMode={darkMode}
             onToggleDarkMode={toggleDarkMode}
             onStartCamera={() => setScreen('onboarding')}
-            onOpenKnowledgeGraph={() => {
-              setScreen('knowledge-graph', { kgReturnScreen: 'home' })
-            }}
             onBrowse={() => {
               setBrowseListView('presidents')
               setScreen('browse', { browseReturnScreen: 'home' })
             }}
+            onOpenKnowledgeGraph={() => setScreen('knowledge-graph')}
             onOpenCurator={() => setScreen('curator')}
           />
         )

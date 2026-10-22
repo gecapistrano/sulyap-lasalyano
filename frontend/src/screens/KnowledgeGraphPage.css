@@ -1,6 +1,5 @@
 /*
- * KnowledgeGraphPage.css — warm palette aligned with HomePage features/footer.
- * Light: #d4c8a8 bg, #3a2e1f text. Dark: #3a2e1f bg, #d4c8a8 text.
+ * KnowledgeGraphPage.css — academia tokens, aligned with Browse/Home.
  */
 
 .kg-root {
@@ -29,23 +28,14 @@
   transition: background var(--aca-slow) var(--aca-ease), color var(--aca-slow) var(--aca-ease);
 }
 
-.kg-dark {
-  /* Academia library theme (always dark) */
-}
-
-/* Header — matches Browse */
 .kg-header {
   display: flex;
   align-items: center;
   padding: max(0.75rem, env(safe-area-inset-top)) 1.25rem 0.5rem;
-  background: rgba(212, 200, 168, 0.08);
+  background: color-mix(in srgb, var(--aca-bg) 88%, transparent);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   flex-shrink: 0;
-}
-
-.kg-dark .kg-header {
-  background: color-mix(in srgb, var(--aca-bg) 88%, transparent);
 }
 
 .kg-back {
@@ -69,7 +59,8 @@
   height: 1.25rem;
 }
 
-.kg-back:focus-visible {
+.kg-back:focus-visible,
+.kg-zoom-btn:focus-visible {
   outline: none;
   box-shadow:
     0 0 0 2px var(--aca-bg),
@@ -86,7 +77,6 @@
   text-transform: uppercase;
   color: var(--aca-accent);
   text-align: center;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 .kg-header-spacer {
@@ -101,12 +91,10 @@
   font-weight: 500;
   letter-spacing: 0.04em;
   color: var(--kg-text-soft);
-  opacity: 0.75;
   text-align: center;
   flex-shrink: 0;
 }
 
-/* Viewport */
 .kg-viewport-wrap {
   position: relative;
   flex: 1;
@@ -115,8 +103,6 @@
   border-radius: 1rem;
   border: 1px solid var(--kg-card-border);
   background: var(--kg-viewport-bg);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
   overflow: hidden;
 }
 
@@ -155,8 +141,14 @@
 
 .kg-edge {
   stroke: var(--kg-edge);
-  stroke-width: 2;
+  stroke-width: 1.6;
   stroke-linecap: round;
+  pointer-events: none;
+}
+
+.kg-hit {
+  fill: transparent;
+  cursor: pointer;
 }
 
 .kg-node {
@@ -166,19 +158,84 @@
   pointer-events: none;
 }
 
+.kg-node--president {
+  fill: color-mix(in srgb, var(--aca-accent) 22%, var(--kg-node-fill));
+  stroke: var(--aca-accent);
+  stroke-width: 2;
+}
+
+.kg-node--cluster {
+  fill: color-mix(in srgb, var(--kg-node-fill) 80%, #000);
+  stroke-dasharray: 4 3;
+}
+
+.kg-node-group.is-selected .kg-node {
+  stroke: var(--aca-accent);
+  stroke-width: 2.5;
+}
+
 .kg-node-label {
   font-family: var(--ff-sans);
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 600;
   fill: var(--kg-text);
   pointer-events: none;
 }
 
-.kg-dark .kg-node-label {
-  font-weight: 600;
+.kg-node-group--president .kg-node-label {
+  font-size: 12px;
+  font-weight: 700;
 }
 
-/* Zoom buttons — mobile / trackpad assist */
+.kg-banner {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  z-index: 4;
+  pointer-events: none;
+  color: var(--kg-text-soft);
+  font-family: var(--ff-sans);
+  font-size: 0.9rem;
+}
+
+.kg-detail {
+  position: absolute;
+  left: 0.65rem;
+  bottom: 0.65rem;
+  right: 3.6rem;
+  max-width: 22rem;
+  padding: 0.7rem 0.85rem;
+  background: color-mix(in srgb, var(--kg-card) 92%, transparent);
+  border: 1px solid var(--kg-card-border);
+  border-radius: 0.65rem;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.kg-detail-kicker {
+  margin: 0 0 0.2rem;
+  font-family: var(--ff-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--aca-accent);
+}
+
+.kg-detail-title {
+  margin: 0;
+  font-family: var(--ff-serif);
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--kg-text);
+}
+
+.kg-detail-meta {
+  margin: 0.25rem 0 0;
+  font-size: 0.78rem;
+  color: var(--kg-text-soft);
+}
+
 .kg-zoom-tools {
   position: absolute;
   right: 0.65rem;
@@ -214,18 +271,6 @@
   color: var(--aca-accent);
 }
 
-.kg-dark .kg-zoom-btn:hover {
-  background: color-mix(in srgb, var(--aca-accent) 18%, transparent);
-  border-color: var(--aca-accent);
-}
-
-.kg-zoom-btn:focus-visible {
-  outline: none;
-  box-shadow:
-    0 0 0 2px var(--aca-bg),
-    0 0 0 4px var(--aca-accent);
-}
-
 .kg-footer {
   flex-shrink: 0;
   display: flex;
@@ -237,7 +282,6 @@
   font-family: var(--ff-mono);
   letter-spacing: 0.06em;
   color: var(--kg-text-soft);
-  opacity: 0.7;
 }
 
 .kg-footer-lang {
@@ -246,4 +290,117 @@
 
 .kg-footer-note {
   text-align: right;
+}
+
+.kg-3d .kg-viewport-wrap {
+  background: #06110c;
+}
+
+.kg-graph-host {
+  position: absolute;
+  inset: 0;
+}
+
+.kg-graph-host canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.kg-tools {
+  position: absolute;
+  right: 0.65rem;
+  bottom: 0.65rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.45rem;
+  z-index: 3;
+}
+
+.kg-layout {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.kg-layout .kg-zoom-btn {
+  width: auto;
+  min-width: 2.25rem;
+  padding: 0 0.55rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.kg-layout .kg-zoom-btn[aria-pressed='true'] {
+  background: color-mix(in srgb, var(--aca-accent) 22%, transparent);
+  border-color: var(--aca-accent);
+  color: var(--aca-accent);
+}
+
+.kg-zoom-btn--fit {
+  width: auto;
+  padding: 0 0.5rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.kg-legend {
+  position: absolute;
+  left: 0.65rem;
+  top: 0.65rem;
+  z-index: 3;
+  max-width: 12rem;
+  padding: 0.35rem 0.55rem;
+  background: color-mix(in srgb, var(--kg-card) 88%, transparent);
+  border: 1px solid var(--kg-card-border);
+  border-radius: 0.5rem;
+  color: var(--kg-text);
+  font-size: 0.72rem;
+}
+
+.kg-legend summary {
+  cursor: pointer;
+  font-family: var(--ff-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.62rem;
+}
+
+.kg-legend-list {
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.kg-legend-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.kg-swatch {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.kg-swatch--pres { background: #c4a484; }
+.kg-swatch--art { background: #86efac; }
+.kg-swatch--cat { background: #7dc0a0; }
+.kg-swatch--era { background: #e8d48a; }
+
+.kg-3d .kg-detail {
+  right: auto;
+  max-width: min(22rem, calc(100% - 5.5rem));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kg-canvas {
+    will-change: auto;
+  }
 }

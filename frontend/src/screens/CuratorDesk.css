@@ -651,10 +651,35 @@ select.curator-input {
   border-radius: var(--cur-radius);
   padding: 0.5rem 0.55rem;
   cursor: pointer;
-  display: block;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  gap: 0.55rem;
+  align-items: center;
   font: inherit;
   box-sizing: border-box;
   transition: background var(--cur-mo) ease-out, border-color var(--cur-mo) ease-out;
+}
+
+.curator-list-thumb {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  object-position: center top;
+  border-radius: 8px;
+  border: 1px solid var(--cur-line-soft);
+  background: rgba(22, 20, 17, 0.65);
+  flex: none;
+}
+
+.curator-list-thumb--empty {
+  display: block;
+  background:
+    linear-gradient(145deg, rgba(247, 244, 239, 0.08), rgba(61, 46, 34, 0.4));
+}
+
+.curator-list-copy {
+  min-width: 0;
+  display: block;
 }
 
 .curator-list-item:hover {
@@ -1044,11 +1069,14 @@ select.curator-input {
 
 .curator-photo-preview {
   display: block;
-  width: 100%;
-  max-height: 240px;
-  object-fit: cover;
+  width: auto;
+  max-width: 100%;
+  max-height: 280px;
+  object-fit: contain;
+  object-position: center top;
   border-radius: var(--cur-radius);
   border: 1px solid var(--cur-line-soft);
+  background: rgba(22, 20, 17, 0.65);
 }
 
 .curator-photo-empty {

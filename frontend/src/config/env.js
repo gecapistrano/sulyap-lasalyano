@@ -1,7 +1,7 @@
 /**
  * Runtime environment for the Next.js browser build.
  * `NEXT_PUBLIC_API_BASE_URL` — optional; when present must be https:// or http://localhost.
- * `NEXT_PUBLIC_STATIC_HOME_URL` — static sulyap-lasalyano home (Curator Desk Back).
+ * `NEXT_PUBLIC_STATIC_HOME_URL` — static hall home (Curator Desk Back).
  *
  * Important: Next.js only inlines env vars that are referenced as static
  * `process.env.NEXT_PUBLIC_*` identifiers — dynamic `process.env[name]` stays empty in the client bundle.

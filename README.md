@@ -4,36 +4,38 @@ Sulyap Lasalyano is a web-based AR + ML museum experience for the DLSU-D AEA-IRC
 
 Visitors can point a phone camera at supported memorabilia and the system attempts real-time recognition using a YOLO/ONNX pipeline, then presents contextual content in an interactive UI.
 
-> **Layout note:** The primary public UI is `sulyap-lasalyano/` (static site). `backend/` remains for API integration. The older `frontend/` app is legacy if present and is not the primary visitor surface.
+> **Official public UI:** the museum hall in `hall/` (home, Live Scan, 3D Knowledge Graph, president browse). `frontend/` is Curator Desk only — do not send visitors to `:3000`.
 
 ## Core Features
 
-- Browser-based camera scanner with on-device model inference
-- Splash/onboarding/camera flow optimized for mobile web
-- Gesture-driven knowledge graph viewer (frontend module)
-- Secure FastAPI backend scaffold (auth, CSRF, rate limiting)
+- Museum hall public site (static) with president browse from the live catalog
+- Browser-based Live Scan with on-device YOLOv8/ONNX inference (~147 classes) and catalog lookup
+- 3D Knowledge Graph (presidents + artifact halos) from the same catalog
+- Secure FastAPI backend (auth, CSRF, rate limiting) on Supabase Postgres
+- Bidirectional catalog mirror to local `backend/sulyap.db` (never copies users)
+- Photos and 3D models in Supabase Storage (Postgres stores URLs only)
 - ML workspace under `ml/` for training, exports, and evaluation artifacts
 
 ## Tech Stack
 
-- Primary UI: static site in `sulyap-lasalyano/`
-- Legacy frontend (optional): Next.js / React app under `frontend/`
+- Public UI: static museum hall in `hall/`
+- Curator Desk: Next.js app under `frontend/`
 - Backend: FastAPI, Pydantic, SQLAlchemy
 - ML: Ultralytics YOLOv8, PyTorch, ONNX
-- Deployment: Vercel (`sulyap-lasalyano/`), Render (FastAPI) — see `docs/DEPLOYMENT.md`
-- Database: Supabase Postgres via `DATABASE_URL` (SQLite still ok for local smoke tests)
+- Deployment: Vercel (`hall/`), Render (FastAPI) — see `docs/DEPLOYMENT.md`
+- Database: Supabase Postgres via `DATABASE_URL`, mirrored to local SQLite
 
 ## Repository Structure
 
 ```text
-sulyap-lasalyano/
-+-- sulyap-lasalyano/         # Primary public UI (static)
-+-- backend/                 # FastAPI API and security middleware
-+-- frontend/                # Legacy Next.js app (kept for reference / API clients)
-+-- supabase/                # Postgres schema + catalog seed for Supabase
-+-- data/imports/            # Local memorabilia workbook copies (gitignored binaries)
-+-- ml/                      # Training scripts, datasets, runs, weights
-+-- docs/                    # DEPLOYMENT.md, OPS_RUNBOOK.md, SUPABASE_SETUP.md
+sulyap-lasalyano/                 # this Git repo
++-- hall/                        # Official public UI (museum hall)
++-- backend/                     # FastAPI API, catalog sync, Storage uploads
++-- frontend/                    # Curator Desk (Next.js) — not the visitor app
++-- supabase/                    # Postgres schema + catalog seed
++-- data/imports/                # Local memorabilia workbook copies (gitignored)
++-- ml/                          # Training scripts, datasets, runs, weights
++-- docs/                        # DEPLOYMENT.md, OPS_RUNBOOK.md, SUPABASE_SETUP.md
 +-- README.md
 ```
 
@@ -49,26 +51,26 @@ npm install
 
 Running `npm install` at the repository root sets `core.hooksPath` to `.githooks/`. The `commit-msg` hook removes any line containing `cursoragent@cursor.com` from the final commit message so automated Cursor co-author trailers are not pushed to GitHub.
 
-### 2) Primary UI (`sulyap-lasalyano/`)
-
-Serve the static site locally (any static server), for example:
+### 2) Museum hall + API (public app)
 
 ```bash
-cd sulyap-lasalyano
-npx --yes serve .
-```
-
-### 3) Legacy frontend (optional)
-
-```bash
-cd frontend
-npm install
 npm run dev
 ```
 
-Legacy frontend default URL: `http://localhost:3000` (Next.js)
+- Hall: [http://127.0.0.1:8765/](http://127.0.0.1:8765/)
+- API: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 
-### 4) Backend
+`serve.mjs` proxies `/catalog` to the API so Scan, Browse, and the Knowledge Graph all read the live database. Use this server (not `python -m http.server`) so ONNX/WASM MIME types stay correct.
+
+### 3) Curator Desk (staff only)
+
+```bash
+npm run dev:curator
+```
+
+Curator default URL: `http://127.0.0.1:3000/curator` (Next.js). Plaque long-press on the hall also opens this desk.
+
+### 4) Backend (if started on its own)
 
 ```bash
 cd backend
@@ -78,14 +80,16 @@ python -m venv .venv
 # macOS/Linux:
 # source .venv/bin/activate
 pip install -r requirements.txt
-python -m uvicorn app.main:app --reload
+python -m uvicorn app.main:app --reload --host localhost --port 8000
 ```
 
 Backend default URL: `http://localhost:8000`
 
+On startup the API mirrors catalog rows both ways (Supabase ↔ `backend/sulyap.db`). Users and password hashes are never copied. Photos belong in Supabase Storage (`python scripts/upload_catalog_photos.py` from `backend/`).
+
 ## Environment Notes
 
-- Configure frontend env in `frontend/.env.local` (`NEXT_PUBLIC_API_BASE_URL`)
+- Configure Curator env in `frontend/.env.local` (`NEXT_PUBLIC_API_BASE_URL`)
 - Configure backend env in `backend/.env`
 - For split hosting (Vercel + Render), use `COOKIE_SAMESITE=none` + `COOKIE_SECURE=true` and set `FRONTEND_ORIGINS` to the Vercel origin(s)
 - **Supabase:** [`docs/SUPABASE_SETUP.md`](docs/SUPABASE_SETUP.md) · **Deploy:** [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) · **Ops:** [`docs/OPS_RUNBOOK.md`](docs/OPS_RUNBOOK.md)

@@ -4,6 +4,7 @@ from pathlib import Path
 
 _LABELS_CANDIDATES = (
     Path(__file__).resolve().parents[3] / "frontend" / "public" / "models" / "labels.txt",
+    Path(__file__).resolve().parents[3] / "hall" / "models" / "labels.txt",
     Path(__file__).resolve().parents[2] / "data" / "labels.txt",
 )
 

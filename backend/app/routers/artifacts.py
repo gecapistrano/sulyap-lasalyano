@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
-from fastapi.responses import FileResponse
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
@@ -31,8 +30,10 @@ from ..services.artifact_tags import (
 from ..services.facet_hints import apply_facet_hints_if_empty
 from ..services.id_codes import normalize_id_code
 from ..services.llm_assist import llm_configured, suggest_from_description
+from ..services.media_urls import is_http_url, passthrough_media_url
 from ..services.model_uploads import delete_local_model_if_managed, save_artifact_model
-from ..services.photo_uploads import delete_local_photo_if_managed, photo_path_for_media_key, save_artifact_photo
+from ..services.catalog_sync import schedule_catalog_mirror
+from ..services.photo_uploads import delete_local_photo_if_managed, photo_file_or_redirect, save_artifact_photo
 
 router = APIRouter(prefix="/artifacts", tags=["artifacts"])
 settings = get_settings()
@@ -58,8 +59,8 @@ def _to_out(
         owner_id=artifact.owner_id,
         title=artifact.title,
         description=artifact.description,
-        image_url=artifact.image_url,
-        model_url=getattr(artifact, "model_url", "") or "",
+        image_url=passthrough_media_url(artifact.image_url),
+        model_url=passthrough_media_url(getattr(artifact, "model_url", "") or ""),
         id_code=normalize_id_code(getattr(artifact, "id_code", None) or getattr(artifact, "rd_code", None)),
         owner_name=artifact.owner_name,
         year_acquired=_year_value(artifact),
@@ -152,6 +153,7 @@ def create_artifact(
         set_manual_tags(db, artifact, payload.manual_tags)
     db.commit()
     db.refresh(artifact)
+    schedule_catalog_mirror()
     return _to_out(db, artifact)
 
 
@@ -184,10 +186,10 @@ def update_artifact(
         updates["year"] = updates["year_acquired"]
     if "model_url" in updates and isinstance(updates["model_url"], str):
         next_model = updates["model_url"].strip()
-        if next_model and not next_model.startswith("/media/models/"):
+        if next_model and not next_model.startswith("/media/models/") and not is_http_url(next_model):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="model_url must be empty or a managed /media/models path",
+                detail="model_url must be empty, a managed /media/models path, or an http(s) URL",
             )
         prev = getattr(artifact, "model_url", "") or ""
         if next_model != prev:
@@ -206,6 +208,7 @@ def update_artifact(
         sync_auto_tags(db, artifact)
     db.commit()
     db.refresh(artifact)
+    schedule_catalog_mirror()
     return _to_out(db, artifact)
 
 
@@ -229,6 +232,7 @@ async def upload_artifact_model(
     db.refresh(artifact)
     if previous and previous != media_path:
         delete_local_model_if_managed(previous)
+    schedule_catalog_mirror()
     return _to_out(db, artifact)
 
 
@@ -252,6 +256,7 @@ async def upload_artifact_photo(
     db.refresh(artifact)
     if previous.startswith("/curator-media/artifacts/"):
         delete_local_photo_if_managed(previous)
+    schedule_catalog_mirror()
     return _to_out(db, artifact)
 
 
@@ -265,10 +270,10 @@ def get_artifact_photo(
     if not artifact:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Artifact not found")
     ensure_resource_owner_or_admin(owner_id=artifact.owner_id, user=user)
-    path = photo_path_for_media_key(artifact.image_url)
-    if not path:
+    served = photo_file_or_redirect(artifact.image_url)
+    if not served:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Photo not found")
-    return FileResponse(path)
+    return served
 
 
 @router.post("/{artifact_id}/llm-suggest", response_model=LlmSuggestOut)
@@ -332,6 +337,7 @@ def llm_apply(
     sync_auto_tags(db, artifact)
     db.commit()
     db.refresh(artifact)
+    schedule_catalog_mirror()
     return _to_out(db, artifact)
 
 
@@ -351,3 +357,4 @@ def delete_artifact(
     delete_local_photo_if_managed(artifact.image_url or "")
     db.delete(artifact)
     db.commit()
+    schedule_catalog_mirror()

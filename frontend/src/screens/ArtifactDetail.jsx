@@ -28,7 +28,7 @@ function getArtifactRdHeaderLabel(artifact, fallback = 'Artifact') {
   return fallback
 }
 
-export default function ArtifactDetail({ language = 'English', artifact, pending = false, onBack, onViewKnowledgeGraph, onRelatedTag, darkMode }) {
+export default function ArtifactDetail({ language = 'English', artifact, pending = false, onBack, onRelatedTag, darkMode }) {
   const copyScrollRef = useRef(null)
   const [copyFadeTop, setCopyFadeTop] = useState(false)
   const [copyFadeBottom, setCopyFadeBottom] = useState(false)
@@ -113,23 +113,7 @@ export default function ArtifactDetail({ language = 'English', artifact, pending
 
         <h1 className="ad-header-title">{headerRdLabel}</h1>
 
-        {typeof onViewKnowledgeGraph === 'function' ? (
-          <button
-            type="button"
-            className="ad-kg"
-            onClick={onViewKnowledgeGraph}
-            aria-label={t(language, 'nav.openKnowledgeGraph')}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden>
-              <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
-              <ellipse cx="12" cy="12" rx="8" ry="3.25" />
-              <ellipse cx="12" cy="12" rx="8" ry="3.25" transform="rotate(60 12 12)" />
-              <ellipse cx="12" cy="12" rx="8" ry="3.25" transform="rotate(-60 12 12)" />
-            </svg>
-          </button>
-        ) : (
-          <div className="ad-header-trailing-spacer" aria-hidden />
-        )}
+        <div className="ad-header-trailing-spacer" aria-hidden />
       </header>
 
       <div className="ad-main">

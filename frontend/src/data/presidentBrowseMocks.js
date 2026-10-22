@@ -7,7 +7,6 @@ export const MOCK_PRESIDENTS = [
   { id: 2, name: 'Br. Gus Boquer, FSC', service: '1994 - 1999', icon: '👤' },
   { id: 3, name: 'Br. Andrew B. Gonzalez, FSC', service: '1999 - 2001', icon: '👤' },
   { id: 4, name: 'Br. Rolando V. Dizon, FSC', service: '2001 - 2004', icon: '👤' },
-  { id: 5, name: 'Br. Narciso S. Erguiza, FSC', service: '2004 - 2008', icon: '👤' },
   { id: 6, name: 'Br. Armin A. Luistro, FSC', service: '2008 - 2010', icon: '👤' },
   { id: 7, name: 'Dr. Carmelita R. Quebengco', service: '2010 - 2016', icon: '👤' },
   { id: 8, name: 'Br. Geminiano M. Buenaventura, FSC', service: '2016 - 2019', icon: '👤' },

@@ -7,8 +7,10 @@ from sqlalchemy.orm import Session
 
 from ..core.database import get_db
 from ..deps import get_current_active_user, require_roles, verify_csrf_token
+from ..services.catalog_sync import schedule_catalog_mirror
 from ..models import President, User
 from ..schemas import PresidentCreate, PresidentOut, PresidentUpdate, UserRole
+from ..services.media_urls import passthrough_media_url
 
 router = APIRouter(prefix="/presidents", tags=["presidents"])
 
@@ -20,7 +22,7 @@ def _to_out(row: President) -> PresidentOut:
         service=row.service,
         icon=row.icon,
         biography=getattr(row, "biography", "") or "",
-        photo_url=getattr(row, "photo_url", "") or "",
+        photo_url=passthrough_media_url(getattr(row, "photo_url", "") or ""),
         published=bool(getattr(row, "published", True)),
     )
 
@@ -57,6 +59,7 @@ def create_president(
     db.add(row)
     db.commit()
     db.refresh(row)
+    schedule_catalog_mirror()
     return _to_out(row)
 
 
@@ -77,6 +80,7 @@ def update_president(
         setattr(row, field, value.strip() if isinstance(value, str) and field != "biography" else value)
     db.commit()
     db.refresh(row)
+    schedule_catalog_mirror()
     return _to_out(row)
 
 
@@ -93,3 +97,4 @@ def delete_president(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="President not found")
     db.delete(row)
     db.commit()
+    schedule_catalog_mirror()

@@ -19,11 +19,8 @@ jobs:
         with:
           python-version: "3.11"
 
-      # Root has only npm scripts (no deps); `npm ci` requires package-lock.json on every branch.
-      # Frontend is the only place we need a clean install from lockfile.
-      - name: Install frontend dependencies
+      - name: Install root dependencies
         run: npm ci
-        working-directory: frontend
 
       - name: Run npm security checks
         run: npm run security:check

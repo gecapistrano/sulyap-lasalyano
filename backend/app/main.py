@@ -5,6 +5,7 @@ Run with uvicorn (see `backend/README.md`). Creates tables on startup via SQLAlc
 (SQLite locally, or Supabase/Postgres when `DATABASE_URL` points there).
 """
 import logging
+import threading
 
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
@@ -23,7 +24,7 @@ from .core.database import (
     _sqlite_add_missing_columns,
     engine,
 )
-from .routers import artifacts, auth, catalog, presidents, recognition
+from .routers import admin, artifacts, auth, catalog, presidents, recognition
 from .services.catalog_seed import seed_catalog_if_empty
 from .services.model_uploads import ensure_upload_dir
 from .services.photo_uploads import ensure_photo_dir, restore_bundled_photos
@@ -32,12 +33,40 @@ settings = get_settings()
 logger = logging.getLogger("sulyap.security")
 logging.basicConfig(level=logging.INFO)
 logger.info("CORS allow_origins=%s", settings.allowed_origins)
+logger.info(
+    "Supabase storage %s (bucket=%s)",
+    "configured" if (settings.supabase_url and settings.supabase_service_role_key) else "not configured; curator uploads stay local",
+    settings.supabase_storage_bucket or "catalog-photos",
+)
 
 Base.metadata.create_all(bind=engine)
 _sqlite_add_missing_columns(engine)
 _postgres_add_missing_columns(engine)
 with SessionLocal() as _seed_db:
     seed_catalog_if_empty(_seed_db)
+
+
+def _start_catalog_sync_if_configured() -> None:
+    """Optional background sync. Failures are logged and never block API boot."""
+    if not settings.catalog_sync_on_start:
+        logger.info("Catalog sync on start disabled (CATALOG_SYNC_ON_START=0)")
+        return
+
+    def _run() -> None:
+        try:
+            from .services.catalog_sync import CatalogSyncError, run_from_settings
+
+            report = run_from_settings(direction="both", dry_run=False, apply_deletes=False)
+            logger.info("Catalog sync on start: %s", report.summary())
+        except CatalogSyncError as exc:
+            logger.error("Catalog sync on start skipped: %s", exc)
+        except Exception:
+            logger.exception("Catalog sync on start failed")
+
+    threading.Thread(target=_run, name="catalog-sync", daemon=True).start()
+
+
+_start_catalog_sync_if_configured()
 
 _uploads_dir = ensure_upload_dir()
 ensure_photo_dir()
@@ -72,8 +101,8 @@ async def set_security_headers(request: Request, call_next):
         "style-src 'self'; "
         "img-src 'self' data: https:; "
         "font-src 'self'; "
-        "connect-src 'self'; "
-        "media-src 'self'; "
+        "connect-src 'self' https:; "
+        "media-src 'self' https: blob:; "
         "object-src 'none'; "
         "frame-ancestors 'none'; "
         "base-uri 'self';"
@@ -112,9 +141,11 @@ def healthcheck():
 
 
 app.include_router(auth.router)
+app.include_router(admin.router)
 app.include_router(artifacts.router)
 app.include_router(catalog.router)
 app.include_router(presidents.router)
 app.include_router(recognition.router)
+# Local/dev GLBs: catalog prefers these files over Storage URLs when APP_ENV≠production.
 app.mount("/media/models", StaticFiles(directory=str(_uploads_dir)), name="artifact_models")
 

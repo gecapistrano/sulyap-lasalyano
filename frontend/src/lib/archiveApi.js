@@ -1,10 +1,45 @@
 /**
  * Typed-ish wrappers for backend routes the SPA / Next app uses.
  */
-import { env } from '../config/env'
+import { env, resolveStaticHomeUrl } from '../config/env'
 import { sanitizeText } from '../utils/security'
 import { apiClient } from './apiClient'
 import { clearCsrfToken, setCsrfToken } from './secureApi'
+
+const PRESIDENT_SLUGS = {
+  'br. rafael s. donato, fsc': 'br-donato',
+  'br. gus boquer, fsc': 'br-gus',
+  'br. andrew b. gonzalez, fsc': 'br-andrew',
+  'br. andrew b. gonzales, fsc': 'br-andrew',
+  'br. rolando v. dizon, fsc': 'br-rolly',
+  'br. armin a. luistro, fsc': 'br-armin',
+  'dr. carmelita r. quebengco': 'dr-quebengco',
+  'br. geminiano m. buenaventura, fsc': 'br-mawel',
+  'br. francisco "sockie" dela rosa vi, fsc': 'br-sockie',
+  'br. francisco sockie dela rosa vi, fsc': 'br-sockie',
+  'br. iñigo riola, fsc': 'br-inigo',
+  'br. inigo riola, fsc': 'br-inigo',
+}
+
+function slugifyPresidentName(name) {
+  const normalized = String(name || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\u201c\u201d]/g, '"')
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/\s+/g, ' ')
+  if (PRESIDENT_SLUGS[normalized]) return PRESIDENT_SLUGS[normalized]
+  const raw = String(name || '').trim()
+  const isDr = /^(Dr\.)/i.test(raw)
+  const cleaned = raw.replace(/,?\s*FSC\.?$/i, '').replace(/^(Br\.|Bro\.|Brother|Dr\.)\s+/i, '')
+  const bits = cleaned.split(/\s+/).filter(Boolean)
+  const last = (bits[bits.length - 1] || cleaned || 'president')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '')
+  return `${isDr ? 'dr' : 'br'}-${last || 'president'}`
+}
 
 function rememberCsrf(payload) {
   if (payload && typeof payload.csrf_token === 'string') {
@@ -20,12 +55,40 @@ export function isBackendConfigured() {
 /** Visitor-facing image for a catalog row. Local curator files go through the published photo route. */
 export function catalogImageSrc(idCode, imageUrl) {
   const value = typeof imageUrl === 'string' ? imageUrl.trim() : ''
-  if (!value) return ''
   if (/^https?:\/\//i.test(value)) return value
   const code = String(idCode ?? '').trim()
-  if (!code || !env.apiConfigured) return ''
+  if (value.startsWith('/catalog/') && env.apiConfigured) {
+    try {
+      return new URL(value, env.apiBaseUrl).href
+    } catch {
+      /* fall through */
+    }
+  }
+  if (!code || !env.apiConfigured) return value
   try {
     return new URL(`/catalog/artifacts/id/${encodeURIComponent(code)}/photo`, env.apiBaseUrl).href
+  } catch {
+    return value
+  }
+}
+
+/** President portrait: stored URL, else museum-hall `/assets/presidents/<slug>.jpg`. */
+export function presidentPortraitSrc(row) {
+  const url = String(row?.photo_url || row?.photoUrl || '').trim()
+  const home = resolveStaticHomeUrl()
+  if (/^https?:\/\//i.test(url)) return url
+  const relative = url.startsWith('/') ? url : ''
+  if (relative) {
+    try {
+      return new URL(relative, home.endsWith('/') ? home : `${home}/`).href
+    } catch {
+      return relative
+    }
+  }
+  const slug = slugifyPresidentName(row?.name || '')
+  if (!slug) return ''
+  try {
+    return new URL(`assets/presidents/${slug}.jpg`, home.endsWith('/') ? home : `${home}/`).href
   } catch {
     return ''
   }
@@ -95,6 +158,7 @@ export async function listCatalogArtifacts({
   artifactType = '',
   tag = '',
   sort = 'id',
+  limit = 2000,
 } = {}) {
   const rows = await apiClient.request('/catalog/artifacts', {
     method: 'GET',
@@ -106,6 +170,7 @@ export async function listCatalogArtifacts({
       artifact_type: String(artifactType ?? '').trim(),
       tag: String(tag ?? '').trim(),
       sort: String(sort ?? 'id').trim(),
+      limit: String(limit ?? 2000),
     },
   })
   return Array.isArray(rows) ? rows.map(mapCatalogArtifact).filter(Boolean) : []

@@ -230,6 +230,13 @@ export function preloadRdScanner() {
     preloadPromise = (async () => {
       const [session] = await Promise.all([getSession(), getClassNames()])
       try {
+        await new Promise((resolve) => {
+          if (typeof requestIdleCallback === 'function') {
+            requestIdleCallback(() => resolve(), { timeout: 180 })
+          } else {
+            setTimeout(resolve, 0)
+          }
+        })
         await warmupSession(session)
       } catch (warmupErr) {
         // Warmup is best-effort; first real frame may still JIT WASM paths on some browsers.

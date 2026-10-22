@@ -1,6 +1,6 @@
 ---
 description: Anti-AI-looking design checklist for frontend and museum surfaces
-globs: frontend/**/*.{css,jsx,tsx,js,html},sulyap-lasalyano/**/*.{css,js,html}
+globs: frontend/**/*.{css,jsx,tsx,js,html},hall/**/*.{css,js,html}
 alwaysApply: false
 ---
 

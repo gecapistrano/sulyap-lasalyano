@@ -38,7 +38,7 @@ def _seed_password() -> str:
 PLACEHOLDER_IMAGE = "https://sulyap-lasalyano-gecapistranos-projects.vercel.app/splash/splash-logo.png"
 
 LABELS_CANDIDATES = (
-    Path(__file__).resolve().parents[3] / "frontend" / "public" / "models" / "labels.txt",
+    Path(__file__).resolve().parents[3] / "hall" / "models" / "labels.txt",
     Path(__file__).resolve().parents[2] / "labels.txt",
 )
 
@@ -47,7 +47,6 @@ PRESIDENT_ROWS = (
     (2, "Br. Gus Boquer, FSC", "1994 - 1999"),
     (3, "Br. Andrew B. Gonzalez, FSC", "1999 - 2001"),
     (4, "Br. Rolando V. Dizon, FSC", "2001 - 2004"),
-    (5, "Br. Narciso S. Erguiza, FSC", "2004 - 2008"),
     (6, "Br. Armin A. Luistro, FSC", "2008 - 2010"),
     (7, "Dr. Carmelita R. Quebengco", "2010 - 2016"),
     (8, "Br. Geminiano M. Buenaventura, FSC", "2016 - 2019"),
@@ -65,7 +64,7 @@ ARTIFACT_ROWS = (
      "Formal portrait representing presidential leadership."),
     ("Accreditation Medallion", "RD302", "Br. Rolando V. Dizon, FSC", "2003", "Quality standards milestone", "🎖️",
      "Medallion issued in connection with accreditation milestones."),
-    ("Charter Document", "RD303", "Br. Narciso S. Erguiza, FSC", "2006", "Historic governance record", "📜",
+    ("Charter Document", "RD303", "Br. Rafael S. Donato, FSC", "2006", "Historic governance record", "📜",
      "Governance charter document preserved in the memorabilia gallery."),
     ("Campus Expansion Blueprint", "RD304", "Br. Armin A. Luistro, FSC", "2009", "Planning records", "📐",
      "Historical planning document from the expansion era."),

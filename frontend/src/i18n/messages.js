@@ -16,7 +16,6 @@ const en = {
   'nav.goBack': 'Go back',
   'nav.home': 'Back to Home',
   'nav.browseArtifacts': 'Browse Artifacts',
-  'nav.openKnowledgeGraph': 'Open knowledge graph',
   'nav.exit': 'Exit',
 
   'home.brand': 'Sulyap Lasalyano',
@@ -26,8 +25,7 @@ const en = {
   'home.intro':
     'From the Presidents’ Memorabilia Gallery at De La Salle University-Dasmariñas, Sulyap Lasalyano invites you to meet the objects that shaped Lasallian leadership—quietly, carefully, and at your own pace.',
   'home.browse': 'Browse',
-  'home.knowledgeGraph': 'View Knowledge Graph',
-  'home.knowledgeGraphShort': 'Knowledge Graph',
+  'home.knowledgeGraph': 'Knowledge Graph',
   'home.liveScan': 'Live Scan',
   'home.volume1': 'Volume I',
   'home.volume2': 'Volume II',
@@ -35,12 +33,12 @@ const en = {
   'home.feature.browse.title': 'Browse',
   'home.feature.browse.body':
     'Explore the full collection of presidential memorabilia from wherever you are—on-site or afar.',
-  'home.feature.kg.title': 'Knowledge Graph',
-  'home.feature.kg.body':
-    'Trace how presidents, artifacts, and milestones connect across generations of Lasallian history.',
   'home.feature.scan.title': 'Live Scan',
   'home.feature.scan.body':
     'Point your camera at gallery memorabilia and watch each object’s story come into focus.',
+  'home.feature.kg.title': 'Knowledge Graph',
+  'home.feature.kg.body':
+    'See how presidents and published memorabilia connect across the collection.',
   'home.footer':
     '© 2026 Sulyap Lasalyano — De La Salle University-Dasmariñas. All rights reserved. Developed by J.N. Lagajino, J.U. Ricafrente & G.E. Capistrano',
   'home.curator': 'Curator desk',
@@ -85,11 +83,29 @@ const en = {
   'detail.presidentPhotoAria': 'President portrait',
 
   'kg.title': 'Knowledge Graph',
-  'kg.hint': 'Drag to pan · Scroll to zoom',
-  'kg.mock': 'Mock data for demonstration',
-  'kg.aria': 'Interactive knowledge graph preview. Drag to pan and scroll to zoom.',
+  'kg.hint': 'Orbit to look around · Scroll to zoom · Drag to pan',
+  'kg.aria': 'Interactive 3D knowledge graph. Orbit, pan, and zoom. Tap a node for catalog details.',
   'kg.zoomIn': 'Zoom in',
   'kg.zoomOut': 'Zoom out',
+  'kg.fit': 'Fit all',
+  'kg.layoutWeb': 'Web',
+  'kg.layoutTimeline': 'Timeline',
+  'kg.legend': 'Legend',
+  'kg.legendPresident': 'President',
+  'kg.legendArtifact': 'Artifact',
+  'kg.legendCategory': 'Category',
+  'kg.legendEra': 'Era',
+  'kg.legendEventPlace': 'Event / Place',
+  'kg.loading': 'Loading catalog…',
+  'kg.error': 'Could not load the published catalog. Check the API and try again.',
+  'kg.empty': 'No published presidents or artifacts in the catalog yet.',
+  'kg.unconfigured': 'Catalog API is not configured, so the graph has nothing to load.',
+  'kg.counts': '{presidents} presidents · {artifacts} artifacts',
+  'kg.unlinked': 'Unlinked memorabilia',
+  'kg.nodePresident': 'President',
+  'kg.nodeArtifact': 'Artifact',
+  'kg.nodeCluster': 'Cluster',
+  'kg.live': 'Published catalog',
 
   'scan.title': 'Live Scan',
   'scan.point': 'Point at memorabilia — tap an outline for details',
@@ -253,7 +269,6 @@ const tl = {
   'nav.goBack': 'Bumalik',
   'nav.home': 'Bumalik sa Home',
   'nav.browseArtifacts': 'Tumingin ng Artifacts',
-  'nav.openKnowledgeGraph': 'Buksan ang knowledge graph',
   'nav.exit': 'Lumabas',
   'home.welcome': 'Maligayang pagdating sa',
   'home.tagline':
@@ -261,19 +276,22 @@ const tl = {
   'home.intro':
     'Mula sa Presidents’ Memorabilia Gallery ng De La Salle University-Dasmariñas, inaanyayahan ka ng Sulyap Lasalyano na makilala ang mga bagay na humubog sa pamumuno ng Lasalyano—nang tahimik, maingat, at sa sarili mong bilis.',
   'home.browse': 'Mag-browse',
-  'home.knowledgeGraph': 'Tingnan ang Knowledge Graph',
+  'home.knowledgeGraph': 'Knowledge Graph',
   'home.liveScan': 'Live Scan',
   'home.placeholderTitle': 'Pamagat',
   'home.placeholderBody': 'Placeholder ng nilalaman.',
   'home.feature.browse.title': 'Mag-browse',
   'home.feature.browse.body':
     'Tuklasin ang buong koleksyon ng presidential memorabilia—sa gallery man o mula sa malayo.',
-  'home.feature.kg.title': 'Knowledge Graph',
-  'home.feature.kg.body':
-    'Sundan kung paano magkakaugnay ang mga pangulo, artifact, at milestone sa kasaysayan ng Lasallian.',
   'home.feature.scan.title': 'Live Scan',
   'home.feature.scan.body':
     'Itutok ang camera sa memorabilia at panoorin ang kuwento ng bawat bagay.',
+  'home.feature.kg.title': 'Knowledge Graph',
+  'home.feature.kg.body':
+    'Tingnan kung paano magkakaugnay ang mga pangulo at nai-publish na memorabilia sa koleksyon.',
+  'kg.title': 'Knowledge Graph',
+  'kg.hint': 'I-drag para mag-pan · Mag-scroll para mag-zoom',
+  'kg.live': 'Nai-publish na catalog',
   'home.curator': 'Curator desk',
   'onb.pointTitle': 'Itutok ang camera',
   'onb.pointBody':
@@ -308,9 +326,6 @@ const tl = {
     'Walang nai-publish na catalog record para sa {code}. Magdagdag ang curator sa Curator Desk.',
   'scan.loadingCatalogDetails': 'Nilo-load ang detalye ng catalog…',
   'app.loadingScanner': 'Nilo-load ang scanner…',
-  'kg.title': 'Knowledge Graph',
-  'kg.hint': 'I-drag para mag-pan · Mag-scroll para mag-zoom',
-  'kg.mock': 'Mock data para sa demonstrasyon',
   'scan.title': 'Live Scan',
   'scan.point': 'Itutok sa memorabilia — i-tap ang outline para sa detalye',
   'scan.tapOutline': 'I-tap para makita',
@@ -346,7 +361,6 @@ const es = {
   'nav.goBack': 'Volver',
   'nav.home': 'Volver al inicio',
   'nav.browseArtifacts': 'Explorar artefactos',
-  'nav.openKnowledgeGraph': 'Abrir grafo de conocimiento',
   'nav.exit': 'Salir',
   'home.welcome': 'Bienvenido a',
   'home.tagline':
@@ -354,17 +368,20 @@ const es = {
   'home.intro':
     'Desde la Presidents’ Memorabilia Gallery de De La Salle University-Dasmariñas, Sulyap Lasalyano te invita a conocer los objetos que forjaron el liderazgo lasallista—con calma, con cuidado y a tu propio ritmo.',
   'home.browse': 'Explorar',
-  'home.knowledgeGraph': 'Ver grafo de conocimiento',
+  'home.knowledgeGraph': 'Grafo de conocimiento',
   'home.liveScan': 'Escaneo en vivo',
   'home.feature.browse.title': 'Explorar',
   'home.feature.browse.body':
     'Tómate tu tiempo y explora a tu ritmo. Recorre la colección completa de memorabilia presidencial desde donde estés.',
-  'home.feature.kg.title': 'Grafo de conocimiento',
-  'home.feature.kg.body':
-    'Sigue los hilos de nuestra herencia compartida. Explora un mapa interactivo que conecta presidentes, artefactos e hitos de la historia lasallista.',
   'home.feature.scan.title': 'Escaneo en vivo',
   'home.feature.scan.body':
     'Entra en la historia con tu cámara. Apunta tu dispositivo a cualquier memorabilia y mira cómo cobra vida su historia.',
+  'home.feature.kg.title': 'Grafo de conocimiento',
+  'home.feature.kg.body':
+    'Mira cómo se conectan los presidentes y la memorabilia publicada en la colección.',
+  'kg.title': 'Grafo de conocimiento',
+  'kg.hint': 'Arrastra para desplazarte · Desplaza para zoom',
+  'kg.live': 'Catálogo publicado',
   'home.curator': 'Escritorio del curador',
   'onb.pointTitle': 'Apunta tu cámara',
   'onb.pointBody':
@@ -399,9 +416,6 @@ const es = {
   'app.loadingScanner': 'Cargando el escáner…',
   'home.placeholderTitle': 'Título',
   'home.placeholderBody': 'Texto de marcador de posición.',
-  'kg.title': 'Grafo de conocimiento',
-  'kg.hint': 'Arrastra para desplazarte · Desplaza para zoom',
-  'kg.mock': 'Datos de demostración',
   'scan.title': 'Escanear artefacto',
   'scan.point': 'Apunta a un artefacto',
   'scan.loadingModel': 'Cargando modelo...',
@@ -434,7 +448,6 @@ const fr = {
   'nav.goBack': 'Revenir',
   'nav.home': "Retour à l'accueil",
   'nav.browseArtifacts': 'Parcourir les artefacts',
-  'nav.openKnowledgeGraph': 'Ouvrir le graphe de connaissances',
   'nav.exit': 'Quitter',
   'home.welcome': 'Bienvenue à',
   'home.tagline':
@@ -442,17 +455,20 @@ const fr = {
   'home.intro':
     'Depuis la Presidents’ Memorabilia Gallery de De La Salle University-Dasmariñas, Sulyap Lasalyano vous invite à découvrir les objets qui ont façonné le leadership lasallien — calmement, avec soin, et à votre rythme.',
   'home.browse': 'Parcourir',
-  'home.knowledgeGraph': 'Voir le graphe de connaissances',
+  'home.knowledgeGraph': 'Graphe de connaissances',
   'home.liveScan': 'Scan en direct',
   'home.feature.browse.title': 'Parcourir',
   'home.feature.browse.body':
     'Prenez votre temps et explorez à votre rythme. Parcourez toute la collection de memorabilia présidentielle où que vous soyez.',
-  'home.feature.kg.title': 'Graphe de connaissances',
-  'home.feature.kg.body':
-    'Suivez les fils de notre patrimoine partagé. Explorez une carte interactive reliant présidents, artefacts et jalons de l’histoire lasallienne.',
   'home.feature.scan.title': 'Scan en direct',
   'home.feature.scan.body':
     'Entrez dans l’histoire avec votre caméra. Pointez votre appareil vers un objet de la galerie et voyez son histoire s’animer.',
+  'home.feature.kg.title': 'Graphe de connaissances',
+  'home.feature.kg.body':
+    'Voyez comment les présidents et la memorabilia publiée se relient dans la collection.',
+  'kg.title': 'Graphe de connaissances',
+  'kg.hint': 'Faites glisser pour déplacer · Molette pour zoomer',
+  'kg.live': 'Catalogue publié',
   'home.curator': 'Espace conservateur',
   'onb.pointTitle': 'Pointez votre caméra',
   'onb.pointBody':
@@ -487,9 +503,6 @@ const fr = {
   'app.loadingScanner': 'Chargement du scanner…',
   'home.placeholderTitle': 'Titre',
   'home.placeholderBody': 'Texte d’espace réservé.',
-  'kg.title': 'Graphe de connaissances',
-  'kg.hint': 'Faites glisser pour déplacer · Molette pour zoomer',
-  'kg.mock': 'Données de démonstration',
   'scan.title': 'Scanner un artefact',
   'scan.point': 'Pointez un artefact',
   'scan.loadingModel': 'Chargement du modèle...',
@@ -522,7 +535,6 @@ const zh = {
   'nav.goBack': '返回',
   'nav.home': '返回首页',
   'nav.browseArtifacts': '浏览藏品',
-  'nav.openKnowledgeGraph': '打开知识图谱',
   'nav.exit': '退出',
   'home.welcome': '欢迎来到',
   'home.tagline':
@@ -530,17 +542,20 @@ const zh = {
   'home.intro':
     '来自德拉萨大学达斯马里纳斯校区校长纪念馆，Sulyap Lasalyano 邀请你认识塑造拉萨领导力的物件——安静、细致，并按你自己的节奏。',
   'home.browse': '浏览',
-  'home.knowledgeGraph': '查看知识图谱',
+  'home.knowledgeGraph': '知识图谱',
   'home.liveScan': '实时扫描',
   'home.feature.browse.title': '浏览',
   'home.feature.browse.body':
     '按自己的节奏慢慢探索。无论你在现场还是远方，都可以浏览完整的校长纪念藏品。',
-  'home.feature.kg.title': '知识图谱',
-  'home.feature.kg.body':
-    '追踪我们共同文化遗产的脉络。探索连接校长、藏品与里程碑的互动地图。',
   'home.feature.scan.title': '实时扫描',
   'home.feature.scan.body':
     '用相机走进历史。对准展厅中的任何纪念物，观看它的故事如何呈现。',
+  'home.feature.kg.title': '知识图谱',
+  'home.feature.kg.body':
+    '查看校长与已发布藏品在馆藏中如何相连。',
+  'kg.title': '知识图谱',
+  'kg.hint': '拖动平移 · 滚轮缩放',
+  'kg.live': '已发布目录',
   'home.curator': '策展人工作台',
   'onb.pointTitle': '对准相机',
   'onb.pointBody': '将相机对准展厅中的任何藏品。Sulyap Lasalyano 会自动识别。',
@@ -574,9 +589,6 @@ const zh = {
   'app.loadingScanner': '正在加载扫描器…',
   'home.placeholderTitle': '标题',
   'home.placeholderBody': '正文占位文字。',
-  'kg.title': '知识图谱',
-  'kg.hint': '拖动平移 · 滚轮缩放',
-  'kg.mock': '演示用模拟数据',
   'scan.title': '扫描藏品',
   'scan.point': '对准一件藏品',
   'scan.loadingModel': '正在加载模型...',
@@ -609,7 +621,6 @@ const ko = {
   'nav.goBack': '뒤로 가기',
   'nav.home': '홈으로',
   'nav.browseArtifacts': '유물 둘러보기',
-  'nav.openKnowledgeGraph': '지식 그래프 열기',
   'nav.exit': '종료',
   'home.welcome': '환영합니다',
   'home.tagline':
@@ -617,17 +628,20 @@ const ko = {
   'home.intro':
     '드라살대학 다스마리냐스 캠퍼스 총장 기념관에서, Sulyap Lasalyano는 라살리안 리더십을 빚어낸 유물들을—조용히, 세심하게, 당신만의 속도로—만나 보도록 초대합니다.',
   'home.browse': '둘러보기',
-  'home.knowledgeGraph': '지식 그래프 보기',
+  'home.knowledgeGraph': '지식 그래프',
   'home.liveScan': '실시간 스캔',
   'home.feature.browse.title': '둘러보기',
   'home.feature.browse.body':
     '자신의 속도로 천천히 탐색하세요. 어디에 있든 총장 기념품 전체 컬렉션을 둘러볼 수 있습니다.',
-  'home.feature.kg.title': '지식 그래프',
-  'home.feature.kg.body':
-    '공유된 유산의 연결을 따라가 보세요. 총장, 유물, 이정표를 잇는 인터랙티브 지도를 탐색합니다.',
   'home.feature.scan.title': '실시간 스캔',
   'home.feature.scan.body':
     '카메라로 역사에 들어가 보세요. 갤러리의 기념품에 기기를 비추면 이야기가 살아납니다.',
+  'home.feature.kg.title': '지식 그래프',
+  'home.feature.kg.body':
+    '총장과 공개된 기념품이 컬렉션에서 어떻게 연결되는지 봅니다.',
+  'kg.title': '지식 그래프',
+  'kg.hint': '드래그하여 이동 · 스크롤하여 확대',
+  'kg.live': '공개 카탈로그',
   'home.curator': '큐레이터 데스크',
   'onb.pointTitle': '카메라를 향하세요',
   'onb.pointBody': '갤러리의 유물에 카메라를 맞추세요. Sulyap Lasalyano가 자동으로 인식합니다.',
@@ -661,9 +675,6 @@ const ko = {
   'app.loadingScanner': '스캐너 불러오는 중…',
   'home.placeholderTitle': '제목',
   'home.placeholderBody': '본문 자리 표시자.',
-  'kg.title': '지식 그래프',
-  'kg.hint': '드래그하여 이동 · 스크롤하여 확대',
-  'kg.mock': '시연용 목업 데이터',
   'scan.title': '유물 스캔',
   'scan.point': '유물에 맞추세요',
   'scan.loadingModel': '모델 로딩 중...',
@@ -696,7 +707,6 @@ const ja = {
   'nav.goBack': '戻る',
   'nav.home': 'ホームへ戻る',
   'nav.browseArtifacts': '所蔵品を見る',
-  'nav.openKnowledgeGraph': 'ナレッジグラフを開く',
   'nav.exit': '終了',
   'home.welcome': 'ようこそ',
   'home.tagline':
@@ -704,17 +714,20 @@ const ja = {
   'home.intro':
     'デラサール大学ダスマリニャス校のPresidents’ Memorabilia Galleryより、Sulyap Lasalyanoはラサリアンのリーダーシップを形づくった品々を——静かに、丁寧に、あなた自身のペースで——出会うようご案内します。',
   'home.browse': '閲覧',
-  'home.knowledgeGraph': 'ナレッジグラフを見る',
+  'home.knowledgeGraph': 'ナレッジグラフ',
   'home.liveScan': 'ライブスキャン',
   'home.feature.browse.title': '閲覧',
   'home.feature.browse.body':
     '自分のペースでゆっくり探索しましょう。どこからでも学長記念品コレクションを閲覧できます。',
-  'home.feature.kg.title': 'ナレッジグラフ',
-  'home.feature.kg.body':
-    '共有された遺産のつながりをたどりましょう。学長・所蔵品・里程標をつなぐインタラクティブな地図を探索します。',
   'home.feature.scan.title': 'ライブスキャン',
   'home.feature.scan.body':
     'カメラで歴史に踏み込みましょう。ギャラリーの記念品に端末を向けると、物語が生き生きと現れます。',
+  'home.feature.kg.title': 'ナレッジグラフ',
+  'home.feature.kg.body':
+    '学長と公開された記念品がコレクションの中でどうつながるかを見ます。',
+  'kg.title': 'ナレッジグラフ',
+  'kg.hint': 'ドラッグで移動 · スクロールで拡大',
+  'kg.live': '公開カタログ',
   'home.curator': 'キュレーターデスク',
   'onb.pointTitle': 'カメラを向ける',
   'onb.pointBody': 'ギャラリーの所蔵品にカメラを向けてください。Sulyap Lasalyano が自動で認識します。',
@@ -748,9 +761,6 @@ const ja = {
   'app.loadingScanner': 'スキャナーを読み込み中…',
   'home.placeholderTitle': 'タイトル',
   'home.placeholderBody': '本文プレースホルダー。',
-  'kg.title': 'ナレッジグラフ',
-  'kg.hint': 'ドラッグで移動 · スクロールで拡大',
-  'kg.mock': 'デモ用モックデータ',
   'scan.title': '所蔵品をスキャン',
   'scan.point': '所蔵品に向ける',
   'scan.loadingModel': 'モデルを読み込み中...',

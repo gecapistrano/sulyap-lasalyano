@@ -381,12 +381,53 @@
       cb();
     }
     var root = document.documentElement;
-    if (root.classList.contains('page-tx-from') && !root.classList.contains('page-tx-in')) {
+    var waiting = root.classList.contains('pres-booting') ||
+      (root.classList.contains('page-tx-from') && !root.classList.contains('page-tx-in'));
+    if (waiting) {
       document.addEventListener('sl-page-tx-in', run);
-      setTimeout(run, 2200);
+      setTimeout(run, 9000);
       return;
     }
     run();
+  }
+
+  var bootAt = (window.performance && performance.now) ? performance.now() : Date.now();
+  var bootRevealed = false;
+
+  function waitForImage(img, ms) {
+    return new Promise(function (resolve) {
+      var settled = false;
+      function done() {
+        if (settled) return;
+        settled = true;
+        resolve();
+      }
+      if (!img || !img.getAttribute('src')) {
+        done();
+        return;
+      }
+      if (img.complete && img.naturalWidth) {
+        done();
+        return;
+      }
+      img.addEventListener('load', done, { once: true });
+      img.addEventListener('error', done, { once: true });
+      setTimeout(done, ms || 2200);
+    });
+  }
+
+  function revealPresBoot() {
+    if (bootRevealed) return;
+    bootRevealed = true;
+    var now = (window.performance && performance.now) ? performance.now() : Date.now();
+    var wait = prefersReducedMotion() ? 0 : Math.max(0, 760 - (now - bootAt));
+    window.setTimeout(function () {
+      window.__presReady = true;
+      if (typeof window.slRevealPage === 'function') window.slRevealPage();
+      else {
+        try { document.dispatchEvent(new CustomEvent('sl-pres-ready')); } catch (e) {}
+      }
+    }, wait);
   }
 
   function playProfileEnter() {
@@ -404,6 +445,7 @@
     if (missing) missing.hidden = false;
     if (profile) profile.hidden = true;
     document.title = t('pres.missing', 'President not found.') + ' — Sulyap Lasalyano';
+    revealPresBoot();
   }
 
   function setText(id, value, hideEmpty) {
@@ -463,12 +505,15 @@
     }
 
     buildMasonry(id, pres, artifacts);
+    waitForImage(photo, 2200).then(function () {
+      revealPresBoot();
+    });
     afterPageTx(function () {
       if (prefersReducedMotion()) {
-        var profile = document.getElementById('presProfile');
-        if (profile) {
-          profile.classList.remove('is-pending');
-          profile.classList.add('is-in');
+        var ready = document.getElementById('presProfile');
+        if (ready) {
+          ready.classList.remove('is-pending');
+          ready.classList.add('is-in');
         }
         return;
       }
@@ -571,6 +616,11 @@
     }
 
     var id = resolveId();
+    window.setTimeout(function () {
+      if (bootRevealed) return;
+      revealPresBoot();
+    }, 12000);
+
     if (!id) {
       showMissing();
       return;

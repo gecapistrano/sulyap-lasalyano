@@ -270,16 +270,18 @@ export default function HomePage({
           <h1 className="hp-title">{t(language, 'home.brand')}</h1>
           <p className="hp-tagline">{t(language, 'home.tagline')}</p>
           <div className="hp-cta">
-            {/* Hierarchy: Live Scan (core) → Knowledge Graph (unique) → Browse (habit / quieter) */}
+            {/* Hierarchy: Live Scan (core) → Browse (collection) → Knowledge Graph */}
             <button type="button" className="aca-btn-primary" onClick={onStartCamera}>
               {t(language, 'home.liveScan')}
             </button>
-            <button type="button" className="aca-btn-secondary" onClick={onOpenKnowledgeGraph}>
-              {t(language, 'home.knowledgeGraph')}
-            </button>
-            <button type="button" className="aca-btn-ghost" onClick={onBrowse}>
+            <button type="button" className="aca-btn-secondary" onClick={onBrowse}>
               {t(language, 'home.browse')}
             </button>
+            {typeof onOpenKnowledgeGraph === 'function' ? (
+              <button type="button" className="aca-btn-ghost" onClick={onOpenKnowledgeGraph}>
+                {t(language, 'home.knowledgeGraph')}
+              </button>
+            ) : null}
           </div>
         </div>
       </section>
@@ -303,11 +305,13 @@ export default function HomePage({
 
         <article className="aca-card aca-flourish hp-volume">
           <p className="aca-volume">{t(language, 'home.volume2')}</p>
-          <h2 className="hp-volume-title">{t(language, 'home.placeholderTitle')}</h2>
-          <p className="hp-volume-body">{t(language, 'home.placeholderBody')}</p>
-          <button type="button" className="aca-btn-ghost" onClick={onOpenKnowledgeGraph}>
-            {t(language, 'home.knowledgeGraph')}
-          </button>
+          <h2 className="hp-volume-title">{t(language, 'home.feature.kg.title')}</h2>
+          <p className="hp-volume-body">{t(language, 'home.feature.kg.body')}</p>
+          {typeof onOpenKnowledgeGraph === 'function' ? (
+            <button type="button" className="aca-btn-ghost" onClick={onOpenKnowledgeGraph}>
+              {t(language, 'home.knowledgeGraph')}
+            </button>
+          ) : null}
         </article>
 
         <div className="aca-ornate-divider" aria-hidden="true" />

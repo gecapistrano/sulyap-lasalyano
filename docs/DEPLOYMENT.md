@@ -31,10 +31,10 @@ Live stack:
    - `ADMIN_SEED_PASSWORD` = strong password (before first seed)
    - Optional: `LLM_API_KEY`, `LLM_MODEL`, `LLM_API_BASE`
    - Catalog photos: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_STORAGE_BUCKET=catalog-photos`
-   - Visitor 3D: `CATALOG_OMIT_STORAGE_MODELS=true` (also forced in production). After compressed GLBs are on R2/Pages, set `PUBLIC_MODEL_BASE_URL=https://<models-host>`
+   - Visitor 3D: `CATALOG_OMIT_STORAGE_MODELS=true` (forced in production). GLBs are on the Vercel hall host, not Storage. Do not re-upload models to the `catalog-photos` bucket.
 3. Confirm `GET https://<api-host>/health` → `{"status":"ok"}`.
 
-**Uploads:** Render ephemeral disk loses files on redeploy. Catalog **photos** belong in **Supabase Storage** (bucket `catalog-photos`). **Do not serve visitor GLBs from that bucket** — they are 16–25MB photogrammetry files and will exhaust Cached Egress. Compress laptop copies and host them on Cloudflare R2 or Pages, then set `PUBLIC_MODEL_BASE_URL`. The API stores public URLs on `artifacts.image_url` / `presidents.photo_url` / `artifacts.model_url`. Curator photo uploads still go to Storage when `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` are set. See [§5 Catalog sync](#5-catalog-sync-local-sqlite--supabase) and [§6 Catalog media](#6-catalog-media-in-supabase-storage). The seed tarball `backend/data/curator_photos.tar.gz` remains a git backup.
+**Uploads:** Render ephemeral disk loses files on redeploy. Catalog **photos** belong in **Supabase Storage** (bucket `catalog-photos`). **Do not serve visitor GLBs from that bucket** — they burn Cached Egress even on a cache hit, and purging does not refund usage. Hall files in `hall/models/catalog/` are the visitor 3D. Curator photo uploads still go to Storage when `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` are set. A GitHub Action pings `GET /health` every 10 minutes so the free Render service does not sleep. See [§5 Catalog sync](#5-catalog-sync-local-sqlite--supabase) and [§6 Catalog media](#6-catalog-media-in-supabase-storage).
 
 ## 3. Vercel
 
@@ -44,15 +44,9 @@ Live stack:
 2. Framework: Other / static (`vercel.json` in that folder).
 3. Confirm Scan, Knowledge Graph, and president browse load. Catalog: local `serve.mjs` proxies `/catalog`; production `hall/vercel.json` rewrites `/catalog` to `https://sulyap-lasalyano-api.onrender.com` (same-origin, like local). `?api=` still overrides.
 
-### Curator Desk (staff)
+### Curator Desk (staff, not a second visitor site)
 
-1. Separate Vercel project, Root Directory = `frontend`.
-2. Framework: Next.js.
-3. Env:
-   - `NEXT_PUBLIC_API_BASE_URL=https://<api-host>`
-   - `NEXT_PUBLIC_RECOGNITION_MODE=local`
-   - Optional: `NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co` (storage origin for `next/image`; never the service role key)
-4. Open `/curator` and verify login. Do not treat this host as the visitor app.
+Do **not** create another Vercel project for `frontend/`. One project, Root Directory `hall`. Staff use local `npm run dev:curator` or the hall `/curator` bridge. Visitor 3D stays in `hall/models/catalog` (never Supabase Storage GLBs).
 
 ## 4. Live verify checklist (end-to-end)
 
@@ -91,7 +85,7 @@ Run against production (or staging with the same cookie/CORS shape).
 
 ### Static site (`hall/`)
 
-Separate Vercel project with Root Directory `hall`. Local: `node hall/serve.mjs` (correct `.mjs` MIME). Ensure `models/model.onnx`, `models/labels.txt`, and `vendor/onnxruntime-web/*` are deployed (build runs `scripts/check-scan-assets.mjs`). `hall/vercel.json` rewrites `/catalog` to the Render API so Scan/KG need no `?api=` query. After this folder rename, set the Vercel project's **Root Directory** to `hall` (was `sulyap-lasalyano`). Add the Vercel origin to Render `FRONTEND_ORIGINS` if the hall calls Render directly (Curator Desk).
+One Vercel project, Root Directory `hall`. Preview deploys are skipped (rebuild noise). Local: `node hall/serve.mjs` (correct `.mjs` MIME). Ensure `models/model.onnx`, `models/labels.txt`, and `vendor/onnxruntime-web/*` are deployed (build runs `scripts/check-scan-assets.mjs`). `hall/vercel.json` rewrites `/catalog` to the Render API so Scan/KG need no `?api=` query.
 
 ### Import / ML (ops)
 

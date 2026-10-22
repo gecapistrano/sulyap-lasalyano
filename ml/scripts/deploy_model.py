@@ -1,5 +1,5 @@
 """
-Copy trained detection ONNX + class labels into frontend/public/models/
+Copy trained detection ONNX + class labels into hall/models/
 so Live Scan picks them up on the next refresh.
 """
 from __future__ import annotations
@@ -11,12 +11,12 @@ from pathlib import Path
 import yaml
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-FRONTEND_MODELS = PROJECT_ROOT / "frontend" / "public" / "models"
+SCAN_MODELS = PROJECT_ROOT / "hall" / "models"
 WEIGHTS_CLASSES = PROJECT_ROOT / "ml" / "weights" / "classes.txt"
 
 
 def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description="Deploy ONNX + labels to the frontend.")
+    p = argparse.ArgumentParser(description="Deploy ONNX + labels to the Live Scan site.")
     p.add_argument("--onnx", type=Path, required=True, help="Path to model.onnx")
     p.add_argument(
         "--data",
@@ -56,11 +56,11 @@ def main() -> None:
     if not onnx_src.is_file():
         raise FileNotFoundError(onnx_src)
 
-    FRONTEND_MODELS.mkdir(parents=True, exist_ok=True)
-    onnx_dest = FRONTEND_MODELS / "model.onnx"
+    SCAN_MODELS.mkdir(parents=True, exist_ok=True)
+    onnx_dest = SCAN_MODELS / "model.onnx"
     shutil.copy2(onnx_src, onnx_dest)
 
-    labels_dest = FRONTEND_MODELS / "labels.txt"
+    labels_dest = SCAN_MODELS / "labels.txt"
     if args.labels and args.labels.is_file():
         labels = [
             line.strip()
@@ -72,14 +72,14 @@ def main() -> None:
     else:
         labels = [
             line.strip()
-            for line in (FRONTEND_MODELS / "labels.txt").read_text(encoding="utf-8").splitlines()
+            for line in (SCAN_MODELS / "labels.txt").read_text(encoding="utf-8").splitlines()
             if line.strip()
         ]
 
     write_labels(labels, labels_dest)
     print(f"Deployed ONNX → {onnx_dest} ({onnx_dest.stat().st_size} bytes)")
     print(f"Deployed labels → {labels_dest} ({len(labels)} classes)")
-    print("Restart / hard-refresh the frontend so Live Scan loads the new weights.")
+    print("Hard-refresh Live Scan so it loads the new weights.")
 
 
 if __name__ == "__main__":

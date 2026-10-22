@@ -1,5 +1,5 @@
 """
-End-to-end: import (optional) → split → train → export ONNX → deploy to frontend.
+End-to-end: import (optional) → split → train → export ONNX → deploy to Live Scan.
 
 Examples:
   # Dataset already at ml/YoloV8_Annotated
@@ -145,11 +145,11 @@ def main() -> None:
         if data_yaml.is_file():
             deploy_cmd.extend(["--data", str(data_yaml)])
         else:
-            labels_fallback = PROJECT_ROOT / "frontend" / "public" / "models" / "labels.txt"
+            labels_fallback = PROJECT_ROOT / "hall" / "models" / "labels.txt"
             deploy_cmd.extend(["--labels", str(labels_fallback)])
         run(deploy_cmd)
 
-    print("\nDone. Live Scan model updated under frontend/public/models/")
+    print("\nDone. Live Scan model updated under hall/models/")
 
 
 if __name__ == "__main__":

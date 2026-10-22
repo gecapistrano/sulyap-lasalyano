@@ -3,6 +3,7 @@ Pydantic request/response models. `StrictSchema` forbids unknown fields on every
 """
 from datetime import datetime
 from enum import Enum
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, HttpUrl
 
@@ -197,3 +198,26 @@ class RecognitionResponse(StrictSchema):
     top_k: int = Field(ge=1, le=20)
     min_score: float = Field(ge=0.0, le=1.0)
     candidates: list[RecognitionCandidate]
+
+
+class CatalogSyncRequest(StrictSchema):
+    direction: Literal["pull", "push", "both"] = "both"
+    dry_run: bool = False
+    apply_deletes: bool = False
+    restore: str | None = Field(default=None, max_length=32)
+    target: Literal["local", "remote", "both"] = "both"
+
+
+class CatalogSyncOut(StrictSchema):
+    ok: bool
+    direction: str
+    dry_run: bool
+    copied_to_local: int
+    copied_to_remote: int
+    conflicts_prefer_remote: int
+    deletes_local: int
+    deletes_remote: int
+    skipped: int
+    snapshot_ids: list[str] = Field(default_factory=list)
+    discarded_count: int = 0
+    notes: list[str] = Field(default_factory=list)

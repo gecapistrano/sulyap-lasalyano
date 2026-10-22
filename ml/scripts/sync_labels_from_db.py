@@ -1,7 +1,7 @@
 """
 Export published catalog id_codes for docs / annotation guides.
 
-IMPORTANT: Do NOT overwrite frontend/public/models/labels.txt from the catalog.
+IMPORTANT: Do NOT overwrite hall/models/labels.txt from the catalog.
 Live Scan labels must match the trained ONNX class order (see ml/weights/classes.txt
 and ml/scripts/deploy_model.py). Catalog-sorted codes break index→class mapping.
 
@@ -23,8 +23,8 @@ from app.models import Artifact  # noqa: E402
 from app.services.id_codes import normalize_id_code  # noqa: E402
 
 # Catalog export only — never Live Scan training labels.
-OUT = ROOT / "frontend" / "public" / "models" / "catalog_id_codes.txt"
-TRAINING_LABELS = ROOT / "frontend" / "public" / "models" / "labels.txt"
+OUT = ROOT / "ml" / "weights" / "catalog_id_codes.txt"
+TRAINING_LABELS = ROOT / "hall" / "models" / "labels.txt"
 WEIGHTS_CLASSES = ROOT / "ml" / "weights" / "classes.txt"
 
 

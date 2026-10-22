@@ -12,6 +12,7 @@ const nextConfig = {
     remotePatterns: [
       { protocol: 'https', hostname: '**' },
       { protocol: 'http', hostname: 'localhost' },
+      { protocol: 'http', hostname: '127.0.0.1' },
     ],
   },
   // onnxruntime-web / MediaPipe pull large assets; keep warnings quiet in CI.

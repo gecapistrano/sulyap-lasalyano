@@ -32,6 +32,10 @@ REQUIRED_TEXT_MARKERS: dict[Path, list[str]] = {
         "Depends(verify_csrf_token)",
         "ensure_resource_owner_or_admin",
     ],
+    ROOT / "backend" / "app" / "routers" / "admin.py": [
+        "Depends(verify_csrf_token)",
+        "require_roles(UserRole.admin)",
+    ],
     ROOT / "backend" / "app" / "routers" / "auth.py": [
         "httponly\": True",
         "key=\"csrf_token\"",

@@ -225,6 +225,8 @@ export function buildCatalogGraph(presidentsInput, artifactsInput, options = {})
       termStart,
       termEnd,
       photo: presidentPhoto(row, slug, apiBase),
+      biography: text(row.biography),
+      service: text(row.service),
       catalogId: row.id ?? null,
     }
     nodes.push(node)

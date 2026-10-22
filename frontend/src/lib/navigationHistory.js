@@ -9,7 +9,6 @@
  *   relatedArtifactsTag: string,
  *   artifactDetailReturn: string | null,
  *   relatedArtifactsReturn: string,
- *   kgReturnScreen: string,
  *   browseReturnScreen: string,
  * }} NavSnapshot
  */
@@ -22,7 +21,6 @@ export function emptySnapshot(screen = 'home') {
     relatedArtifactsTag: '',
     artifactDetailReturn: null,
     relatedArtifactsReturn: 'artifact-detail',
-    kgReturnScreen: 'home',
     browseReturnScreen: 'home',
     idCode: '',
   }
@@ -44,7 +42,6 @@ export function normalizeSnapshot(raw) {
       typeof raw.relatedArtifactsReturn === 'string' && raw.relatedArtifactsReturn
         ? raw.relatedArtifactsReturn
         : 'artifact-detail',
-    kgReturnScreen: typeof raw.kgReturnScreen === 'string' && raw.kgReturnScreen ? raw.kgReturnScreen : 'home',
     browseReturnScreen:
       typeof raw.browseReturnScreen === 'string' && raw.browseReturnScreen ? raw.browseReturnScreen : 'home',
     idCode: typeof raw.idCode === 'string' ? raw.idCode : '',
@@ -81,6 +78,7 @@ export function mergeSnapshot(prev, nextScreen, patch = {}) {
     case 'home':
     case 'onboarding':
     case 'camera':
+    case 'knowledge-graph':
       return {
         ...emptySnapshot(nextScreen),
         browseReturnScreen: patch.browseReturnScreen ?? p.browseReturnScreen ?? 'home',
@@ -108,7 +106,6 @@ export function mergeSnapshot(prev, nextScreen, patch = {}) {
         presidentId: patch.presidentId !== undefined ? patch.presidentId : p.presidentId,
         relatedArtifactsTag: patch.relatedArtifactsTag ?? p.relatedArtifactsTag ?? '',
         relatedArtifactsReturn: patch.relatedArtifactsReturn ?? p.relatedArtifactsReturn ?? 'artifact-detail',
-        kgReturnScreen: patch.kgReturnScreen ?? p.kgReturnScreen ?? 'home',
         browseReturnScreen: patch.browseReturnScreen ?? p.browseReturnScreen ?? 'home',
         idCode: patch.idCode != null ? String(patch.idCode) : p.idCode || '',
       }
@@ -123,15 +120,7 @@ export function mergeSnapshot(prev, nextScreen, patch = {}) {
         artifactId: patch.artifactId !== undefined ? patch.artifactId : p.artifactId,
         presidentId: patch.presidentId !== undefined ? patch.presidentId : p.presidentId,
         artifactDetailReturn: patch.artifactDetailReturn ?? p.artifactDetailReturn,
-        kgReturnScreen: patch.kgReturnScreen ?? p.kgReturnScreen ?? 'home',
         browseReturnScreen: patch.browseReturnScreen ?? p.browseReturnScreen ?? 'home',
-      }
-
-    case 'knowledge-graph':
-      return {
-        ...p,
-        screen: 'knowledge-graph',
-        kgReturnScreen: patch.kgReturnScreen ?? p.kgReturnScreen ?? 'home',
       }
 
     case 'curator':

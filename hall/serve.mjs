@@ -9,12 +9,14 @@
 import http from 'node:http'
 import fs from 'node:fs'
 import path from 'node:path'
+import { Readable } from 'node:stream'
+import { pipeline } from 'node:stream/promises'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname)
 const PORT = Number(process.argv[2]) || 8765
-/** Local-only FastAPI proxy so KG/Scan can fetch `/catalog` same-origin (avoids CORS). */
+/** Local-only FastAPI proxy so KG/Scan can fetch `/catalog` and `/media` same-origin. */
 const API_PROXY = process.env.SULYAP_API_PROXY || 'http://127.0.0.1:8000'
 
 const TYPES = {
@@ -35,6 +37,7 @@ const TYPES = {
   '.webmanifest': 'application/manifest+json',
   '.woff2': 'font/woff2',
   '.map': 'application/json',
+  '.glb': 'model/gltf-binary',
 }
 
 function safeJoin(root, reqPath) {
@@ -75,31 +78,47 @@ function catalogProxyOrigin() {
   }
 }
 
-function isCatalogProxyPath(urlPath) {
-  return urlPath === '/catalog' || urlPath.startsWith('/catalog/')
+function isApiProxyPath(urlPath) {
+  return (
+    urlPath === '/catalog' ||
+    urlPath.startsWith('/catalog/') ||
+    urlPath === '/media' ||
+    urlPath.startsWith('/media/')
+  )
 }
 
-async function proxyCatalog(req, res, urlPath, query) {
+async function proxyApi(req, res, urlPath, query) {
   const origin = catalogProxyOrigin()
   if (!origin) return send(res, 502, 'Catalog proxy unavailable')
   const target = new URL(urlPath, origin)
   if (query) target.search = query
+  const ac = new AbortController()
+  const onAbort = () => ac.abort()
+  req.on('aborted', onAbort)
   try {
     const upstream = await fetch(target, {
       method: req.method || 'GET',
       headers: { Accept: req.headers.accept || '*/*' },
+      signal: ac.signal,
     })
-    const buf = Buffer.from(await upstream.arrayBuffer())
     if (res.writableEnded || res.destroyed) return
-    const type = upstream.headers.get('content-type') || 'application/octet-stream'
-    res.writeHead(upstream.status, {
-      'Content-Type': type,
-      'Content-Length': buf.length,
+    const headers = {
+      'Content-Type': upstream.headers.get('content-type') || 'application/octet-stream',
       'Cache-Control': 'no-store',
-    })
-    res.end(buf)
+    }
+    const len = upstream.headers.get('content-length')
+    if (len) headers['Content-Length'] = len
+    res.writeHead(upstream.status, headers)
+    if ((req.method || 'GET').toUpperCase() === 'HEAD' || !upstream.body) {
+      res.end()
+      return
+    }
+    await pipeline(Readable.fromWeb(upstream.body), res)
   } catch {
-    send(res, 502, 'Catalog proxy unavailable')
+    if (!res.headersSent) send(res, 502, 'Catalog proxy unavailable')
+    else if (!res.writableEnded) res.destroy()
+  } finally {
+    req.off('aborted', onAbort)
   }
 }
 
@@ -116,8 +135,8 @@ const server = http.createServer((req, res) => {
   let urlPath = rewriteUrlPath((req.url || '/').split('?')[0])
   const query = (req.url || '').includes('?') ? (req.url || '').split('?').slice(1).join('?') : ''
 
-  if (isCatalogProxyPath(urlPath)) {
-    void proxyCatalog(req, res, urlPath, query)
+  if (isApiProxyPath(urlPath)) {
+    void proxyApi(req, res, urlPath, query)
     return
   }
 
@@ -180,4 +199,5 @@ server.listen(PORT, '127.0.0.1', () => {
   console.log(`Sulyap static site: http://127.0.0.1:${PORT}/`)
   console.log(`Live Scan:          http://127.0.0.1:${PORT}/scan`)
   console.log(`Curator desk:       http://127.0.0.1:${PORT}/curator  (direct URL only)`)
+  console.log(`API proxy:          /catalog and /media → ${API_PROXY}`)
 })

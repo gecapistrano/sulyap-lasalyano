@@ -1,7 +1,7 @@
 # Supabase database setup (Sulyap Lasalyano)
 
 Your FastAPI backend talks to **Postgres**. Supabase hosts that Postgres.
-Visitors still use the React app → API → database (not the Supabase anon key from the browser).
+Visitors use the museum hall (`hall/`) → API → database (not the Supabase anon key from the browser). Curator Desk is the Next.js app.
 
 ---
 
@@ -96,7 +96,16 @@ In Supabase **Table Editor**, you should see the same presidents and artifacts.
 ## Do not commit
 
 - `backend/.env` (contains the DB password)
-- Supabase service role / anon keys (this app does not need the anon key for the catalog)
+- Supabase service role / anon keys (the browser never uses them; the catalog media upload scripts need `SUPABASE_SERVICE_ROLE_KEY` in `backend/.env` only)
+
+### Catalog photos and 3D models (Storage)
+
+Postgres holds **URLs**, not image or GLB bytes (never BYTEA). See `docs/DEPLOYMENT.md` §6.
+
+1. Storage → New bucket → `catalog-photos` → **public**.
+2. Set `SUPABASE_URL=https://<project-ref>.supabase.co` (Project Settings → API → Project URL, **not** the dashboard link), `SUPABASE_SERVICE_ROLE_KEY` (the long `service_role` JWT), and `SUPABASE_STORAGE_BUCKET=catalog-photos` in `backend/.env` (and on Render).
+3. `python scripts/upload_catalog_photos.py --dry-run` then `python scripts/upload_catalog_photos.py`.
+4. `python scripts/upload_catalog_models.py --dry-run` then `python scripts/upload_catalog_models.py`.
 
 ---
 

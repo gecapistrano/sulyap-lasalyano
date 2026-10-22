@@ -80,10 +80,20 @@ def normalize_database_url(url: str) -> str:
     return normalized
 
 
-def _sqlite_add_missing_columns(engine) -> None:
-    """Add catalog columns on existing local SQLite files (create_all does not ALTER)."""
-    if not settings.database_url.startswith("sqlite"):
-        return
+def make_engine(database_url: str):
+    """Create a SQLAlchemy engine for SQLite or Postgres/Supabase from any URL."""
+    normalized = normalize_database_url(database_url)
+    is_sqlite = normalized.startswith("sqlite")
+    connect_args: dict = {"check_same_thread": False} if is_sqlite else {"connect_timeout": 15}
+    return create_engine(
+        normalized,
+        connect_args=connect_args,
+        pool_pre_ping=not is_sqlite,
+    )
+
+
+def add_missing_sqlite_columns(engine) -> None:
+    """Add catalog columns on existing SQLite files (create_all does not ALTER)."""
     extras = {
         "id_code": "VARCHAR(32) DEFAULT '' NOT NULL",
         "owner_name": "VARCHAR(200) DEFAULT '' NOT NULL",
@@ -127,11 +137,15 @@ def _sqlite_add_missing_columns(engine) -> None:
         conn.commit()
 
 
-def _postgres_add_missing_columns(engine) -> None:
-    """Add newer catalog columns on existing Supabase/Postgres databases."""
-    url = settings.database_url.lower()
-    if not (url.startswith("postgres") or "postgresql" in url):
+def _sqlite_add_missing_columns(engine) -> None:
+    """Add catalog columns on the process DATABASE_URL when it is SQLite."""
+    if not settings.database_url.startswith("sqlite"):
         return
+    add_missing_sqlite_columns(engine)
+
+
+def add_missing_postgres_columns(engine) -> None:
+    """Add newer catalog columns on an existing Supabase/Postgres database."""
     statements = [
         """
         DO $$
@@ -180,6 +194,14 @@ def _postgres_add_missing_columns(engine) -> None:
         for stmt in statements:
             conn.exec_driver_sql(stmt)
         conn.commit()
+
+
+def _postgres_add_missing_columns(engine) -> None:
+    """Add newer catalog columns on the process DATABASE_URL when it is Postgres."""
+    url = settings.database_url.lower()
+    if not (url.startswith("postgres") or "postgresql" in url):
+        return
+    add_missing_postgres_columns(engine)
 
 
 _database_url = normalize_database_url(settings.database_url)

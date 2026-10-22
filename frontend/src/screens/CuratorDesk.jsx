@@ -11,12 +11,14 @@ import {
   deletePresident,
   getMe,
   isBackendConfigured,
+  catalogImageSrc,
   listArtifacts,
   listPresidentsAdmin,
   llmApply,
   llmSuggest,
   login,
   logout,
+  presidentPortraitSrc,
   updateArtifact,
   updatePresident,
   uploadArtifactModel,
@@ -107,23 +109,21 @@ function artifactToForm(row, presidents = []) {
   }
 }
 
-/** Auth-gated curator photo (cookies required; plain <img> often fails cross-port). */
-function CuratorPhoto({ artifactId, imageUrl, language = 'English' }) {
-  const [src, setSrc] = useState('')
-  const [missing, setMissing] = useState(false)
+/** Catalog photo for published rows; cookie fetch only when that URL is missing. */
+function CuratorPhoto({ artifactId, idCode, imageUrl, language = 'English' }) {
+  const publicSrc = catalogImageSrc(idCode, imageUrl)
+  const [src, setSrc] = useState(publicSrc || '')
+  const [missing, setMissing] = useState(!publicSrc && !artifactId)
 
   useEffect(() => {
     let cancelled = false
     let objectUrl = ''
-    setSrc('')
+    const nextPublic = catalogImageSrc(idCode, imageUrl)
+    setSrc(nextPublic || '')
     setMissing(false)
-    const url = typeof imageUrl === 'string' ? imageUrl.trim() : ''
-    if (!url || !artifactId) {
+    if (nextPublic) return undefined
+    if (!artifactId || !env.apiConfigured) {
       setMissing(true)
-      return undefined
-    }
-    if (url.startsWith('http') && !url.includes('/curator-media/') && !url.includes('/artifacts/')) {
-      setSrc(url)
       return undefined
     }
     const endpoint = `${env.apiBaseUrl}/artifacts/${artifactId}/photo`
@@ -144,7 +144,7 @@ function CuratorPhoto({ artifactId, imageUrl, language = 'English' }) {
       cancelled = true
       if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
-  }, [artifactId, imageUrl])
+  }, [artifactId, idCode, imageUrl])
 
   if (missing) {
     return (
@@ -160,7 +160,32 @@ function CuratorPhoto({ artifactId, imageUrl, language = 'English' }) {
       </div>
     )
   }
-  return <img className="curator-photo-preview" src={src} alt={t(language, 'curator.photoAlt')} />
+  return (
+    <img
+      className="curator-photo-preview"
+      src={src}
+      alt={t(language, 'curator.photoAlt')}
+      onError={() => setMissing(true)}
+    />
+  )
+}
+
+function CuratorThumb({ src, alt = '' }) {
+  const [ok, setOk] = useState(Boolean(src))
+  useEffect(() => {
+    setOk(Boolean(src))
+  }, [src])
+  if (!ok || !src) {
+    return <span className="curator-list-thumb curator-list-thumb--empty" aria-hidden />
+  }
+  return (
+    <img
+      className="curator-list-thumb"
+      src={src}
+      alt={alt}
+      onError={() => setOk(false)}
+    />
+  )
 }
 
 export default function CuratorDesk({ language = 'English' }) {
@@ -777,8 +802,14 @@ export default function CuratorDesk({ language = 'English' }) {
                                 className={row.id === selectedId ? 'curator-list-item is-active' : 'curator-list-item'}
                                 onClick={() => selectArtifact(row.id)}
                               >
-                                <span className="curator-list-code">{row.id_code || row.rd_code || `#${row.id}`}</span>
-                                <span className="curator-list-name">{row.title || '(no title)'}</span>
+                                <CuratorThumb
+                                  src={catalogImageSrc(row.id_code || row.rd_code, row.image_url)}
+                                  alt=""
+                                />
+                                <span className="curator-list-copy">
+                                  <span className="curator-list-code">{row.id_code || row.rd_code || `#${row.id}`}</span>
+                                  <span className="curator-list-name">{row.title || '(no title)'}</span>
+                                </span>
                                 {row.published ? (
                                   <span className="curator-pill curator-pill--published">{t(language, 'curator.field.publishedShort')}</span>
                                 ) : (
@@ -993,7 +1024,12 @@ export default function CuratorDesk({ language = 'English' }) {
                     <div className="curator-media-layout">
                       <div className="curator-media-preview">
                         <p className="curator-media-label">{t(language, 'curator.photoLabel')}</p>
-                        <CuratorPhoto language={language} artifactId={selected.id} imageUrl={selected.image_url} />
+                        <CuratorPhoto
+                          language={language}
+                          artifactId={selected.id}
+                          idCode={selected.id_code || selected.rd_code}
+                          imageUrl={selected.image_url}
+                        />
                         <label className="curator-file-btn">
                           {t(language, 'curator.uploadPhoto')}
                           <input type="file" accept="image/*" onChange={handlePhotoUpload} disabled={busy} />
@@ -1083,8 +1119,11 @@ export default function CuratorDesk({ language = 'English' }) {
                     className={p.id === selectedPresidentId ? 'curator-list-item is-active' : 'curator-list-item'}
                     onClick={() => selectPresident(p.id)}
                   >
-                    <span className="curator-list-name curator-list-name--president">{p.name}</span>
-                    <span className="curator-list-service">{p.service || t(language, 'curator.noServiceYears')}</span>
+                    <CuratorThumb src={presidentPortraitSrc(p)} alt="" />
+                    <span className="curator-list-copy">
+                      <span className="curator-list-name curator-list-name--president">{p.name}</span>
+                      <span className="curator-list-service">{p.service || t(language, 'curator.noServiceYears')}</span>
+                    </span>
                     {p.published ? (
                       <span className="curator-pill curator-pill--published">{t(language, 'curator.field.publishedShort')}</span>
                     ) : (
@@ -1170,14 +1209,28 @@ export default function CuratorDesk({ language = 'English' }) {
                         onChange={(e) => setPresidentForm((f) => ({ ...f, biography: e.target.value }))}
                       />
                     </label>
-                    <label className="curator-label curator-span-2">
-                      {t(language, 'curator.field.portraitUrl')}
-                      <input
-                        className="curator-input"
-                        value={presidentForm.photo_url}
-                        onChange={(e) => setPresidentForm((f) => ({ ...f, photo_url: e.target.value }))}
-                      />
-                    </label>
+                    <div className="curator-label curator-span-2">
+                      <p className="curator-media-label">{t(language, 'curator.photoLabel')}</p>
+                      {presidentPortraitSrc({ name: presidentForm.name, photo_url: presidentForm.photo_url }) ? (
+                        <img
+                          className="curator-photo-preview"
+                          src={presidentPortraitSrc({ name: presidentForm.name, photo_url: presidentForm.photo_url })}
+                          alt={presidentForm.name || t(language, 'curator.photoAlt')}
+                        />
+                      ) : (
+                        <div className="curator-photo-empty" aria-hidden>
+                          <span>{t(language, 'curator.noPhoto')}</span>
+                        </div>
+                      )}
+                      <label className="curator-label">
+                        {t(language, 'curator.field.portraitUrl')}
+                        <input
+                          className="curator-input"
+                          value={presidentForm.photo_url}
+                          onChange={(e) => setPresidentForm((f) => ({ ...f, photo_url: e.target.value }))}
+                        />
+                      </label>
+                    </div>
                   </div>
                 </div>
               </form>

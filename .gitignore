@@ -18,6 +18,7 @@ ml/evaluation/
 # Frontend
 node_modules/
 frontend/node_modules/
+.npm-cache/
 frontend/dist/
 frontend/.vite/
 
@@ -44,6 +45,11 @@ backend/uploads/
 # Seed pack restored onto ephemeral disk at API startup (see photo_uploads.py)
 !backend/data/
 !backend/data/curator_photos.tar.gz
+backend/data/models-public/
+backend/data/catalog_sync_state.json
+backend/data/catalog_versions/*.json
+backend/data/catalog_versions/*.json.gz
+!backend/data/catalog_versions/.gitkeep
 
 # Memorabilia workbook imports (local / institutional copies)
 data/imports/*.xlsb

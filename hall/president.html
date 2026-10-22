@@ -1,4 +1,4 @@
-<!-- vercel-root:sulyap-lasalyano -->
+<!-- vercel-root:hall -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -20,36 +20,35 @@
   document.documentElement.setAttribute('data-theme', 'dark');
 })();
 </script>
+<style>
+html.pres-booting,html.pres-booting body{background:#000}
+html.pres-booting #slNavLoad{display:flex!important;opacity:1!important;pointer-events:auto}
+</style>
 <script>
 (function(){
+  document.documentElement.classList.add('pres-booting');
   try{
-    if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    var path = location.pathname;
-    var kind = /\/scan(\.html)?$/.test(path) ? 'scan'
-      : /\/knowledge-graph(\.html)?$/.test(path) ? 'kg'
-      : /\/president(\.html)?$/.test(path) ? 'president'
-      : 'home';
-    if(sessionStorage.getItem('sl_page_tx') !== kind) return;
-    document.documentElement.classList.add('page-tx-from');
-    window.__pageTxSafety = setTimeout(function(){
-      document.documentElement.classList.remove('page-tx-from');
-    }, 2200);
+    if(sessionStorage.getItem('sl_page_tx') === 'president'){
+      document.documentElement.classList.add('page-tx-from');
+    }
+    sessionStorage.removeItem('sl_page_tx');
   }catch(e){}
 })();
 </script>
 <link rel="stylesheet" href="/styles/01-tokens.css?v=17">
-<link rel="stylesheet" href="/styles/13-page-tx.css?v=5">
+<link rel="stylesheet" href="/styles/13-page-tx.css?v=8">
 <link rel="stylesheet" href="/styles/13-presidents.css?v=13">
-<script defer src="/scripts/02-i18n.js?v=92"></script>
+<script defer src="/scripts/02-i18n.js?v=103"></script>
 <script defer src="/scripts/09-a11y.js?v=2"></script>
-<script defer src="/scripts/16-presidents.js?v=13"></script>
-<script defer src="/scripts/16-page-tx.js?v=8"></script>
+<script defer src="/scripts/16-presidents.js?v=15"></script>
+<script defer src="/scripts/16-page-tx.js?v=15"></script>
 </head>
-<body class="pres-page">
+<body class="pres-page is-booting">
 <div id="slNavLoad" class="sl-navload" aria-hidden="true">
   <img class="sl-navload-icon" src="/icon-192.png" alt="" width="192" height="192" decoding="async">
   <p class="sl-navload-brand">Sulyap Lasalyano</p>
-  <p class="sl-navload-label">Loading</p>
+  <p class="sl-navload-label" data-i="pres.loading">Loading president</p>
+  <div class="sl-loadbar" role="progressbar" aria-hidden="true"><i class="sl-loadbar-fill"></i></div>
 </div>
 <a class="skiplink" href="#presMain" data-i="skip">Skip to content</a>
 

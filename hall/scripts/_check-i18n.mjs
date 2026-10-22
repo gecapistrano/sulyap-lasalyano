@@ -27,6 +27,8 @@ const must = [
   'scan.title',
   'scan.enableBtn',
   'scan.tip1',
+  'scan.relatedTo',
+  'scan.yearAcquired',
   'kg.title',
   'kg.back',
   'kg.backLabel',
@@ -35,6 +37,12 @@ const must = [
   'pres.realName',
   'pres.history',
   'pres.memories',
+  'pres.memoriesEmpty',
+  'pres.search',
+  'pres.searchNone',
+  'pres.itemOpen',
+  'pres.prev',
+  'pres.next',
   '404.title',
 ];
 for (const code of langs) {

@@ -44,16 +44,11 @@
   function curatorHref() {
     try {
       if (location.protocol === 'file:') return 'curator.html';
-      var path = location.pathname || '/';
-      if (/index\.html$/i.test(path)) {
-        return path.replace(/index\.html$/i, 'curator.html');
-      }
-      /* Directory URL (/ or /subdir/) → absolute curator path for serve.mjs / Vercel */
-      var dir = path.endsWith('/') ? path : path.replace(/[^/]*$/, '');
-      if (!dir || dir === '/') return '/curator';
-      return dir.replace(/\/?$/, '/') + 'curator';
+      /* Same-origin desk. Production rewrite:
+         https://sulyap-lasalyano.vercel.app/curator → brown Next Curator Desk. */
+      return '/curator';
     } catch (err) {
-      return 'curator.html';
+      return '/curator';
     }
   }
 
@@ -135,10 +130,10 @@
     disarm();
   }
 
-  el.addEventListener('pointerdown', onPointerDown);
-  el.addEventListener('pointermove', onPointerMove);
-  el.addEventListener('pointerup', onPointerUp);
-  el.addEventListener('pointercancel', onPointerCancel);
+  el.addEventListener('pointerdown', onPointerDown, { capture: true, passive: false });
+  el.addEventListener('pointermove', onPointerMove, { capture: true, passive: true });
+  el.addEventListener('pointerup', onPointerUp, { capture: true, passive: true });
+  el.addEventListener('pointercancel', onPointerCancel, { capture: true, passive: true });
   el.addEventListener('lostpointercapture', function () {
     if (!armed || opened) return;
     if (heldLongEnough()) openCurator();

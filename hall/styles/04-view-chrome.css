@@ -55,7 +55,7 @@
 }
 .bar-nav a:hover{color:var(--cream)}
 .bar-nav a:active{color:#fff}
-/* aria-current kept for a11y; progress is .bar-prog wash only (no accent pill) */
+/* Current section: cream text. Underline is desktop/iPad only (bar-nav is hidden on phones). */
 .bar-nav a[aria-current="page"]{color:var(--cream);background:transparent}
 .bar-nav-glow{display:none}
 .bar-right{position:relative;z-index:1;display:flex;align-items:center;gap:clamp(8px,1vw,14px);margin-left:auto}
@@ -78,6 +78,12 @@
   .bar{overflow:hidden}
   .bar-logo{height:36px}
   .bar-nav{display:flex}
+  .bar-nav a[aria-current="page"]{
+    text-decoration:underline;
+    text-underline-offset:0.32em;
+    text-decoration-thickness:1.5px;
+    text-decoration-color:currentColor;
+  }
   .menu-btn{display:none}
   body{padding-top:64px}
   section[id],aside[id],footer[id]{scroll-margin-top:88px}

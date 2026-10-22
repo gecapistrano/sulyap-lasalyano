@@ -43,10 +43,18 @@ html.pres-booting #slNavLoad{display:flex!important;opacity:1!important;pointer-
 </script>
 <link rel="stylesheet" href="/styles/01-tokens.css?v=17">
 <link rel="stylesheet" href="/styles/13-page-tx.css?v=8">
-<link rel="stylesheet" href="/styles/13-presidents.css?v=13">
-<script defer src="/scripts/02-i18n.js?v=103"></script>
+<link rel="stylesheet" href="/styles/13-presidents.css?v=19">
+<link rel="stylesheet" href="/styles/14-sheet-related.css?v=1">
+<script defer src="/scripts/02-i18n.js?v=107"></script>
 <script defer src="/scripts/09-a11y.js?v=2"></script>
-<script defer src="/scripts/16-presidents.js?v=17"></script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "/vendor/three/three.module.js"
+  }
+}
+</script>
+<script type="module" src="/scripts/16-presidents.js?v=27"></script>
 <script defer src="/scripts/16-page-tx.js?v=19"></script>
 </head>
 <body class="pres-page is-booting">
@@ -87,9 +95,21 @@ html.pres-booting #slNavLoad{display:flex!important;opacity:1!important;pointer-
 
     <article id="presProfile" class="pres-profile" hidden>
       <div class="pres-hero">
-        <figure class="pres-portrait pres-enter">
-          <img id="presPhoto" src="" alt="" width="480" height="480" decoding="async">
-        </figure>
+        <div class="pres-portrait-wrap pres-enter">
+          <button type="button" class="pres-nav pres-nav--prev" id="presPrev" data-i-label="pres.prev" aria-label="Previous president" disabled>
+            <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" focusable="false">
+              <path d="M15.2 4.8L8 12l7.2 7.2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </button>
+          <figure class="pres-portrait">
+            <img id="presPhoto" src="" alt="" width="480" height="480" decoding="async">
+          </figure>
+          <button type="button" class="pres-nav pres-nav--next" id="presNext" data-i-label="pres.next" aria-label="Next president" disabled>
+            <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" focusable="false">
+              <path d="M8.8 4.8L16 12l-7.2 7.2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </button>
+        </div>
         <div class="pres-identity pres-enter">
           <p class="pres-kicker" id="presYears"></p>
           <h2 class="pres-display" id="presDisplay">—</h2>
@@ -114,7 +134,21 @@ html.pres-booting #slNavLoad{display:flex!important;opacity:1!important;pointer-
       </section>
 
       <section class="pres-section pres-memories pres-enter" aria-labelledby="presMemoriesHeading">
-        <h3 id="presMemoriesHeading" class="pres-section-title" data-i="pres.memories">Photos &amp; memories</h3>
+        <div class="pres-memories-head">
+          <h3 id="presMemoriesHeading" class="pres-section-title" data-i="pres.memories">Memorabilia</h3>
+          <button type="button" class="pres-search-toggle" id="presSearchToggle" hidden aria-expanded="false" aria-controls="presSearch" data-i-label="pres.searchLabel" aria-label="Search memorabilia">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+              <circle cx="11" cy="11" r="6.25" fill="none" stroke="currentColor" stroke-width="1.8"></circle>
+              <path d="M16.2 16.2L20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+            </svg>
+          </button>
+        </div>
+        <form class="pres-search" id="presSearch" hidden role="search">
+          <input type="search" id="presSearchInput" class="pres-search-input" enterkeyhint="search" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Search memorabilia" placeholder="Search code, title, description, or tags">
+          <button type="submit" class="pres-search-submit" data-i="pres.search">Search</button>
+          <button type="button" class="pres-search-clear" id="presSearchClear" hidden data-i-label="pres.searchClear" aria-label="Clear search">&times;</button>
+        </form>
+        <p id="presEmpty" class="pres-empty" data-i="pres.memoriesEmpty" hidden aria-live="polite">There are no registered memorabilia for this president yet.</p>
         <div class="pres-masonry" id="presMasonry" role="list"></div>
       </section>
     </article>
@@ -127,8 +161,18 @@ html.pres-booting #slNavLoad{display:flex!important;opacity:1!important;pointer-
 <dialog class="pres-lightbox" id="presLightbox" aria-labelledby="presLightboxCaption">
   <button type="button" class="pres-lightbox-close" id="presLightboxClose" data-i-label="pres.lightboxClose" aria-label="Close">&times;</button>
   <figure class="pres-lightbox-figure">
-    <img class="pres-lightbox-img" id="presLightboxImg" src="" alt="">
-    <figcaption class="pres-lightbox-caption" id="presLightboxCaption" data-i="pres.lightboxCaption">[Short memory description — placeholder]</figcaption>
+    <div class="pres-lightbox-stage" id="presLightboxStage" role="application" data-i-label="scan.viewer" aria-label="Artifact 3D view. Drag to rotate, pinch to zoom."></div>
+    <figcaption class="pres-lightbox-caption" id="presLightboxCaption">
+      <div id="presLightboxOwner" class="sheet-owner" hidden>
+        <img id="presLightboxPhoto" class="sheet-owner__photo" alt="" hidden>
+        <div class="sheet-owner__copy">
+          <div id="presLightboxPresident" class="pres-lightbox-owner"></div>
+          <div id="presLightboxYear" class="pres-lightbox-year"></div>
+        </div>
+      </div>
+      <div id="presLightboxCopy"></div>
+      <section id="presLightboxRelated" class="sheet-related" hidden></section>
+    </figcaption>
   </figure>
 </dialog>
 </body>

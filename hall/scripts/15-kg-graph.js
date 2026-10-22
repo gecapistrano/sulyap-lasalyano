@@ -1,7 +1,7 @@
 /* Knowledge Graph — 3D constellation (orbit / pan / zoom / select / layouts). */
 import * as THREE from 'three';
-import { buildCatalogGraph } from './catalog-graph.mjs?v=4';
-import { createItemSheet } from './kg-item-sheet.js?v=11';
+import { buildCatalogGraph } from './catalog-graph.mjs?v=5';
+import { createItemSheet } from './kg-item-sheet.js?v=13';
 import { catalogModelSrc } from './catalog-models.js?v=4';
 import { CATALOG_GLB_CODES } from './catalog-glb-ids.js?v=2';
 import { loadCatalogGlb, prepareCatalogMaterials } from './scan/model-stage.js?v=17';
@@ -1554,6 +1554,9 @@ import { loadCatalogGlb, prepareCatalogMaterials } from './scan/model-stage.js?v
       t: t,
       prefixOf: resolveApiBase,
       presidentOf: function (id) { return byId[id] || null; },
+      catalogItems: function () {
+        return nodes.filter(function (n) { return n.type === 'artifact'; });
+      },
       onOpen: function () {
         camSnap = snapshotCamera();
         setGraphInteractive(false);

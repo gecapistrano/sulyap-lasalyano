@@ -428,9 +428,9 @@ function createSparkleLayer(host, reducedRef) {
   return { resize, tick, nudge, dispose }
 }
 
-export function createModelStage(container) {
+export function createModelStage(container, opts = {}) {
   if (!container) {
-    return { show() {}, setExpanded() {}, resize() {}, dispose() {} }
+    return { show() {}, setExpanded() {}, resize() {}, pause() {}, resume() {}, dispose() {} }
   }
 
   const compact = typeof window !== 'undefined' && window.innerWidth < 720
@@ -496,7 +496,9 @@ export function createModelStage(container) {
   let raf = 0
   let running = false
   let lastTs = 0
-  const sparkles = createSparkleLayer(container, () => reduced)
+  const sparkles = opts.sparkles === false
+    ? { resize() {}, tick() {}, nudge() {}, dispose() {} }
+    : createSparkleLayer(container, () => reduced)
 
   function sizeRenderer() {
     const w = Math.max(1, container.clientWidth)
@@ -654,6 +656,8 @@ export function createModelStage(container) {
     show,
     setExpanded,
     resize: sizeRenderer,
+    pause: stop,
+    resume: start,
     dispose() {
       loadGen += 1
       stop()

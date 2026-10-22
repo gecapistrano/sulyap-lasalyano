@@ -1,7 +1,7 @@
 /* Knowledge Graph — 3D constellation (orbit / pan / zoom / select / layouts). */
 import * as THREE from 'three';
 import { buildCatalogGraph } from './catalog-graph.mjs?v=4';
-import { createItemSheet } from './kg-item-sheet.js?v=9';
+import { createItemSheet } from './kg-item-sheet.js?v=10';
 import { catalogModelSrc } from './catalog-models.js?v=2';
 import { CATALOG_GLB_CODES } from './catalog-glb-ids.js?v=2';
 import { loadCatalogGlb, prepareCatalogMaterials } from './scan/model-stage.js?v=17';

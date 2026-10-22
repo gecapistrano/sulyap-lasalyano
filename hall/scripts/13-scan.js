@@ -1666,6 +1666,12 @@ function initScanPage() {
       void requestCamera()
     })
   }
+  window.__slBackStack = window.__slBackStack || []
+  window.__slBackStack.push(function () {
+    if (state.mode !== 'VIEWING' && state.mode !== 'INFO_OPEN' && !leavingResult) return false
+    if (!leavingResult) closeResult()
+    return true
+  })
   if (backHomeBtn) {
     backHomeBtn.addEventListener('click', (e) => {
       if (state.mode !== 'VIEWING' && state.mode !== 'INFO_OPEN') return

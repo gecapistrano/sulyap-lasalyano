@@ -300,9 +300,12 @@
   pointer-events:none;
   transition:opacity .3s ease;
 }
-.scan-shell.is-result .scan-back-text{ opacity:0; }
-.scan-shell.is-result .scan-back-x{ opacity:1; }
-.scan-shell.is-result .scan-back{
+.scan-shell.is-result .scan-back-text,
+.scan-shell.is-leaving-result .scan-back-text{ opacity:0; }
+.scan-shell.is-result .scan-back-x,
+.scan-shell.is-leaving-result .scan-back-x{ opacity:1; }
+.scan-shell.is-result .scan-back,
+.scan-shell.is-leaving-result .scan-back{
   width:2.65rem;
   padding:0;
   border-color:rgba(196,164,132,.42);
@@ -311,7 +314,9 @@
   text-decoration:none;
 }
 .scan-shell.is-result .scan-back:hover,
-.scan-shell.is-result .scan-back:focus-visible{
+.scan-shell.is-leaving-result .scan-back:hover,
+.scan-shell.is-result .scan-back:focus-visible,
+.scan-shell.is-leaving-result .scan-back:focus-visible{
   background:rgba(26,20,16,.78);
   border-color:rgba(196,164,132,.7);
   color:#fff;

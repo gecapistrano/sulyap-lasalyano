@@ -28,24 +28,81 @@ function fitObject(object, target = 1.35) {
   object.position.sub(center.multiplyScalar(target / maxDim))
 }
 
-function albedoTexture(mat) {
-  const tex = mat && mat.map
-  if (!tex) return null
-  const img = tex.image
-  if (img && typeof ImageBitmap !== 'undefined' && img instanceof ImageBitmap) {
-    const canvas = document.createElement('canvas')
-    canvas.width = img.width || 1
-    canvas.height = img.height || 1
-    const ctx = canvas.getContext('2d')
-    if (ctx) ctx.drawImage(img, 0, 0)
-    const baked = new THREE.CanvasTexture(canvas)
-    baked.colorSpace = THREE.SRGBColorSpace
-    baked.flipY = false
-    baked.wrapS = tex.wrapS
-    baked.wrapT = tex.wrapT
-    baked.needsUpdate = true
-    return baked
+function imageToCanvas(img) {
+  const w = (img && (img.width || img.videoWidth)) || 0
+  const h = (img && (img.height || img.videoHeight)) || 0
+  if (!w || !h) return null
+  const canvas = document.createElement('canvas')
+  canvas.width = w
+  canvas.height = h
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return null
+  try {
+    ctx.drawImage(img, 0, 0)
+  } catch {
+    return null
   }
+  return canvas
+}
+
+function canvasTextureFrom(canvas) {
+  const tex = new THREE.CanvasTexture(canvas)
+  if ('colorSpace' in tex) tex.colorSpace = THREE.SRGBColorSpace
+  tex.flipY = false
+  tex.wrapS = THREE.RepeatWrapping
+  tex.wrapT = THREE.RepeatWrapping
+  tex.generateMipmaps = true
+  tex.minFilter = THREE.LinearMipmapLinearFilter
+  tex.magFilter = THREE.LinearFilter
+  tex.needsUpdate = true
+  return tex
+}
+
+const UNLIT_VERT = [
+  'varying vec2 vUv;',
+  'void main() {',
+  '  vUv = uv;',
+  '  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);',
+  '}',
+].join('\n')
+
+const UNLIT_FRAG = [
+  'uniform sampler2D uMap;',
+  'varying vec2 vUv;',
+  'void main() {',
+  '  gl_FragColor = texture2D(uMap, vUv);',
+  '}',
+].join('\n')
+
+function basicPaint(map) {
+  if (!map) {
+    const painted = new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      side: THREE.DoubleSide,
+      toneMapped: false,
+    })
+    painted.userData.catalogPainted = true
+    return painted
+  }
+  const painted = new THREE.ShaderMaterial({
+    uniforms: { uMap: { value: map } },
+    vertexShader: UNLIT_VERT,
+    fragmentShader: UNLIT_FRAG,
+    side: THREE.DoubleSide,
+    lights: false,
+    fog: false,
+    toneMapped: false,
+    depthWrite: true,
+  })
+  painted.userData.catalogPainted = true
+  return painted
+}
+
+function albedoTexture(mat) {
+  const tex = mat && (mat.map || mat.emissiveMap)
+  if (!tex) return null
+  const canvas = imageToCanvas(tex.image)
+  if (canvas) return canvasTextureFrom(canvas)
   if ('colorSpace' in tex) tex.colorSpace = THREE.SRGBColorSpace
   tex.flipY = false
   tex.needsUpdate = true
@@ -53,29 +110,120 @@ function albedoTexture(mat) {
 }
 
 function paintCatalogMaterial(mat) {
-  if (!mat || (mat.userData && mat.userData.catalogPainted)) return mat
+  if (!mat) return basicPaint(null)
   const map = albedoTexture(mat)
-  const painted = new THREE.MeshBasicMaterial({
-    map: map || null,
-    color: 0xffffff,
-    side: THREE.DoubleSide,
-    transparent: false,
-    depthWrite: true,
-    toneMapped: false,
+  return basicPaint(map)
+}
+
+function paintObjectWithCanvases(object, canvases) {
+  if (!object) return object
+  const list = (canvases || []).filter(Boolean)
+  object.userData.catalogAlbedoCanvases = list
+  let index = 0
+  object.traverse((child) => {
+    if (!child.isMesh) return
+    if (child.geometry && child.geometry.deleteAttribute) {
+      child.geometry.deleteAttribute('color')
+    }
+    const mats = Array.isArray(child.material) ? child.material : [child.material]
+    const next = mats.map(() => {
+      const canvas = list[index] || list[0] || null
+      index += 1
+      return basicPaint(canvas ? canvasTextureFrom(canvas) : null)
+    })
+    child.material = Array.isArray(child.material) ? next : next[0]
   })
-  painted.userData.catalogPainted = true
-  return painted
+  return object
 }
 
 function prepareCatalogMaterials(object) {
   if (!object) return object
+  const stored = object.userData && object.userData.catalogAlbedoCanvases
+  if (stored && stored.length) return paintObjectWithCanvases(object, stored)
   object.traverse((child) => {
     if (!child.isMesh || !child.material) return
+    if (child.geometry && child.geometry.deleteAttribute) {
+      child.geometry.deleteAttribute('color')
+    }
     const mats = Array.isArray(child.material) ? child.material : [child.material]
     const next = mats.map((mat) => paintCatalogMaterial(mat))
     child.material = Array.isArray(child.material) ? next : next[0]
   })
   return object
+}
+
+function readGlbJson(buffer) {
+  try {
+    const view = new DataView(buffer)
+    if (view.byteLength < 20 || view.getUint32(0, true) !== 0x46546C67) return null
+    const jsonLen = view.getUint32(12, true)
+    const json = JSON.parse(new TextDecoder().decode(new Uint8Array(buffer, 20, jsonLen)))
+    const binStart = 20 + jsonLen + 8
+    return { json, binStart, buffer }
+  } catch {
+    return null
+  }
+}
+
+function glbImageBytes(parsed, imageIndex) {
+  const image = parsed && parsed.json && parsed.json.images && parsed.json.images[imageIndex]
+  const views = parsed && parsed.json && parsed.json.bufferViews
+  if (!image || image.bufferView == null || !views) return null
+  const bv = views[image.bufferView]
+  if (!bv) return null
+  const start = parsed.binStart + (bv.byteOffset || 0)
+  return {
+    mime: image.mimeType || 'image/jpeg',
+    bytes: new Uint8Array(parsed.buffer, start, bv.byteLength).slice(),
+  }
+}
+
+function albedoImageIndices(json) {
+  const textures = (json && json.textures) || []
+  const materials = (json && json.materials) || []
+  const indices = []
+  materials.forEach((mat) => {
+    const texi = mat && mat.pbrMetallicRoughness && mat.pbrMetallicRoughness.baseColorTexture
+      ? mat.pbrMetallicRoughness.baseColorTexture.index
+      : undefined
+    if (texi == null) return
+    const src = textures[texi] && textures[texi].source
+    if (src != null) indices.push(src)
+  })
+  if (!indices.length && json && json.images && json.images.length) indices.push(0)
+  return indices
+}
+
+function decodeBytesToCanvas(bytes, mime) {
+  return new Promise((resolve) => {
+    const blob = new Blob([bytes], { type: mime || 'image/jpeg' })
+    const url = URL.createObjectURL(blob)
+    const img = new Image()
+    img.onload = () => {
+      const canvas = imageToCanvas(img)
+      URL.revokeObjectURL(url)
+      resolve(canvas)
+    }
+    img.onerror = () => {
+      URL.revokeObjectURL(url)
+      resolve(null)
+    }
+    img.src = url
+  })
+}
+
+async function canvasesFromGlb(buffer) {
+  const parsed = readGlbJson(buffer)
+  if (!parsed) return []
+  const indices = albedoImageIndices(parsed.json)
+  const canvases = []
+  for (let i = 0; i < indices.length; i += 1) {
+    const image = glbImageBytes(parsed, indices[i])
+    if (!image) continue
+    const canvas = await decodeBytesToCanvas(image.bytes, image.mime)
+    if (canvas) canvases.push(canvas)
+  }
+  return canvases
 }
 
 function disposeObject(object) {
@@ -159,20 +307,28 @@ export function prefetchModel(url) {
   return job
 }
 
-function parseGltf(buffer) {
+function parseGltfScene(buffer) {
   return new Promise((resolve) => {
     try {
       const loader = new GLTFLoader()
       loader.parse(
         buffer,
         '',
-        (gltf) => resolve(prepareCatalogMaterials(gltf.scene || gltf.scenes?.[0] || null)),
+        (gltf) => resolve(gltf.scene || gltf.scenes?.[0] || null),
         () => resolve(null),
       )
     } catch {
       resolve(null)
     }
   })
+}
+
+async function parseGltf(buffer) {
+  const scene = await parseGltfScene(buffer)
+  if (!scene) return null
+  const canvases = await canvasesFromGlb(buffer)
+  if (canvases.length) return paintObjectWithCanvases(scene, canvases)
+  return prepareCatalogMaterials(scene)
 }
 
 async function loadGltf(url, onProgress) {
@@ -287,6 +443,7 @@ export function createModelStage(container) {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, compact ? 1.25 : 1.5))
   renderer.setClearColor(0x000000, 0)
   if ('outputColorSpace' in renderer) renderer.outputColorSpace = THREE.SRGBColorSpace
+  if ('toneMapping' in renderer) renderer.toneMapping = THREE.NoToneMapping
   container.appendChild(renderer.domElement)
   renderer.domElement.style.display = 'block'
   renderer.domElement.style.position = 'absolute'
@@ -521,4 +678,4 @@ export function createModelStage(container) {
   }
 }
 
-export { loadGltf as loadCatalogGlb, prepareCatalogMaterials }
+export { loadGltf as loadCatalogGlb, prepareCatalogMaterials, paintObjectWithCanvases }

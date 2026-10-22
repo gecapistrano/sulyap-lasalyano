@@ -1,10 +1,10 @@
 /* Knowledge Graph — 3D constellation (orbit / pan / zoom / select / layouts). */
 import * as THREE from 'three';
 import { buildCatalogGraph } from './catalog-graph.mjs?v=4';
-import { createItemSheet } from './kg-item-sheet.js?v=8';
+import { createItemSheet } from './kg-item-sheet.js?v=9';
 import { catalogModelSrc } from './catalog-models.js?v=2';
 import { CATALOG_GLB_CODES } from './catalog-glb-ids.js?v=2';
-import { loadCatalogGlb, prepareCatalogMaterials } from './scan/model-stage.js?v=16';
+import { loadCatalogGlb, prepareCatalogMaterials } from './scan/model-stage.js?v=17';
 
 (function () {
   var GRAPH_URL = '/public/data/graph.json';
@@ -420,7 +420,9 @@ import { loadCatalogGlb, prepareCatalogMaterials } from './scan/model-stage.js?v
   }
 
   function fittedGlbClone(template, size) {
-    var obj = prepareCatalogMaterials(template.clone(true));
+    var obj = template.clone(true);
+    obj.userData.catalogAlbedoCanvases = template.userData && template.userData.catalogAlbedoCanvases;
+    prepareCatalogMaterials(obj);
     obj.traverse(function (child) {
       if (child.isLight) child.visible = false;
       if (child.isMesh) {
@@ -1469,6 +1471,7 @@ import { loadCatalogGlb, prepareCatalogMaterials } from './scan/model-stage.js?v
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setClearColor(0x000000, 0);
     if ('outputColorSpace' in renderer) renderer.outputColorSpace = THREE.SRGBColorSpace;
+    if ('toneMapping' in renderer) renderer.toneMapping = THREE.NoToneMapping;
     var scene = Graph.scene && Graph.scene();
     if (scene && !scene.userData.kgModelLights) {
       scene.userData.kgModelLights = true;

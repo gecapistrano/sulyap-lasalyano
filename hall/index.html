@@ -1,0 +1,719 @@
+<!-- vercel-root:sulyap-lasalyano -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sulyap Lasalyano</title>
+<meta name="description" content="President’s Memorabilia — De La Salle University. A quiet archive of medals, portraits, and ceremonial pieces.">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=11">
+<link rel="icon" type="image/png" sizes="96x96" href="favicon-96.png?v=11">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=11">
+
+<link rel="manifest" href="site.webmanifest?v=1">
+<meta name="theme-color" content="#122018" id="theme-color-meta">
+<meta name="color-scheme" content="dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Instrument+Sans:ital,wght@0,400;0,500;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script>
+/* Dark-only. Retired #/gallery deep links land on home.
+   Manual scroll restore so refresh always lands at the top of the home page. */
+(function(){
+  try{ if('scrollRestoration' in history) history.scrollRestoration = 'manual'; }catch(e){}
+  try{ localStorage.removeItem('pm-theme'); }catch(e){}
+  document.documentElement.setAttribute('data-theme', 'dark');
+  if((location.hash || '').indexOf('#/gallery') === 0){
+    try{ history.replaceState(null, '', '#/'); }catch(e){}
+  }
+  var h = location.hash || '#/';
+  if(h.indexOf('#/history') !== 0){
+    window.scrollTo(0, 0);
+  }
+})();
+</script>
+<script>
+/* Keep a black loading screen up until 16-page-tx fades it out. */
+(function(){
+  try{
+    if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var path = location.pathname;
+    var kind = /\/scan(\.html)?$/.test(path) ? 'scan'
+      : /\/knowledge-graph(\.html)?$/.test(path) ? 'kg'
+      : /\/president(\.html)?$/.test(path) ? 'president'
+      : 'home';
+    if(sessionStorage.getItem('sl_page_tx') !== kind) return;
+    document.documentElement.classList.add('page-tx-from');
+    window.__pageTxSafety = setTimeout(function(){
+      document.documentElement.classList.remove('page-tx-from');
+    }, 2200);
+  }catch(e){}
+})();
+</script>
+<link rel="stylesheet" href="styles/01-tokens.css?v=17">
+<link rel="stylesheet" href="styles/13-page-tx.css?v=5">
+<link rel="stylesheet" href="styles/02-hero.css?v=75">
+<link rel="stylesheet" href="styles/03-stage.css?v=50">
+<link rel="stylesheet" href="styles/04-view-chrome.css?v=36">
+<link rel="stylesheet" href="styles/05-sections.css?v=50">
+<link rel="stylesheet" href="styles/06-progress.css?v=18">
+<link rel="stylesheet" href="styles/07-galleries.css?v=29">
+<link rel="stylesheet" href="styles/08-responsive.css?v=17">
+<link rel="stylesheet" href="styles/09-feedback.css?v=22">
+<link rel="stylesheet" href="styles/10-site-guide.css?v=8">
+<script defer src="scripts/01-hero.js?v=22"></script>
+<script defer src="scripts/02-i18n.js?v=92"></script>
+<script defer src="scripts/03-artwork.js"></script>
+<script defer src="scripts/05-view-chrome.js?v=36"></script>
+<script defer src="scripts/06-theme.js"></script>
+<script defer src="scripts/07-routing.js?v=26"></script>
+<script defer src="scripts/08-progress.js?v=27"></script>
+<script defer src="scripts/09-a11y.js?v=2"></script>
+<script defer src="scripts/10-feedback.js?v=18"></script>
+<script defer src="scripts/11-header-particles.js?v=4"></script>
+<script defer src="scripts/12-site-guide.js?v=15"></script>
+<script defer src="scripts/15-plaque-egg.js?v=4"></script>
+<script defer src="scripts/16-page-tx.js?v=8"></script>
+<script type="module" src="scripts/17-browse.js?v=2"></script>
+</head>
+<body>
+
+<!-- Loading curtain: hidden until the inline script adds .js.
+     Timing (hold + fade-out) is unchanged — static dark-mode logo. -->
+<div class="pre" id="pre" aria-hidden="true">
+  <div class="pre-logo">
+    <img class="pre-logo-img" src="assets/splash-logo.png?v=2" alt="Sulyap Lasalyano" width="819" height="819" decoding="async">
+  </div>
+  <div class="pre-rail"><i class="pre-fill" id="pre-fill"></i></div>
+  <p class="pre-meta" id="pre-meta" data-i="pre.loading">Loading…</p>
+</div>
+<div id="slNavLoad" class="sl-navload" aria-hidden="true">
+  <img class="sl-navload-icon" src="/icon-192.png" alt="" width="192" height="192" decoding="async">
+  <p class="sl-navload-brand">Sulyap Lasalyano</p>
+  <p class="sl-navload-label">Loading</p>
+</div>
+<script>
+/* Splash vs home enter:
+   - Full splash/preloader: first home open in this tab session, or hard reload.
+   - Skip splash + play home in-anim: return from subpages (sl_home_ready),
+     browser back/forward, or bfcache restore — plaque/chip/CTA enter without
+     replaying the long curtain. */
+(function(){
+  var root = document.documentElement;
+  var FLAG = 'sl_home_ready';
+  var navType = 'navigate';
+  try{
+    var nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+    if(nav && nav.type) navType = nav.type;
+  }catch(e){}
+  if(navType === 'reload'){
+    try{ sessionStorage.removeItem(FLAG); }catch(e){}
+  }
+  var skip = false;
+  try{
+    if(navType === 'back_forward') skip = true;
+    else if(navType !== 'reload' && sessionStorage.getItem(FLAG) === '1') skip = true;
+  }catch(e){}
+
+  function stripPre(){
+    var el = document.getElementById('pre');
+    if(el && el.parentNode) el.parentNode.removeChild(el);
+  }
+  function markHomeReady(){
+    try{ sessionStorage.setItem(FLAG, '1'); }catch(e){}
+  }
+  function requestHomeEnter(fromBfcache){
+    window.__homeEnter = true;
+    window.__homeEnterBfcache = !!fromBfcache;
+    document.dispatchEvent(new CustomEvent('homeenter', {
+      detail:{ bfcache: !!fromBfcache }
+    }));
+  }
+  function skipSplash(){
+    /* Hold hero entrance at first keyframe until 01-hero releases — same idea
+       as html.loading during splash, but without the curtain. */
+    root.className += (root.className ? ' ' : '') + 'js ready pre-gone home-enter-hold';
+    stripPre();
+    window.__pre = {t0:Date.now(), min:0};
+    window.__preDone = true;
+    markHomeReady();
+    document.dispatchEvent(new CustomEvent('preready'));
+    requestHomeEnter(false);
+  }
+  function settleFromBfcache(){
+    root.classList.add('js', 'ready', 'pre-gone');
+    root.classList.remove('loading', 'home-enter-hold');
+    stripPre();
+    window.__preDone = true;
+    markHomeReady();
+    requestHomeEnter(true);
+  }
+
+  addEventListener('pageshow', function(e){
+    if(e.persisted) settleFromBfcache();
+  });
+
+  if(skip){
+    skipSplash();
+    return;
+  }
+
+  root.className += (root.className ? ' ' : '') + 'js loading';
+  var MIN = matchMedia('(prefers-reduced-motion: reduce)').matches ? 400 : 1100;
+  var t0 = Date.now(), pending = null, done = false;
+  window.__pre = {t0:t0, min:MIN};
+  function finish(){
+    if(done) return;
+    done = true;
+    window.__preDone = true;
+    markHomeReady();
+    document.dispatchEvent(new CustomEvent('preready'));
+    setTimeout(function(){
+      /* Hide splash chrome before the curtain fades so the solid field
+         crossfades cleanly into the themed page. */
+      var pre = document.getElementById('pre');
+      if(pre){
+        var logo = pre.querySelector('.pre-logo');
+        if(logo) logo.style.display = 'none';
+        var rail = pre.querySelector('.pre-rail');
+        if(rail) rail.style.display = 'none';
+        var meta = pre.querySelector('.pre-meta');
+        if(meta) meta.style.display = 'none';
+      }
+      root.classList.add('ready');
+      root.classList.remove('loading');
+      setTimeout(function(){
+        stripPre();
+        /* Only now allow the themed body colour — avoids a flash
+           while the splash curtain is still mid-fade. */
+        root.classList.add('pre-gone');
+      }, 700);
+    }, 180);
+  }
+  function reveal(force){
+    if(done) return;
+    var left = force ? 0 : MIN - (Date.now() - t0);
+    if(left > 0){
+      if(!pending) pending = setTimeout(function(){ pending = null; finish(); }, left);
+      return;
+    }
+    finish();
+  }
+  addEventListener('load', function(){ reveal(false); });
+  setTimeout(function(){ reveal(true); }, 4000);
+})();
+</script>
+
+<p class="nojs" data-i="nojs">JavaScript is off. You can still read the pages via the links below.
+  <a href="#hero">Home</a> · <a href="#about-dlsu-presidents-memorabilia">Museum</a> · <a href="#about-aeairc">Library</a>
+</p>
+
+<a class="skiplink" href="#main" data-i="skip">Skip to content</a>
+
+<!-- Sticky chrome: full bar at top; collapses to pill on desktop scroll -->
+<header class="bar" id="bar">
+  <a class="bar-brand" href="#hero" data-nav="hero" aria-label="Sulyap Lasalyano">
+    <img class="bar-logo" src="assets/sulyap-mark.png?v=14" alt="Sulyap Lasalyano" width="40" height="40" decoding="async">
+  </a>
+  <nav class="bar-nav" aria-label="Main">
+    <i class="bar-nav-glow" aria-hidden="true"></i>
+    <a href="#hero" data-nav="hero" data-i="nav.home">Home</a>
+    <a href="#about-dlsu-presidents-memorabilia" data-nav="gallery" data-i="nav.gallery">DLSU Presidents’ Memorabilia</a>
+    <a href="#about-aeairc" data-nav="library" data-i="nav.library">AEA-IRC at DLSU-D</a>
+    <a href="#about-sulyap-lasalyano" data-nav="soon" data-i="nav.soon">Sulyap Lasalyano</a>
+  </nav>
+  <div class="bar-right">
+    <div class="lang-dd" data-lang-dd>
+      <button type="button" class="lang lang-dd-btn" aria-expanded="false" aria-haspopup="listbox" aria-controls="lang-menu-bar" data-i-label="lang">
+        <span class="lang-dd-val">EN</span>
+      </button>
+      <ul class="lang-dd-menu" id="lang-menu-bar" role="listbox" hidden>
+        <li role="option" tabindex="-1" data-value="en" aria-selected="true">English</li>
+        <li role="option" tabindex="-1" data-value="fil">Filipino</li>
+        <li role="option" tabindex="-1" data-value="es">Spanish</li>
+        <li role="option" tabindex="-1" data-value="fr">French</li>
+        <li role="option" tabindex="-1" data-value="zh">Chinese</li>
+        <li role="option" tabindex="-1" data-value="ko">Korean</li>
+        <li role="option" tabindex="-1" data-value="ja">Japanese</li>
+      </ul>
+    </div>
+    <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="msheet" data-i-label="nav.menu">
+      <span class="menu-ico" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span data-i="nav.menu">Menu</span>
+    </button>
+  </div>
+  <i class="bar-prog" aria-hidden="true"></i>
+</header>
+
+<!-- Mobile / tablet sheet -->
+<div class="msheet" id="msheet" hidden>
+  <div class="msheet-top">
+    <p class="msheet-title" data-i="menu.title">Navigate</p>
+    <button class="msheet-close" id="msheetClose" type="button" data-i-label="nav.close">×</button>
+  </div>
+  <nav class="msheet-nav" aria-label="Mobile">
+    <a href="#hero" data-nav="hero" data-i="nav.home">Home</a>
+    <a href="#about-dlsu-presidents-memorabilia" data-nav="gallery" data-i="nav.gallery">DLSU Presidents’ Memorabilia</a>
+    <a href="#about-aeairc" data-nav="library" data-i="nav.library">AEA-IRC at DLSU-D</a>
+    <a href="#about-sulyap-lasalyano" data-nav="soon" data-i="nav.soon">Sulyap Lasalyano</a>
+  </nav>
+  <div class="msheet-foot">
+    <div class="msheet-ctl">
+      <div class="lang-dd" data-lang-dd>
+        <button type="button" class="lang lang-dd-btn" aria-expanded="false" aria-haspopup="listbox" aria-controls="lang-menu-sheet" data-i-label="lang">
+          <span class="lang-dd-val">EN</span>
+        </button>
+        <ul class="lang-dd-menu lang-dd-menu--sheet" id="lang-menu-sheet" role="listbox" hidden>
+          <li role="option" tabindex="-1" data-value="en" aria-selected="true">English</li>
+          <li role="option" tabindex="-1" data-value="fil">Filipino</li>
+          <li role="option" tabindex="-1" data-value="es">Spanish</li>
+          <li role="option" tabindex="-1" data-value="fr">French</li>
+          <li role="option" tabindex="-1" data-value="zh">Chinese</li>
+          <li role="option" tabindex="-1" data-value="ko">Korean</li>
+          <li role="option" tabindex="-1" data-value="ja">Japanese</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="sheet">
+<main id="main">
+
+  <!-- ===== HOME (cool) ===== -->
+  <div id="page-home">
+    <section class="hero" id="hero" aria-labelledby="heroTitle">
+      <!-- Museum gallery parallax: simplified flat shapes on white backdrop -->
+      <div class="layer px-sky" data-speed="0.15" aria-hidden="true">
+        <svg class="px-svg" viewBox="0 0 1200 720" preserveAspectRatio="xMidYMid slice">
+          <rect width="1200" height="720" fill="#fff"/>
+          <polygon points="280,540 920,540 1200,720 0,720" fill="#E8E4DE"/>
+          <!-- Rear wood frame (few large cells) -->
+          <rect x="380" y="140" width="440" height="260" fill="#100E0A" stroke="#6B5338" stroke-width="4"/>
+          <path d="M380 227h440M380 313h440M527 140v260M673 140v260" fill="none" stroke="#6B5338" stroke-width="3"/>
+          <ellipse cx="453" cy="185" rx="36" ry="24" fill="#7A6A52"/>
+          <ellipse cx="600" cy="270" rx="42" ry="30" fill="#6E5E48"/>
+          <ellipse cx="747" cy="185" rx="36" ry="24" fill="#7A6A52"/>
+          <ellipse cx="600" cy="200" rx="180" ry="70" fill="#F7F4EF" opacity=".12"/>
+        </svg>
+      </div>
+      <div class="layer px-building" data-speed="0.45" aria-hidden="true">
+        <svg class="px-svg" viewBox="0 0 1200 720" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <radialGradient id="mgSpot" cx="50%" cy="25%" r="60%">
+              <stop offset="0" stop-color="#F7F4EF" stop-opacity=".12"/>
+              <stop offset="1" stop-color="#F7F4EF" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <!-- Side cabinets (flat slabs) -->
+          <polygon points="0,90 180,150 180,640 0,720" fill="#0A100C" stroke="#5C4630" stroke-width="3"/>
+          <polygon points="1200,90 1020,150 1020,640 1200,720" fill="#0A100C" stroke="#5C4630" stroke-width="3"/>
+          <!-- Mid pedestals (bases meet viewBox / hero floor at y=720) -->
+          <rect x="330" y="440" width="100" height="280" fill="#4A3826"/>
+          <rect x="345" y="355" width="70" height="85" fill="#121816" stroke="#5C4630" stroke-width="2"/>
+          <ellipse cx="380" cy="400" rx="22" ry="28" fill="#6E5E48"/>
+          <rect x="770" y="440" width="100" height="280" fill="#4A3826"/>
+          <rect x="785" y="355" width="70" height="85" fill="#121816" stroke="#5C4630" stroke-width="2"/>
+          <ellipse cx="820" cy="400" rx="22" ry="28" fill="#6E5E48"/>
+          <ellipse cx="380" cy="320" rx="80" ry="100" fill="url(#mgSpot)"/>
+          <ellipse cx="820" cy="320" rx="80" ry="100" fill="url(#mgSpot)"/>
+        </svg>
+      </div>
+      <div class="layer px-fore" data-speed="0.65" aria-hidden="true">
+        <svg class="px-svg" viewBox="0 0 1200 720" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <radialGradient id="mgSpotF" cx="50%" cy="20%" r="65%">
+              <stop offset="0" stop-color="#F7F4EF" stop-opacity=".14"/>
+              <stop offset="1" stop-color="#F7F4EF" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <!-- Soft grey floor wash (matches mid-hero #E8E4DE) — no dark green band -->
+          <rect x="0" y="600" width="1200" height="120" fill="#E8E4DE" opacity=".55"/>
+          <ellipse cx="120" cy="500" rx="100" ry="110" fill="url(#mgSpotF)"/>
+          <!-- Right pedestal + case -->
+          <rect x="880" y="560" width="260" height="32" fill="#3D2E1E"/>
+          <rect x="900" y="592" width="32" height="128" fill="#2A2016"/>
+          <rect x="1080" y="592" width="32" height="128" fill="#2A2016"/>
+          <rect x="920" y="400" width="180" height="160" fill="#0E1410" stroke="#5C4630" stroke-width="3" opacity=".9"/>
+          <ellipse cx="1010" cy="500" rx="36" ry="48" fill="#5E5040"/>
+          <ellipse cx="1010" cy="360" rx="120" ry="150" fill="url(#mgSpotF)"/>
+        </svg>
+      </div>
+      <div class="px-veil" aria-hidden="true"></div>
+      <!-- Cursor flashlight: lights the dark SVG under plaque/CTAs (fine pointer only) -->
+      <div class="hero-spotlight" aria-hidden="true"></div>
+
+      <a class="flip-chip" id="flip" href="#about-sulyap-lasalyano" data-nav="soon">
+        <span data-i="flip.label">About Sulyap Lasalyano</span>
+      </a>
+
+      <div class="sign" id="sign" aria-labelledby="heroTitle">
+          <div class="sign-drop"><div class="sign-swing"><div class="sign-kick" id="signKick">
+            <div class="ropes" aria-hidden="true">
+              <span class="rope"><i class="hook"></i></span>
+              <span class="rope"><i class="hook"></i></span>
+            </div>
+            <div class="board-stack">
+              <svg class="board-finial" viewBox="0 0 240 52" aria-hidden="true" focusable="false">
+                <g fill="none" stroke="#1A1A1A" stroke-linecap="round" stroke-linejoin="round">
+                  <path stroke-width="2.6" d="M120 46 V28 C120 18 120 10 120 6 C120 2.2 123.6.8 126.2 3.2 C129.4 6.2 128.2 12 124.5 16"/>
+                  <path stroke-width="2.6" d="M120 6 C120 2.2 116.4.8 113.8 3.2 C110.6 6.2 111.8 12 115.5 16"/>
+                  <path stroke-width="1.8" d="M120 28 C108 24 100 18 98 12 C95 4 104 2 108 8"/>
+                  <path stroke-width="1.8" d="M120 28 C132 24 140 18 142 12 C145 4 136 2 132 8"/>
+                  <path stroke-width="2.8" d="M118 40 C96 38 78 30 68 20 C54 6 62 0 74 6 C86 12 88 24 78 32 C66 42 48 40 40 30 C32 20 38 10 50 10 C58 10 64 16 64 22"/>
+                  <path stroke-width="2.8" d="M122 40 C144 38 162 30 172 20 C186 6 178 0 166 6 C154 12 152 24 162 32 C174 42 192 40 200 30 C208 20 202 10 190 10 C182 10 176 16 176 22"/>
+                  <path stroke-width="2.2" d="M50 10 C42 6 36 10 38 16 C40 22 48 22 52 18"/>
+                  <path stroke-width="2.2" d="M190 10 C198 6 204 10 202 16 C200 22 192 22 188 18"/>
+                </g>
+              </svg>
+              <div class="board">
+                <div class="board-grain" aria-hidden="true"></div>
+                <div class="board-shine" aria-hidden="true"></div>
+                <div class="board-copy">
+                  <p class="school" data-i="school">De La Salle University Philippines</p>
+                  <h1 id="heroTitle">
+                    <span class="board-line" data-i="hero.title.line1">Presidents’</span>
+                    <span class="board-line" data-i="hero.title.line2">Memorabilia</span>
+                  </h1>
+                  <div class="board-rule" aria-hidden="true"></div>
+                </div>
+                <div class="board-aside">
+                  <div class="powered">
+                    <span class="powered-label" data-i="hero.powered">Powered by</span>
+                    <a class="partner-logo" href="#about-sulyap-lasalyano" data-nav="soon" aria-label="Sulyap Lasalyano" data-plaque-egg>
+                      <img src="assets/sulyap-logo.png?v=12" alt="" width="148" height="148" decoding="async" draggable="false">
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div></div></div>
+      </div>
+
+      <nav class="hero-cta" aria-label="Explore">
+        <p class="hero-cta-hint">
+          <span data-i="cta.hint">Are you onsite at the museum?</span>
+        </p>
+        <a class="btn btn-primary" href="scan.html"><span data-i="cta.scan">Scan artifacts now!</span></a>
+        <a class="hero-cta-link" href="knowledge-graph.html" data-i="cta.kg">View Knowledge Graph -></a>
+      </nav>
+    </section>
+
+    <section class="about-dlsu-presidents-memorabilia" id="about-dlsu-presidents-memorabilia" data-view="cool" aria-labelledby="agTitle">
+      <div class="about-dlsu-presidents-memorabilia-inner">
+        <h2 id="agTitle" class="sr-only" data-i="ag.title">About</h2>
+        <p class="ag-copy dropcap" data-i="ag.copy">The Presidents’ Memorabilia is a collection housed at the Aklatang Emilio Aguinaldo – Information Resource Center (AEA-IRC) of De La Salle University-Dasmariñas. It preserves artifacts such as commemorative trophies, plaques, and travel souvenirs that embody the Lasallian values and leadership of the university’s former presidents. As a historical link between the DLSU-D community’s past and its future, the collection supports the university’s identity as a Heritage and Cultural Center.</p>
+      </div>
+      <div class="marquee-wrap">
+        <div class="marquee" id="marquee" aria-label="Former presidents">
+          <div class="marquee-track" id="marqueeTrack">
+            <div class="marquee-set">
+              <a class="marquee-item" href="president.html?id=br-inigo">
+                <img src="assets/presidents/br-inigo.jpg?v=3" alt="" width="160" height="160" decoding="async">
+                <span class="marquee-name">Br. Inigo</span>
+              </a>
+              <a class="marquee-item" href="president.html?id=br-andrew">
+                <img src="assets/presidents/br-andrew.jpg?v=3" alt="" width="160" height="160" decoding="async">
+                <span class="marquee-name">Br. Andrew</span>
+              </a>
+              <a class="marquee-item" href="president.html?id=br-armin">
+                <img src="assets/presidents/br-armin.jpg?v=3" alt="" width="160" height="160" decoding="async">
+                <span class="marquee-name">Br. Armin</span>
+              </a>
+              <a class="marquee-item" href="president.html?id=br-donato">
+                <img src="assets/presidents/br-donato.jpg?v=3" alt="" width="160" height="160" decoding="async">
+                <span class="marquee-name">Br. Donato</span>
+              </a>
+              <a class="marquee-item" href="president.html?id=br-gus">
+                <img src="assets/presidents/br-gus.jpg?v=3" alt="" width="160" height="160" decoding="async">
+                <span class="marquee-name">Br. Gus</span>
+              </a>
+              <a class="marquee-item" href="president.html?id=br-mawel">
+                <img src="assets/presidents/br-mawel.jpg?v=3" alt="" width="160" height="160" decoding="async">
+                <span class="marquee-name">Br. Mawel</span>
+              </a>
+              <a class="marquee-item" href="president.html?id=br-rolly">
+                <img src="assets/presidents/br-rolly.jpg?v=3" alt="" width="160" height="160" decoding="async">
+                <span class="marquee-name">Br. Rolly</span>
+              </a>
+              <a class="marquee-item" href="president.html?id=br-sockie">
+                <img src="assets/presidents/br-sockie.jpg?v=3" alt="" width="160" height="160" decoding="async">
+                <span class="marquee-name">Br. Sockie</span>
+              </a>
+              <a class="marquee-item" href="president.html?id=dr-quebengco">
+                <img src="assets/presidents/dr-quebengco.jpg?v=3" alt="" width="160" height="160" decoding="async">
+                <span class="marquee-name">Dr. Quebengco</span>
+              </a>
+            </div>
+            <div class="marquee-set" aria-hidden="true">
+              <a class="marquee-item" href="president.html?id=br-inigo" tabindex="-1">
+                <img src="assets/presidents/br-inigo.jpg?v=3" alt="" width="160" height="160" decoding="async">
+                <span class="marquee-name">Br. Inigo</span>
+              </a>
+              <a class="marquee-item" href="president.html?id=br-andrew" tabindex="-1">
+                <img src="assets/presidents/br-andrew.jpg?v=3" alt="" width="160" height="160" decoding="async">
+                <span class="marquee-name">Br. Andrew</span>
+              </a>
+              <a class="marquee-item" href="president.html?id=br-armin" tabindex="-1">
+                <img src="assets/presidents/br-armin.jpg?v=3" alt="" width="160" height="160" decoding="async">
+                <span class="marquee-name">Br. Armin</span>
+              </a>
+              <a class="marquee-item" href="president.html?id=br-donato" tabindex="-1">
+                <img src="assets/presidents/br-donato.jpg?v=3" alt="" width="160" height="160" decoding="async">
+                <span class="marquee-name">Br. Donato</span>
+              </a>
+              <a class="marquee-item" href="president.html?id=br-gus" tabindex="-1">
+                <img src="assets/presidents/br-gus.jpg?v=3" alt="" width="160" height="160" decoding="async">
+                <span class="marquee-name">Br. Gus</span>
+              </a>
+              <a class="marquee-item" href="president.html?id=br-mawel" tabindex="-1">
+                <img src="assets/presidents/br-mawel.jpg?v=3" alt="" width="160" height="160" decoding="async">
+                <span class="marquee-name">Br. Mawel</span>
+              </a>
+              <a class="marquee-item" href="president.html?id=br-rolly" tabindex="-1">
+                <img src="assets/presidents/br-rolly.jpg?v=3" alt="" width="160" height="160" decoding="async">
+                <span class="marquee-name">Br. Rolly</span>
+              </a>
+              <a class="marquee-item" href="president.html?id=br-sockie" tabindex="-1">
+                <img src="assets/presidents/br-sockie.jpg?v=3" alt="" width="160" height="160" decoding="async">
+                <span class="marquee-name">Br. Sockie</span>
+              </a>
+              <a class="marquee-item" href="president.html?id=dr-quebengco" tabindex="-1">
+                <img src="assets/presidents/dr-quebengco.jpg?v=3" alt="" width="160" height="160" decoding="async">
+                <span class="marquee-name">Dr. Quebengco</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AEAIRC building: assets/aeairc.svg (vector/raster hybrid from source SVG). -->
+    <section class="about-aeairc" id="about-aeairc" data-view="cool" aria-labelledby="aeaTitle">
+      <div class="aea-parallax" aria-hidden="true">
+        <img class="aea-bg" id="aeaBg" src="assets/aeairc.svg?v=11" alt="" width="2048" height="1365" decoding="async" fetchpriority="low">
+        <div class="aea-veil"></div>
+        <!-- Cursor dark shade over building (fine pointer only; under title/info) -->
+        <div class="aea-spotlight" aria-hidden="true"></div>
+      </div>
+      <h2 id="aeaTitle" class="aea-title"><span class="aea-title-lead" data-i="aea.title.lead">About</span> <span class="aea-title-rest" data-i="aea.title.rest">Aklatang Emilio Aguinaldo – Information Resource Center (AEA-IRC)</span></h2>
+      <div class="aea-info-anchor">
+        <p class="aea-info-bubble" id="aeaInfoBubble" role="status" data-i="aea.info.hint">click here</p>
+        <button type="button" class="aea-info-btn" id="aeaInfoBtn" aria-expanded="false" aria-controls="aeaInfoPanel" data-i-label="aea.info">
+          <span class="aea-info-glyph aea-info-open" aria-hidden="true">i</span>
+          <span class="aea-info-glyph aea-info-close" aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="aea-info-panel" id="aeaInfoPanel" hidden>
+        <div class="aea-info-layout">
+          <div class="aea-info-copy">
+            <p data-i="aea.info.body">The Aklatang Emilio Aguinaldo – Information Resource Center (AEA-IRC) is a replica of the Aguinaldo Shrine in Kawit, the home of the first Philippine President, General Emilio Aguinaldo, and its facade is a larger version of the shrine. The building was the brainchild of Br. Andrew Gonzales and was inaugurated on April 30, 1992. This makes the structure itself a piece of heritage, a fitting home for the Presidents’ Memorabilia.</p>
+            <p data-i="aea.info.body2">It began in 1977 as a classroom-sized library with two staff members, when General Emilio Aguinaldo College Dasmariñas Campus was first established. Its growth into a landmark that forms part of a museum complex envisioned as a cultural zone reflects DLSU-D’s identity as a Heritage and Cultural Center.</p>
+          </div>
+          <div class="aea-info-media" aria-hidden="true">
+            <img class="aea-info-art" src="assets/aeairc2.svg?v=1" alt="" width="720" height="558" decoding="async">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="nx nx--roomy nx-edu" id="about-sulyap-lasalyano" data-view="cool" aria-labelledby="nxEduTitle">
+      <div class="nx-edu-grain" aria-hidden="true"></div>
+      <div class="nx-edu-inner">
+        <header class="nx-edu-head">
+          <h2 id="nxEduTitle" class="nx-edu-heading"><span class="nx-edu-kicker" data-i="nx.edu.kicker">What is</span> <span class="nx-edu-title"><span data-i="nx.edu.title">Sulyap Lasalyano</span><span class="nx-edu-kicker" data-i="nx.edu.mark">?</span></span></h2>
+          <p class="nx-edu-cats"><span data-i="nx.edu.cats.by">By</span> <a class="nx-edu-cats-link" href="https://www.linkedin.com/in/justine-lagajino-a485a43b5/" target="_blank" rel="noopener noreferrer">Lagajino</a> · <a class="nx-edu-cats-link" href="https://www.linkedin.com/in/urielricafrente/" target="_blank" rel="noopener noreferrer">Ricafrente</a> · <a class="nx-edu-cats-link" href="https://www.linkedin.com/in/gemcapistrano/" target="_blank" rel="noopener noreferrer">Capistrano</a></p>
+        </header>
+
+        <div class="nx-edu-intro">
+          <p data-i="nx.edu.intro.p1">Sulyap Lasalyano is a web-based augmented reality system that lets you explore the Presidents’ Memorabilia at the Aklatang Emilio Aguinaldo – Information Resource Center (AEA-IRC) of De La Salle University-Dasmariñas.</p>
+          <p data-i="nx.edu.intro.p2">Point your camera at an artifact and it identifies the item and shows its story on your screen. There is nothing to download or install. Just open it in your mobile browser.</p>
+          <details class="nx-edu-why">
+            <summary class="nx-edu-why-toggle">
+              <h3 class="nx-edu-subhead"><span data-i="nx.edu.intro.why">Why was it created?</span></h3>
+              <span class="nx-edu-why-chevron" aria-hidden="true"></span>
+            </summary>
+            <div class="nx-edu-why-body">
+              <p data-i="nx.edu.intro.p3">The Presidents’ Memorabilia preserves the legacy and Lasallian values of DLSU-D’s former presidents, but traditional displays can only show so much. Static displays and printed labels struggle to hold the attention of a generation raised on digital and interactive experiences, which has led to low visitation and a fading awareness of the university’s own heritage.</p>
+              <p data-i="nx.edu.intro.p4">Sulyap Lasalyano was built to close that gap. It turns a passive gallery visit into an active, immersive learning experience, helping students, faculty, staff, and visitors discover, understand, and appreciate DLSU-D’s institutional heritage. In support of UN Sustainable Development Goal 11.4, it also uses technology to protect and promote cultural heritage.</p>
+            </div>
+          </details>
+        </div>
+
+        <h3 class="nx-edu-features-title" id="nxEduFeatures" data-i="nx.edu.features">Core features</h3>
+        <div class="nx-edu-grid nx-edu-grid--2" role="list" aria-labelledby="nxEduFeatures">
+          <article class="nx-edu-card" role="listitem">
+            <div class="nx-edu-card-head">
+              <img class="nx-edu-logo" src="assets/icons/icon-scan.svg?v=1" alt="" width="44" height="44" decoding="async">
+              <div class="nx-edu-card-id">
+                <h4 class="nx-edu-card-name" data-i="nx.edu.scan.name">Live Scan</h4>
+              </div>
+            </div>
+            <p class="nx-edu-card-body" data-i="nx.edu.scan.body">Live Scan is the heart of the system. It uses your phone’s camera and a custom-trained YOLOv8 object detection model, trained on images of the memorabilia, to recognize artifacts in real time.</p>
+            <ol class="nx-edu-steps">
+              <li data-i="nx.edu.scan.s1">Open Live Scan from the home page and allow camera access.</li>
+              <li data-i="nx.edu.scan.s2">Point your camera at a memorabilia item inside the gallery.</li>
+              <li data-i="nx.edu.scan.s3">Once the system is confident about the item, a 3D model of the artifact appears on your screen.</li>
+              <li data-i="nx.edu.scan.s4">An information sheet slides up showing the artifact’s name, year, associated president, and description. Close it to scan another item.</li>
+            </ol>
+            <p class="nx-edu-card-tip" data-i="nx.edu.scan.tip">If an item isn’t recognized, try a different angle or better lighting.</p>
+            <a class="nx-edu-cta" href="scan.html">
+              <span data-i="nx.edu.scan.cta">Try</span>
+              <svg class="nx-edu-cta-arrow" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M3.5 8h7.2L8.1 5.4l.9-.9L13.5 8l-4.5 3.5-.9-.9L10.7 8H3.5z"/></svg>
+            </a>
+          </article>
+
+          <article class="nx-edu-card" role="listitem">
+            <div class="nx-edu-card-head">
+              <img class="nx-edu-logo" src="assets/icons/icon-graph.svg?v=1" alt="" width="44" height="44" decoding="async">
+              <div class="nx-edu-card-id">
+                <h4 class="nx-edu-card-name" data-i="nx.edu.kg.name">Knowledge Graph</h4>
+              </div>
+            </div>
+            <p class="nx-edu-card-body" data-i="nx.edu.kg.body">The Knowledge Graph shows how the collection fits together. Instead of viewing each artifact in isolation, you can see the connections between the AEA-IRC, DLSU-D, the university presidents, the years, and the artifacts. Circles represent each of these, and lines show which are related.</p>
+            <p class="nx-edu-card-body" data-i="nx.edu.kg.how">To use it, open View Knowledge Graph from the home page, drag to pan around the graph, and use the plus and minus buttons to zoom. It helps you see the bigger story behind each item, such as which artifacts belong to which president and era.</p>
+            <a class="nx-edu-cta" href="knowledge-graph.html">
+              <span data-i="nx.edu.kg.cta">View</span>
+              <svg class="nx-edu-cta-arrow" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M3.5 8h7.2L8.1 5.4l.9-.9L13.5 8l-4.5 3.5-.9-.9L10.7 8H3.5z"/></svg>
+            </a>
+          </article>
+        </div>
+
+        <details class="nx-edu-also" aria-labelledby="nxEduAlso">
+          <summary class="nx-edu-also-toggle">
+            <span class="nx-edu-also-chevron" aria-hidden="true"></span>
+            <h3 class="nx-edu-also-title" id="nxEduAlso" data-i="nx.edu.also.title">Also in the system</h3>
+          </summary>
+          <ul class="nx-edu-also-list">
+            <li><strong data-i="nx.edu.also.browse.label">Browse:</strong> <span data-i="nx.edu.also.browse">Prefer not to use the camera? Pick a DLSU-D president, view their memorabilia, and open any artifact to see a rotatable, zoomable 3D model with its details.</span></li>
+            <li><strong data-i="nx.edu.also.lang.label">Multilingual support:</strong> <span data-i="nx.edu.also.lang">Read the content in English, Filipino, Spanish, French, Chinese, Korean, or Japanese.</span></li>
+          </ul>
+          <p class="nx-edu-inspire"><span data-i="nx.edu.inspire">Frontend inspired by</span> <a class="nx-edu-cats-link" href="https://www.jamesmagpantay.com/" target="_blank" rel="noopener noreferrer">James Magpantay</a>.</p>
+        </details>
+
+        <p class="nx-edu-credit" data-i="nx.edu.credit">Sulyap Lasalyano is a thesis project by Lagajino, Ricafrente, and Capistrano, Bachelor of Science in Computer Science, Specializing in Intelligent Systems, under adviser Tita R. Herradura.</p>
+      </div>
+    </aside>
+  </div>
+
+</main>
+
+<footer class="site-footer" id="footer">
+  <!-- Cursor soft-light over the green band (same --sx/--sy ivory as hero; fine pointer only) -->
+  <div class="foot-spotlight" aria-hidden="true"></div>
+  <div class="f-tile">
+    <p class="enjoy" data-i="foot.enjoy">Enjoy your visit!</p>
+    <button class="to-top" id="toTop" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+      <span data-i="foot.top">Back to top</span>
+    </button>
+  </div>
+  <p class="copy" data-i="foot.copy">© 2026 De La Salle University–Dasmariñas</p>
+</footer>
+</div><!-- /.sheet -->
+
+<button class="skipto" id="skipto" type="button" aria-hidden="true">
+  <span data-i="skip.next">Next section</span>
+  <svg viewBox="0 0 13 15" aria-hidden="true"><path d="M6.5 1v12M1 8.5l5.5 5 5.5-5"/></svg>
+</button>
+
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+
+<!-- Floating site guide — Pat Riotik (frontend stub — no AI/API) -->
+<div class="sg" id="siteGuide">
+  <div
+    class="sg-panel"
+    id="sgPanel"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="sgTitle"
+    hidden
+  >
+    <header class="sg-head">
+      <div class="sg-avatar" aria-hidden="true">
+        <img class="sg-avatar-img" src="assets/patriot-mascot.svg?v=2" alt="" width="32" height="32" decoding="async">
+      </div>
+      <div class="sg-titles">
+        <span class="sg-name" id="sgTitle" data-i="guide.title">Pat Riotik</span>
+        <span class="sg-sub" data-i="guide.subtitle">Pat · site guide</span>
+      </div>
+      <button class="sg-close" id="sgClose" type="button" data-i-label="guide.close" aria-label="Close guide">×</button>
+    </header>
+
+    <div class="sg-messages" id="sgMessages" role="log" aria-live="polite" aria-relevant="additions">
+      <div class="sg-bubble sg-bubble--bot" data-i="guide.welcome">
+        Hi — I’m Pat. I can point you around this collection. What are you after?
+      </div>
+    </div>
+
+    <div class="sg-chips" role="group" aria-label="Suggestions">
+      <button type="button" class="sg-chip" data-sg-chip="importance" data-i="guide.chip.importance">Why are these items important?</button>
+      <button type="button" class="sg-chip" data-sg-chip="visit" data-i="guide.chip.visit">Who can visit the museum?</button>
+      <button type="button" class="sg-chip" data-sg-chip="maintain" data-i="guide.chip.maintain">Who keeps and maintains the collection?</button>
+    </div>
+
+    <form class="sg-composer" id="sgForm" autocomplete="off">
+      <label class="sr-only" for="sgInput" data-i="guide.input.label">Ask Pat</label>
+      <input
+        class="sg-input"
+        id="sgInput"
+        name="sg-q"
+        type="text"
+        maxlength="280"
+        enterkeyhint="send"
+        placeholder="Ask about the collection…"
+      >
+      <button class="sg-send" type="submit" data-i-label="guide.send" aria-label="Send message">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+    </form>
+  </div>
+
+  <button
+    class="sg-fab"
+    id="sgFab"
+    type="button"
+    aria-expanded="false"
+    aria-controls="sgPanel"
+    data-i-label="guide.fab.open"
+    aria-label="Open Pat · site guide"
+  >
+    <!-- Inline SVG so CSS can blink eyes / animate smile (external <img> cannot) -->
+    <svg class="sg-fab-mascot pat-mascot" viewBox="0 0 200 200" width="56" height="56" aria-hidden="true" focusable="false">
+      <path d="M34 200 Q34 150 100 150 Q166 150 166 200 Z" fill="#1f7a3d"/>
+      <path d="M34 200 Q34 150 100 150 Q166 150 166 200" fill="none" stroke="#165a2d" stroke-width="3"/>
+      <rect x="88" y="136" width="24" height="20" rx="8" fill="#e9b38a"/>
+      <path d="M76 152 Q100 164 124 152 L100 182 Z" fill="#f4ecd8"/>
+      <path d="M76 152 Q100 164 124 152" fill="none" stroke="#d8cba8" stroke-width="2"/>
+      <circle cx="63" cy="108" r="7" fill="#f2c19b"/>
+      <circle cx="137" cy="108" r="7" fill="#f2c19b"/>
+      <circle cx="100" cy="106" r="38" fill="#f6c9a5"/>
+      <ellipse cx="100" cy="80" rx="76" ry="14" fill="#c99a4b"/>
+      <ellipse cx="100" cy="77" rx="76" ry="13" fill="#e2b868"/>
+      <path d="M48 78 Q100 -4 152 78 Z" fill="#edc77c"/>
+      <path d="M62 66 Q100 24 138 66" fill="none" stroke="#d1a456" stroke-width="2" stroke-linecap="round"/>
+      <path d="M54 74 Q100 8 146 74" fill="none" stroke="#d1a456" stroke-width="2" stroke-linecap="round"/>
+      <path d="M50 73 Q100 86 150 73 L152 79 Q100 92 48 79 Z" fill="#1f7a3d"/>
+      <circle cx="100" cy="37" r="5" fill="#c99a4b"/>
+      <g class="pat-face">
+        <ellipse class="pat-blush" cx="74" cy="118" rx="7" ry="4.5" fill="#f2998f" opacity="0.65"/>
+        <ellipse class="pat-blush" cx="126" cy="118" rx="7" ry="4.5" fill="#f2998f" opacity="0.65"/>
+        <g class="pat-eyes">
+          <g class="pat-eye pat-eye--l">
+            <circle cx="86" cy="106" r="4.5" fill="#2b1d16"/>
+            <circle cx="87.6" cy="104.4" r="1.5" fill="#fff"/>
+          </g>
+          <g class="pat-eye pat-eye--r">
+            <circle cx="114" cy="106" r="4.5" fill="#2b1d16"/>
+            <circle cx="115.6" cy="104.4" r="1.5" fill="#fff"/>
+          </g>
+        </g>
+        <path class="pat-smile" d="M91 118 Q100 127 109 118" fill="none" stroke="#2b1d16" stroke-width="3" stroke-linecap="round"/>
+      </g>
+    </svg>
+  </button>
+</div>
+
+</body>
+</html>

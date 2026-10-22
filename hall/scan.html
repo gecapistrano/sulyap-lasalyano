@@ -1,0 +1,232 @@
+<!-- vercel-root:hall -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Live Scan — Sulyap Lasalyano</title>
+<meta name="description" content="Point your camera at Presidents’ Memorabilia artifacts for real-time recognition.">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=11">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=11">
+<meta name="theme-color" content="#0a140f">
+<meta name="color-scheme" content="dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Instrument+Sans:ital,wght@0,400;0,500;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script>
+(function(){
+  try{
+    localStorage.removeItem('pm-theme');
+    localStorage.removeItem('sl_scan_dark');
+  }catch(e){}
+  document.documentElement.setAttribute('data-theme', 'dark');
+})();
+/* Catalog lookups: empty apiBaseUrl uses same-origin /catalog
+   (local serve.mjs proxies to FastAPI). Override: /scan.html?api=https://<api-host> */
+(function () {
+  var params = new URLSearchParams(location.search);
+  var api = (params.get('api') || '').trim();
+  window.SL_SCAN_CONFIG = {
+    apiBaseUrl: api,
+    modelAssetBaseUrl: (params.get('models') || '').trim(),
+    glbBaseUrl: (params.get('glb') || '').trim(),
+    loadStorageModels: params.get('storageGlb') === '1' ? '1' : '',
+    wasmPaths: (params.get('wasm') || '').trim()
+  };
+})();
+</script>
+<script>
+(function(){
+  try{
+    if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var path = location.pathname;
+    var kind = /\/scan(\.html)?$/.test(path) ? 'scan'
+      : /\/knowledge-graph(\.html)?$/.test(path) ? 'kg'
+      : /\/president(\.html)?$/.test(path) ? 'president'
+      : 'home';
+    if(kind === 'scan'){
+      sessionStorage.removeItem('sl_page_tx');
+      return;
+    }
+    if(sessionStorage.getItem('sl_page_tx') !== kind) return;
+    document.documentElement.classList.add('page-tx-from');
+    window.__pageTxSafety = setTimeout(function(){
+      document.documentElement.classList.remove('page-tx-from');
+    }, 2200);
+  }catch(e){}
+})();
+</script>
+<link rel="stylesheet" href="/styles/01-tokens.css?v=18">
+<link rel="stylesheet" href="/styles/13-page-tx.css?v=7">
+<link rel="stylesheet" href="/styles/11-scan.css?v=30">
+<script defer src="/scripts/02-i18n.js?v=101"></script>
+<script defer src="/scripts/09-a11y.js?v=3"></script>
+<!-- Absolute /vendor + /scripts so /scan and /scan.html resolve the same (not relative to path). -->
+<script src="/vendor/onnxruntime-web/ort.wasm.min.js?v=48"></script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "/vendor/three/three.module.js"
+  }
+}
+</script>
+<script type="module" src="/scripts/13-scan.js?v=43"></script>
+<script defer src="/scripts/16-page-tx.js?v=15"></script>
+<script>
+/* Back: same-origin history when possible, else home.
+   sl_home_ready skips splash; home still plays in-anim on return / bfcache. */
+(function(){
+  var FALLBACK = 'index.html';
+  function goBack(){
+    try{ sessionStorage.setItem('sl_home_ready', '1'); }catch(e){}
+    try{
+      if(window.history.length > 1 && document.referrer){
+        var sameOrigin = false;
+        try{ sameOrigin = new URL(document.referrer).origin === location.origin; }catch(e){}
+        if(sameOrigin){
+          history.back();
+          return;
+        }
+      }
+    }catch(e){}
+    location.href = FALLBACK;
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    var btn = document.getElementById('scanBackHome');
+    if(!btn) return;
+    btn.addEventListener('click', function(e){
+      if(document.querySelector('.scan-shell.is-result, .scan-shell.is-leaving-result')){
+        e.preventDefault();
+        return;
+      }
+      e.preventDefault();
+      goBack();
+    });
+  });
+})();
+</script>
+</head>
+<body class="scan-page is-booting">
+<div id="slNavLoad" class="sl-navload" aria-hidden="true">
+  <img class="sl-navload-icon" src="/icon-192.png" alt="" width="192" height="192" decoding="async">
+  <p class="sl-navload-brand">Sulyap Lasalyano</p>
+  <p class="sl-navload-label">Loading</p>
+  <div class="sl-loadbar" role="progressbar" aria-hidden="true"><i class="sl-loadbar-fill"></i></div>
+</div>
+<a class="skiplink" href="#liveScan" data-i="skip">Skip to content</a>
+
+<div id="liveScan" class="scan-shell" role="main">
+  <video id="scanVideo" class="scan-video" playsinline muted autoplay aria-hidden="true"></video>
+  <canvas id="scanDust" class="scan-dust" aria-hidden="true"></canvas>
+  <div class="scan-atmosphere" aria-hidden="true"></div>
+
+  <div id="scanBoot" class="scan-boot" aria-hidden="true">
+    <div class="scan-boot-stage">
+      <svg class="scan-boot-svg" viewBox="0 0 200 200" fill="none">
+        <g class="scan-boot-sparkles">
+          <circle cx="28" cy="36" r="1.2"/>
+          <circle cx="174" cy="44" r="1"/>
+          <circle cx="22" cy="128" r="0.9"/>
+          <circle cx="186" cy="150" r="1.1"/>
+          <circle cx="96" cy="18" r="0.8"/>
+          <circle cx="160" cy="178" r="1"/>
+          <circle cx="48" cy="176" r="0.9"/>
+        </g>
+        <g class="scan-boot-frame">
+          <rect class="scan-boot-rect" x="48" y="48" width="104" height="104" rx="10"/>
+          <path class="scan-boot-corner" d="M48 72 V58 Q48 48 58 48 H72"/>
+          <path class="scan-boot-corner" d="M128 48 H142 Q152 48 152 58 V72"/>
+          <path class="scan-boot-corner" d="M48 128 V142 Q48 152 58 152 H72"/>
+          <path class="scan-boot-corner" d="M128 152 H142 Q152 152 152 142 V128"/>
+        </g>
+        <g class="scan-boot-target">
+          <circle class="scan-boot-ring" cx="100" cy="100" r="22"/>
+          <circle class="scan-boot-core" cx="100" cy="100" r="8"/>
+          <path class="scan-boot-cross" d="M100 86 V92 M100 108 V114 M86 100 H92 M108 100 H114"/>
+        </g>
+      </svg>
+      <span class="scan-boot-scanline" aria-hidden="true"></span>
+    </div>
+    <p id="scanBootLabel" class="scan-boot-label" data-i="scan.loadingScanner">Loading live scanner</p>
+    <div class="sl-loadbar" role="progressbar" aria-hidden="true"><i class="sl-loadbar-fill"></i></div>
+  </div>
+
+  <header class="scan-chrome">
+    <button type="button" class="scan-back" id="scanBackHome" data-i-label="scan.backHome" aria-label="Back to home">
+      <span class="scan-back-text">← Back</span>
+      <svg class="scan-back-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+    <h1 class="scan-title"><span class="scan-title-brand">Sulyap Lasalyano</span> <span class="scan-title-swap"><span class="scan-title-rest" data-i="scan.title">Live Scan</span> <span class="scan-title-code" aria-hidden="true"></span></span></h1>
+    <div class="lang-dd scan-lang" data-lang-dd>
+      <button type="button" class="lang lang-dd-btn scan-lang-btn" aria-expanded="false" aria-haspopup="listbox" aria-controls="lang-menu-scan" data-i-label="lang">
+        <span class="lang-dd-val">EN</span>
+      </button>
+      <ul class="lang-dd-menu scan-lang-menu" id="lang-menu-scan" role="listbox" hidden>
+        <li role="option" data-value="en" aria-selected="true">English</li>
+        <li role="option" data-value="fil" aria-selected="false">Filipino</li>
+        <li role="option" data-value="es" aria-selected="false">Spanish</li>
+        <li role="option" data-value="fr" aria-selected="false">French</li>
+        <li role="option" data-value="zh" aria-selected="false">Chinese</li>
+        <li role="option" data-value="ko" aria-selected="false">Korean</li>
+        <li role="option" data-value="ja" aria-selected="false">Japanese</li>
+      </ul>
+    </div>
+  </header>
+
+  <div id="scanViewport" class="scan-viewport">
+    <div id="scanZoomLayer" class="scan-zoom-layer" aria-hidden="true"></div>
+    <div id="scanOverlay" class="scan-overlay" aria-live="polite"></div>
+    <span id="scanZoomIndicator" class="scan-zoom-indicator" hidden aria-live="polite">1.0×</span>
+    <p id="scanFrameHint" class="scan-frame-hint" data-i="scan.point">Point at memorabilia — tap an outline for details</p>
+
+    <div id="scanPermission" class="scan-permission" role="status" aria-live="polite">
+      <div id="scanPermTitle" class="scan-permission__title" data-i="scan.enableTitle">Enable camera</div>
+      <div id="scanPermSub" class="scan-permission__sub" data-i="scan.enableHint">Allow camera access to start Live Scan.</div>
+      <button type="button" id="scanPermBtn" class="scan-permission__btn" data-i="scan.enableBtn">Enable Camera</button>
+    </div>
+  </div>
+
+  <div class="scan-status" aria-live="polite">
+    <p id="scanMonitor" class="scan-monitor" hidden>
+      <span class="scan-monitor-pip" aria-hidden="true"></span>
+      <span id="scanMonitorLabel" class="scan-monitor-label"></span>
+    </p>
+    <p id="scanTip" class="scan-tip"></p>
+    <p id="scanModelStatus" class="scan-model-status" data-i="scan.loadingModel">Loading model…</p>
+  </div>
+
+  <div id="scanResult" class="scan-result" hidden>
+    <div id="scanModelStage" class="scan-model" role="application" data-i-label="scan.viewer" aria-label="Artifact 3D view. Drag to rotate, pinch to zoom."></div>
+    <p id="scanStageHint" class="scan-stage-hint" hidden></p>
+  </div>
+
+  <div id="scanInfoSheet" class="scan-info" hidden>
+    <button type="button" id="scanSheetToggle" class="scan-sheet__arrow" aria-expanded="false" data-i-label="scan.expandDetails" aria-label="Show details">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22" aria-hidden="true">
+        <polyline points="6 14 12 8 18 14"></polyline>
+      </svg>
+    </button>
+    <div class="scan-sheet" role="dialog" aria-labelledby="scanInfoName">
+      <div class="scan-sheet__peek">
+        <div id="scanInfoCode" class="scan-sheet__code"></div>
+        <h2 id="scanInfoName" class="scan-sheet__name"></h2>
+      </div>
+      <div class="scan-sheet__body">
+        <img id="scanInfoPhoto" class="scan-sheet__photo" alt="" hidden>
+        <div id="scanInfoPresident" class="scan-sheet__president"></div>
+        <div id="scanInfoYear" class="scan-sheet__year"></div>
+        <p id="scanInfoDesc" class="scan-sheet__desc"></p>
+        <section id="scanHistorySection">
+          <h3 class="scan-sheet__history-title" data-i="scan.historical">Historical Context</h3>
+          <p id="scanInfoHistory" class="scan-sheet__history"></p>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

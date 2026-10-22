@@ -83,6 +83,6 @@ Separate Vercel project with Root Directory `sulyap-lasalyano`. Local: `node ser
 ### Import / ML (ops)
 
 - [ ] Re-import workbook against Supabase is idempotent (`id_code` upsert)
-- [ ] After retraining, `deploy_model.py` writes ONNX + training-order `labels.txt` (47 classes today); catalog export uses `sync_labels_from_db.py` → `catalog_id_codes.txt` only
+- [ ] After retraining, `deploy_model.py` writes ONNX + training-order `labels.txt` (147 classes, YOLOv8s); catalog export uses `sync_labels_from_db.py` → `catalog_id_codes.txt` only
 
 See also [OPS_RUNBOOK.md](./OPS_RUNBOOK.md).

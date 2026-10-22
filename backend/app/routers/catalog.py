@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi.responses import FileResponse
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
@@ -12,6 +13,7 @@ from ..models import Artifact, ArtifactTag, President, Tag
 from ..schemas import CatalogArtifactOut, CatalogPresidentOut, TagOut
 from ..services.artifact_tags import collect_tags
 from ..services.id_codes import normalize_id_code
+from ..services.photo_uploads import photo_path_for_media_key
 
 router = APIRouter(prefix="/catalog", tags=["catalog"])
 settings = get_settings()
@@ -27,6 +29,7 @@ def _to_catalog(db: Session, artifact: Artifact) -> CatalogArtifactOut:
         id_code=normalize_id_code(getattr(artifact, "id_code", None) or getattr(artifact, "rd_code", None)),
         title=artifact.title,
         description=artifact.description,
+        image_url=getattr(artifact, "image_url", "") or "",
         model_url=getattr(artifact, "model_url", "") or "",
         owner_name=artifact.owner_name,
         year_acquired=_year_value(artifact),
@@ -119,24 +122,47 @@ def list_catalog_artifacts(
     return [_to_catalog(db, row) for row in artifacts]
 
 
-@router.get("/artifacts/id/{id_code}", response_model=CatalogArtifactOut)
-def get_catalog_artifact_by_id(id_code: str, db: Session = Depends(get_db)) -> CatalogArtifactOut:
+def _find_published(db: Session, id_code: str) -> Artifact | None:
     code = normalize_id_code(id_code)
     if not code or len(code) > 32:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Artifact not found")
+        return None
     artifact = db.scalar(
         select(Artifact).where(Artifact.published.is_(True), Artifact.id_code == code)
     )
-    if not artifact:
-        # Compatibility: older rows may still store spaced codes until re-normalized
-        candidates = db.scalars(select(Artifact).where(Artifact.published.is_(True)).limit(500)).all()
-        artifact = next(
-            (a for a in candidates if normalize_id_code(getattr(a, "id_code", "") or getattr(a, "rd_code", "")) == code),
-            None,
-        )
+    if artifact:
+        return artifact
+    # Older rows may still store spaced codes until re-normalized.
+    candidates = db.scalars(select(Artifact).where(Artifact.published.is_(True)).limit(500)).all()
+    return next(
+        (
+            a
+            for a in candidates
+            if normalize_id_code(getattr(a, "id_code", "") or getattr(a, "rd_code", "")) == code
+        ),
+        None,
+    )
+
+
+@router.get("/artifacts/id/{id_code}", response_model=CatalogArtifactOut)
+def get_catalog_artifact_by_id(id_code: str, db: Session = Depends(get_db)) -> CatalogArtifactOut:
+    artifact = _find_published(db, id_code)
     if not artifact:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Artifact not found")
     return _to_catalog(db, artifact)
+
+
+@router.get("/artifacts/id/{id_code}/photo")
+@limiter.limit(settings.rate_limit_search)
+def get_catalog_artifact_photo(request: Request, id_code: str, db: Session = Depends(get_db)) -> FileResponse:
+    """Serve the curator-uploaded photo for a published artifact."""
+    del request
+    artifact = _find_published(db, id_code)
+    if not artifact:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Artifact not found")
+    path = photo_path_for_media_key(getattr(artifact, "image_url", "") or "")
+    if not path:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Photo not found")
+    return FileResponse(path)
 
 
 @router.get("/artifacts/rd/{rd_code}", response_model=CatalogArtifactOut)

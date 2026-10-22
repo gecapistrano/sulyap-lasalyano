@@ -19,7 +19,6 @@ import {
   getCatalogArtifactByIdCode,
   isBackendConfigured,
   listCatalogArtifacts,
-  mapCatalogArtifact,
 } from '../lib/archiveApi'
 import { t } from '../i18n'
 import './ARCamera.css'
@@ -267,9 +266,8 @@ export default function ARCamera({ language = 'English', onBrowse, onHome, darkM
         const rows = await listCatalogArtifacts()
         if (cancelled || !Array.isArray(rows)) return
         const map = new Map()
-        for (const row of rows) {
-          const mapped = mapCatalogArtifact(row)
-          const code = String(mapped?.rdCode || '')
+        for (const mapped of rows) {
+          const code = String(mapped?.rdCode || mapped?.idCode || '')
             .trim()
             .toUpperCase()
           if (code && mapped) map.set(code, mapped)
@@ -462,6 +460,7 @@ export default function ARCamera({ language = 'English', onBrowse, onHome, darkM
           tags: [record.rdCode || rdCode, record.subtitle].filter(Boolean),
           description: body,
           historical_context: body,
+          image_url: record.imageUrl || '',
         },
       })
     } else {
@@ -514,8 +513,7 @@ export default function ARCamera({ language = 'English', onBrowse, onHome, darkM
       try {
         let mapped = rdCode ? catalogByRdRef.current.get(rdCode) || null : null
         if (!mapped && rdCode && isBackendConfigured()) {
-          const row = await getCatalogArtifactByIdCode(rdCode)
-          mapped = mapCatalogArtifact(row)
+          mapped = await getCatalogArtifactByIdCode(rdCode)
           if (mapped) catalogByRdRef.current.set(rdCode, mapped)
         }
         if (reqId !== openRequestIdRef.current) return

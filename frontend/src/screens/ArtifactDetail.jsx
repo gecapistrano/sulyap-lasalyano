@@ -28,7 +28,7 @@ function getArtifactRdHeaderLabel(artifact, fallback = 'Artifact') {
   return fallback
 }
 
-export default function ArtifactDetail({ language = 'English', artifact, onBack, onViewKnowledgeGraph, onRelatedTag, darkMode }) {
+export default function ArtifactDetail({ language = 'English', artifact, pending = false, onBack, onViewKnowledgeGraph, onRelatedTag, darkMode }) {
   const copyScrollRef = useRef(null)
   const [copyFadeTop, setCopyFadeTop] = useState(false)
   const [copyFadeBottom, setCopyFadeBottom] = useState(false)
@@ -74,7 +74,24 @@ export default function ArtifactDetail({ language = 'English', artifact, onBack,
   const { text: translatedTitle } = useTranslatedText(sourceTitle, language)
   const { text: translatedOwner } = useTranslatedText(sourceOwner, language)
 
-  if (!artifact) return null
+  if (!artifact) {
+    return (
+      <div className={`ad-root${darkMode ? ' ad-dark' : ''}`}>
+        <header className="ad-header">
+          <button type="button" className="ad-back" onClick={onBack} aria-label={t(language, 'nav.back')}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+          <h1 className="ad-header-title">{t(language, 'detail.artifact')}</h1>
+          <div className="ad-header-trailing-spacer" aria-hidden />
+        </header>
+        <p className="ad-description" style={{ padding: '1.5rem' }}>
+          {pending ? t(language, 'browse.loading') : t(language, 'browse.notFound')}
+        </p>
+      </div>
+    )
+  }
 
   const title = translatedTitle || t(language, 'detail.artifact')
   const owner = translatedOwner || '\u2014'
@@ -143,8 +160,12 @@ export default function ArtifactDetail({ language = 'English', artifact, onBack,
                 <p className="ad-year">{year}</p>
               </div>
 
-              <div className="ad-president-photo" role="img" aria-label={t(language, 'detail.presidentPhotoAria')}>
-                <span aria-hidden>👤</span>
+              <div className="ad-president-photo" role="img" aria-label={artifact.imageUrl ? title : t(language, 'detail.presidentPhotoAria')}>
+                {artifact.imageUrl ? (
+                  <img src={artifact.imageUrl} alt={title} />
+                ) : (
+                  <span aria-hidden>👤</span>
+                )}
               </div>
             </div>
 

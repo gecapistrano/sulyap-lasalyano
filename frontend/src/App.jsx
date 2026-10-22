@@ -25,10 +25,8 @@ import CuratorDesk from './screens/CuratorDesk'
 import SplashScreen from './screens/SplashScreen'
 import { preloadRdScanner } from './lib/rdClassifier'
 import { emptySnapshot, mergeSnapshot, sanitizeSnapshot } from './lib/navigationHistory'
-import { findMockArtifactById, getAllMockArtifacts } from './data/artifactBrowseMocks'
-import { findPresidentById } from './data/presidentBrowseMocks'
 import { languageToCode, loadStoredLanguage, persistLanguage, t } from './i18n'
-import { getCatalogArtifactByIdCode, isBackendConfigured } from './lib/archiveApi'
+import { getCatalogArtifactByIdCode, isBackendConfigured, listCatalogPresidents } from './lib/archiveApi'
 
 const darkModeLogo = '/logo/LOGO_Dark-Mode.png'
 const lightModeLogo = '/logo/LOGO_Light-Mode.png'
@@ -77,7 +75,15 @@ export default function App({
   const bootScreen = routeScreen || resolveBootScreen()
 
   /** Last pushed / popped navigation snapshot (aligned with `history.state`). */
-  const navRef = useRef(emptySnapshot(bootScreen))
+  const bootSnap = emptySnapshot(bootScreen)
+  if (initialIdCode) bootSnap.idCode = String(initialIdCode)
+  if (initialPresidentId != null && initialPresidentId !== '') {
+    const pid = Number(initialPresidentId)
+    if (!Number.isNaN(pid)) bootSnap.presidentId = pid
+  }
+  const navRef = useRef(bootSnap)
+  const artifactCacheRef = useRef(new Map())
+  const presidentCacheRef = useRef(new Map())
 
   const [screen, setScreenRaw] = useState(bootScreen)
   const isPageRefresh = !routeScreen && screen === 'home'
@@ -129,9 +135,11 @@ export default function App({
 
   /** President row from browse (mock) — used by `president-artifacts` screen. */
 
-  const [selectedPresident, setSelectedPresident] = useState(() =>
-    initialPresidentId != null ? findPresidentById(initialPresidentId) : null,
+  const [selectedPresident, setSelectedPresident] = useState(null)
+  const [presidentPending, setPresidentPending] = useState(
+    () => initialPresidentId != null && initialPresidentId !== '',
   )
+  const [artifactPending, setArtifactPending] = useState(() => Boolean(initialIdCode))
 
   /** Where artifact detail was opened from — controls Back from `ArtifactDetail`. */
 
@@ -155,8 +163,67 @@ export default function App({
     const s = sanitizeSnapshot(candidate)
     navRef.current = s
     setScreenRaw(s.screen)
-    setBrowseArtifact(s.screen === 'artifact-detail' && s.artifactId != null ? findMockArtifactById(s.artifactId) : null)
-    setSelectedPresident(s.presidentId != null ? findPresidentById(s.presidentId) : null)
+    if (s.screen === 'artifact-detail') {
+      const cached = s.artifactId != null ? artifactCacheRef.current.get(Number(s.artifactId)) : null
+      if (cached) {
+        setBrowseArtifact(cached)
+        setArtifactPending(false)
+      } else if (s.idCode && isBackendConfigured()) {
+        const code = s.idCode
+        setBrowseArtifact(null)
+        setArtifactPending(true)
+        getCatalogArtifactByIdCode(code)
+          .then((row) => {
+            if (!row || navRef.current.screen !== 'artifact-detail' || navRef.current.idCode !== code) return
+            if (row.id != null) artifactCacheRef.current.set(Number(row.id), row)
+            setBrowseArtifact(row)
+            setArtifactPending(false)
+          })
+          .catch(() => {
+            if (navRef.current.screen === 'artifact-detail' && navRef.current.idCode === code) {
+              setArtifactPending(false)
+            }
+          })
+      } else {
+        setBrowseArtifact(null)
+        setArtifactPending(false)
+      }
+    } else {
+      setArtifactPending(false)
+    }
+    if (s.screen === 'president-artifacts' && s.presidentId != null) {
+      const pid = Number(s.presidentId)
+      const cached = presidentCacheRef.current.get(pid)
+      if (cached) {
+        setSelectedPresident(cached)
+        setPresidentPending(false)
+      } else if (isBackendConfigured()) {
+        setSelectedPresident(null)
+        setPresidentPending(true)
+        listCatalogPresidents()
+          .then((rows) => {
+            if (navRef.current.screen !== 'president-artifacts' || Number(navRef.current.presidentId) !== pid) return
+            const match = Array.isArray(rows) ? rows.find((p) => Number(p.id) === pid) : null
+            if (match) {
+              presidentCacheRef.current.set(pid, match)
+              setSelectedPresident(match)
+            } else {
+              setSelectedPresident(null)
+            }
+            setPresidentPending(false)
+          })
+          .catch(() => {
+            if (navRef.current.screen === 'president-artifacts' && Number(navRef.current.presidentId) === pid) {
+              setPresidentPending(false)
+            }
+          })
+      } else {
+        setSelectedPresident(null)
+        setPresidentPending(false)
+      }
+    } else if (s.screen !== 'artifact-detail' && s.screen !== 'related-artifacts' && s.screen !== 'knowledge-graph') {
+      setPresidentPending(false)
+    }
     setRelatedArtifactsTag(s.relatedArtifactsTag || '')
     setArtifactDetailReturn(s.artifactDetailReturn)
     setRelatedArtifactsReturn(s.relatedArtifactsReturn || 'artifact-detail')
@@ -283,6 +350,7 @@ export default function App({
             onBack={() => setScreen(browseReturnScreen)}
             darkMode={darkMode}
             onOpenPresident={(president) => {
+              if (president?.id != null) presidentCacheRef.current.set(Number(president.id), president)
               setScreen('president-artifacts', { presidentId: president.id })
             }}
           />
@@ -293,14 +361,17 @@ export default function App({
           <PresidentArtifacts
             language={language}
             president={selectedPresident}
+            pending={presidentPending}
             darkMode={darkMode}
             onBack={() => {
               setBrowseListView('presidents')
               setScreen('browse')
             }}
             onOpenArtifact={(artifact) => {
+              if (artifact?.id != null) artifactCacheRef.current.set(Number(artifact.id), artifact)
               setScreen('artifact-detail', {
                 artifactId: artifact.id,
+                idCode: artifact.idCode || artifact.rdCode || '',
                 artifactDetailReturn: 'president-artifacts',
                 presidentId: selectedPresident?.id ?? undefined,
               })
@@ -313,6 +384,7 @@ export default function App({
           <ArtifactDetail
             language={language}
             artifact={browseArtifact}
+            pending={artifactPending}
             darkMode={darkMode}
             onBack={() => {
               if (artifactDetailReturn === 'president-artifacts') {
@@ -343,8 +415,10 @@ export default function App({
             darkMode={darkMode}
             onBack={() => setScreen(relatedArtifactsReturn)}
             onOpenArtifact={(artifact) => {
+              if (artifact?.id != null) artifactCacheRef.current.set(Number(artifact.id), artifact)
               setScreen('artifact-detail', {
                 artifactId: artifact.id,
+                idCode: artifact.idCode || artifact.rdCode || '',
                 artifactDetailReturn: 'related-artifacts',
                 presidentId: null,
               })

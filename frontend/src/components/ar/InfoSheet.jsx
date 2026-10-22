@@ -19,6 +19,12 @@ export default function InfoSheet({ artifact, language = 'English', darkMode: _d
   const closingRef = useRef(false)
   const [showTopFade, setShowTopFade] = useState(false)
   const [showBottomFade, setShowBottomFade] = useState(false)
+  const [photoFailed, setPhotoFailed] = useState(false)
+  const photoUrl = typeof info?.image_url === 'string' ? info.image_url.trim() : ''
+
+  useEffect(() => {
+    setPhotoFailed(false)
+  }, [photoUrl])
 
   /** Single paragraph: collapse internal newlines so layout is one block of body text. */
   const descriptionSource = useMemo(() => {
@@ -199,8 +205,8 @@ export default function InfoSheet({ artifact, language = 'English', darkMode: _d
               </div>
             </div>
             <div className={`shrink-0 w-24 h-24 rounded-lg border ${photoBorder} ${photoBg} overflow-hidden flex items-center justify-center`}>
-              {info.president_photo
-                ? <img src={info.president_photo} alt={info.president} className="w-full h-full object-cover" />
+              {photoUrl && !photoFailed
+                ? <img src={photoUrl} alt={info.name || ''} className="w-full h-full object-cover" onError={() => setPhotoFailed(true)} />
                 : <svg viewBox="0 0 24 24" fill="none" stroke={photoStroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-7 h-7 opacity-40"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
               }
             </div>

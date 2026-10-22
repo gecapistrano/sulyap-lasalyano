@@ -2,7 +2,6 @@
  * RelatedArtifacts — list of memorabilia sharing a selected tag (same card style as Browse).
  */
 import { useEffect, useMemo, useState } from 'react'
-import { getArtifactsForRelatedTag } from '../lib/relatedTags'
 import { isBackendConfigured, listRelatedArtifacts } from '../lib/archiveApi'
 import { t } from '../i18n'
 import { validateSearchQuery } from '../utils/security'
@@ -12,7 +11,7 @@ import './RelatedArtifacts.css'
 export default function RelatedArtifacts({ language = 'English', tag, onBack, onOpenArtifact, darkMode }) {
   const [query, setQuery] = useState('')
   const [apiList, setApiList] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(() => Boolean(String(tag || '').trim() && isBackendConfigured()))
 
   const { sanitized: safeQuery } = validateSearchQuery(query)
 
@@ -39,10 +38,7 @@ export default function RelatedArtifacts({ language = 'English', tag, onBack, on
     }
   }, [tag])
 
-  const baseList = useMemo(() => {
-    if (Array.isArray(apiList)) return apiList
-    return getArtifactsForRelatedTag(tag ?? '')
-  }, [apiList, tag])
+  const baseList = useMemo(() => (Array.isArray(apiList) ? apiList : []), [apiList])
 
   const filtered = useMemo(() => {
     if (!safeQuery) return baseList
@@ -98,7 +94,9 @@ export default function RelatedArtifacts({ language = 'English', tag, onBack, on
       </p>
 
       <div className="browse-list">
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="ra-empty">{t(language, 'browse.loading')}</div>
+        ) : filtered.length === 0 ? (
           <div className="ra-empty">{t(language, 'browse.emptyTag')}</div>
         ) : (
           filtered.map((entry) => (

@@ -1,11 +1,7 @@
 /**
  * Browser history snapshots for App.jsx (pushState / popstate).
  * Keeps enough context to restore artifact / president / tag views when the user uses the browser Back button.
- */
-import { findMockArtifactById } from '../data/artifactBrowseMocks'
-import { findPresidentById } from '../data/presidentBrowseMocks'
-
-/**
+ *
  * @typedef {{
  *   screen: string,
  *   artifactId: number | null,
@@ -28,6 +24,7 @@ export function emptySnapshot(screen = 'home') {
     relatedArtifactsReturn: 'artifact-detail',
     kgReturnScreen: 'home',
     browseReturnScreen: 'home',
+    idCode: '',
   }
 }
 
@@ -50,6 +47,7 @@ export function normalizeSnapshot(raw) {
     kgReturnScreen: typeof raw.kgReturnScreen === 'string' && raw.kgReturnScreen ? raw.kgReturnScreen : 'home',
     browseReturnScreen:
       typeof raw.browseReturnScreen === 'string' && raw.browseReturnScreen ? raw.browseReturnScreen : 'home',
+    idCode: typeof raw.idCode === 'string' ? raw.idCode : '',
   }
 }
 
@@ -57,10 +55,12 @@ export function normalizeSnapshot(raw) {
 export function sanitizeSnapshot(raw) {
   const n = normalizeSnapshot(raw)
   if (n.screen === 'artifact-detail') {
-    if (n.artifactId == null || !findMockArtifactById(n.artifactId)) return emptySnapshot('home')
+    const code = typeof n.idCode === 'string' ? n.idCode.trim() : ''
+    const idMissing = n.artifactId == null || Number.isNaN(n.artifactId)
+    if (idMissing && !code) return emptySnapshot('home')
   }
   if (n.screen === 'president-artifacts') {
-    if (n.presidentId == null || !findPresidentById(n.presidentId)) return emptySnapshot('home')
+    if (n.presidentId == null || Number.isNaN(Number(n.presidentId))) return emptySnapshot('home')
   }
   if (n.screen === 'related-artifacts') {
     if (typeof n.relatedArtifactsTag !== 'string' || !n.relatedArtifactsTag.trim()) return emptySnapshot('home')
@@ -110,6 +110,7 @@ export function mergeSnapshot(prev, nextScreen, patch = {}) {
         relatedArtifactsReturn: patch.relatedArtifactsReturn ?? p.relatedArtifactsReturn ?? 'artifact-detail',
         kgReturnScreen: patch.kgReturnScreen ?? p.kgReturnScreen ?? 'home',
         browseReturnScreen: patch.browseReturnScreen ?? p.browseReturnScreen ?? 'home',
+        idCode: patch.idCode != null ? String(patch.idCode) : p.idCode || '',
       }
     }
 

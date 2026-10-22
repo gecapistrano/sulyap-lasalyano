@@ -109,6 +109,7 @@ class CatalogArtifactOut(StrictSchema):
     id_code: str
     title: str
     description: str
+    image_url: str = ""
     model_url: str = ""
     owner_name: str
     year_acquired: str = ""

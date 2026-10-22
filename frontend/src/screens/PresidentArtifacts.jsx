@@ -3,8 +3,7 @@
  * Replace filtering with API `GET /presidents/:id/artifacts` (or similar) when backend exists.
  */
 import { useEffect, useMemo, useState } from 'react'
-import { getMockArtifactsForPresident } from '../data/artifactBrowseMocks'
-import { isBackendConfigured, listCatalogArtifacts, mapCatalogArtifact } from '../lib/archiveApi'
+import { isBackendConfigured, listCatalogArtifacts } from '../lib/archiveApi'
 import { t } from '../i18n'
 import { validateSearchQuery } from '../utils/security'
 import './BrowseMode.css'
@@ -22,20 +21,28 @@ function formatServiceYears(service) {
   return service
 }
 
-export default function PresidentArtifacts({ language = 'English', president, onBack, onOpenArtifact, darkMode }) {
+export default function PresidentArtifacts({ language = 'English', president, pending = false, onBack, onOpenArtifact, darkMode }) {
   const [query, setQuery] = useState('')
-  const [remoteRows, setRemoteRows] = useState(null)
+  const [remoteRows, setRemoteRows] = useState([])
+  const [loading, setLoading] = useState(() => isBackendConfigured() && Boolean(president?.name))
 
   useEffect(() => {
-    if (!isBackendConfigured() || !president?.name) return undefined
+    if (!isBackendConfigured() || !president?.name) {
+      setRemoteRows([])
+      setLoading(false)
+      return undefined
+    }
     let cancelled = false
+    setLoading(true)
     listCatalogArtifacts({ ownerName: president.name })
       .then((rows) => {
-        if (cancelled || !Array.isArray(rows)) return
-        setRemoteRows(rows.map(mapCatalogArtifact).filter(Boolean))
+        if (!cancelled) setRemoteRows(Array.isArray(rows) ? rows : [])
       })
       .catch(() => {
-        if (!cancelled) setRemoteRows(null)
+        if (!cancelled) setRemoteRows([])
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
       })
     return () => {
       cancelled = true
@@ -45,7 +52,7 @@ export default function PresidentArtifacts({ language = 'English', president, on
   const { sanitized: safeQuery } = validateSearchQuery(query)
 
   const filtered = useMemo(() => {
-    const base = remoteRows ?? getMockArtifactsForPresident(president?.name ?? '')
+    const base = remoteRows
     if (!safeQuery) return base
     const q = safeQuery.toLowerCase()
     return base.filter((a) =>
@@ -53,7 +60,24 @@ export default function PresidentArtifacts({ language = 'English', president, on
     )
   }, [president?.name, remoteRows, safeQuery])
 
-  if (!president) return null
+  if (!president) {
+    return (
+      <div className={`browse-root president-artifacts-root${darkMode ? ' browse-dark' : ''}`}>
+        <header className="browse-header">
+          <button type="button" className="browse-back" onClick={onBack} aria-label={t(language, 'nav.back')}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+          <div style={{ flex: 1 }} />
+          <div style={{ width: '1.25rem' }} />
+        </header>
+        <div className="browse-empty">
+          {pending ? t(language, 'browse.loading') : t(language, 'browse.emptyPresidents')}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className={`browse-root president-artifacts-root${darkMode ? ' browse-dark' : ''}`}>
@@ -98,11 +122,15 @@ export default function PresidentArtifacts({ language = 'English', president, on
       </div>
 
       <p className="president-artifacts-count" role="status">
-        {t(language, filtered.length === 1 ? 'browse.item' : 'browse.items', { count: filtered.length })}
+        {loading
+          ? t(language, 'browse.loading')
+          : t(language, filtered.length === 1 ? 'browse.item' : 'browse.items', { count: filtered.length })}
       </p>
 
       <div className="browse-list">
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="president-artifacts-empty">{t(language, 'browse.loading')}</div>
+        ) : filtered.length === 0 ? (
           <div className="president-artifacts-empty">
             {t(language, 'browse.emptyPresident')}
           </div>

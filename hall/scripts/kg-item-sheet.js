@@ -377,6 +377,13 @@ export function createItemSheet(opts) {
     });
   }
 
+  window.__slBackStack = window.__slBackStack || [];
+  window.__slBackStack.push(function () {
+    if (!itemViewActive()) return false;
+    if (open) close();
+    return true;
+  });
+
   if (backBtn) {
     backBtn.addEventListener('click', function (e) {
       if (!itemViewActive()) return;

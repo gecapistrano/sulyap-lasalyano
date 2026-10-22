@@ -290,27 +290,25 @@
 
   window.slPageLeave = leaveThen;
 
+  function consumeBack(){
+    var stack = window.__slBackStack || [];
+    var i;
+    for(i = stack.length - 1; i >= 0; i--){
+      try{
+        if(stack[i]()) return true;
+      }catch(err){}
+    }
+    return false;
+  }
+
   document.addEventListener('click', function(e){
     if(e.defaultPrevented || e.button !== 0) return;
     if(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     var back = e.target.closest && e.target.closest('#scanBackHome, #kgBack, #presBack');
     if(back){
-      /* Item result view: header X closes the 3D stage, not the scan page. */
-      if(back.id === 'scanBackHome' && document.querySelector('.scan-shell.is-result, .scan-shell.is-leaving-result')){
-        return;
-      }
-      /* KG memorabilia sheet: header X closes the overlay, not the graph. */
-      if(back.id === 'kgBack'){
-        var kgOverlay = document.getElementById('kgItemOverlay');
-        if(document.body.classList.contains('is-item-open')
-          || document.body.classList.contains('is-item-leaving')
-          || (kgOverlay && !kgOverlay.hidden)){
-          e.preventDefault();
-          return;
-        }
-      }
       e.preventDefault();
       e.stopPropagation();
+      if(consumeBack()) return;
       goHome();
       return;
     }
@@ -325,6 +323,11 @@
     e.preventDefault();
     leaveThen(function(){ location.href = url.href; }, kindFromUrl(url));
   }, true);
+
+  document.addEventListener('keydown', function(e){
+    if(e.key !== 'Escape' || e.defaultPrevented) return;
+    if(consumeBack()) e.preventDefault();
+  });
 
   addEventListener('pageshow', function(e){
     var root = document.documentElement;

@@ -310,6 +310,13 @@
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') closeLightbox();
     });
+    window.__slBackStack = window.__slBackStack || [];
+    window.__slBackStack.push(function () {
+      var dlg = document.getElementById('presLightbox');
+      if (!dlg || !dlg.open) return false;
+      closeLightbox();
+      return true;
+    });
   }
 
   function catalogTiles(artifacts) {

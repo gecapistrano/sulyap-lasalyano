@@ -161,6 +161,12 @@ function presidentNodeId(slug) {
   return `pres:${slug}`
 }
 
+export function presidentPortraitSrc(name, version = '3') {
+  const slug = slugifyPresident(name)
+  if (!HALL_PORTRAITS.has(slug)) return ''
+  return `/assets/presidents/${slug}.jpg?v=${version}`
+}
+
 function presidentPhoto(row, slug, apiBase) {
   const fromCatalog = resolveCatalogMediaUrl(pick(row, ['photo_url', 'photoUrl', 'photo']), apiBase)
   if (/^https?:\/\//i.test(fromCatalog)) return fromCatalog
@@ -267,11 +273,14 @@ export function buildCatalogGraph(presidentsInput, artifactsInput, options = {})
       rdCode: code,
       name: title,
       presidentId: pres ? pres.id : '',
+      owner: text(pick(art, ['owner_name', 'ownerName', 'owner'])) || (pres ? pres.displayName : ''),
       year,
       category,
       event: '',
       givenBy: '',
       place,
+      subtitle: text(pick(art, ['subtitle'])),
+      tags: Array.isArray(art.tags) ? art.tags.filter(Boolean) : [],
       description: text(pick(art, ['description'])),
       image: resolveCatalogMediaUrl(image, apiBase),
       modelFile: resolveCatalogMediaUrl(model, apiBase),

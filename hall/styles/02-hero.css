@@ -404,15 +404,14 @@ html.home-enter .hero-cta{
   -webkit-touch-callout:none;
   user-drag:none;
   -webkit-user-drag:none;
+  cursor:pointer;
 }
 .board .partner-logo:hover{scale:1.04}
 .board .partner-logo img{
   width:100%;height:auto;display:block;
   object-fit:contain;object-position:center;
   background:transparent;
-  filter:none!important;-webkit-filter:none!important;
-}
-.board .partner-logo img{
+  pointer-events:none;
   filter:none!important;-webkit-filter:none!important;
 }
 .board .partner-logo:focus-visible{outline:2px solid var(--wood-ink);outline-offset:4px;border-radius:4px}

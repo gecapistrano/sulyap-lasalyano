@@ -920,7 +920,7 @@
 }
 .scan-sheet{
   --sheet-peek:5.15rem;
-  --sheet-open:min(72dvh, calc(100dvh - 9.25rem));
+  --sheet-open:min(88dvh, calc(100dvh - 5.25rem));
   pointer-events:auto;
   display:flex;
   flex-direction:column;
@@ -1005,32 +1005,26 @@
 .scan-shell.is-sheet-open .scan-sheet__name{
   white-space:normal;
 }
-.scan-sheet__photo{
-  display:block;
-  width:5.5rem;
-  height:5.5rem;
-  margin:0 0 .7rem;
-  object-fit:cover;
-  border-radius:.55rem;
-  border:1px solid rgba(42,63,52,.9);
-}
-.scan-sheet__photo[hidden]{
-  display:none;
-}
 .scan-sheet__president{
-  font-family:var(--mono);
-  font-size:.7rem;
-  font-weight:700;
-  letter-spacing:.16em;
-  text-transform:uppercase;
-  color:#86efac;
+  font-family:var(--serif);
+  font-size:1.02rem;
+  font-weight:600;
+  letter-spacing:0;
+  text-transform:none;
+  line-height:1.2;
+  color:var(--cream);
 }
+.scan-sheet__president[hidden]{ display:none; }
 .scan-sheet__year{
-  margin:.45rem 0 0;
+  margin:0;
+  display:flex;
+  flex-direction:column;
+  gap:.12rem;
   font-size:.9rem;
   font-weight:700;
   color:var(--cream-dim);
 }
+.scan-sheet__year[hidden]{ display:none; }
 .scan-sheet__body{
   flex:1;
   min-height:0;
@@ -1050,13 +1044,14 @@
   touch-action:pan-y;
 }
 .scan-sheet__desc{
-  margin:.85rem 0 0;
-  min-height:4.6em;
+  margin:.15rem 0 0;
   font-size:.9rem;
   font-weight:500;
-  line-height:1.55;
+  line-height:1.5;
   color:rgba(247,244,239,.9);
+  text-wrap:pretty;
 }
+.scan-sheet__desc:empty{ display:none; }
 .scan-sheet__history-title{
   margin:1.25rem 0 0;
   font-family:var(--mono);

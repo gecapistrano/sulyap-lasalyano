@@ -14,6 +14,7 @@ import {
 } from './scan/rd-classifier.js?v=4'
 import { createModelStage } from './scan/model-stage.js?v=17'
 import { catalogModelSrc } from './catalog-models.js?v=4'
+import { relatedGroups, paintOwnerYear, renderRelatedSection } from './related-panel.js?v=2'
 
 const MIN_CANDIDATE_CONFIDENCE = 0.32
 const MIN_LOCK_CONFIDENCE = 0.55
@@ -447,6 +448,9 @@ function mapCatalogRow(row) {
     year: row.year_acquired || row.year || '',
     subtitle: row.subtitle || '',
     description: row.description || '',
+    type: row.artifact_type || '',
+    country: row.country_of_origin || '',
+    tags: Array.isArray(row.tags) ? row.tags : [],
     imageUrl: catalogPhotoSrc(idCode, row.image_url || ''),
     modelUrl: catalogModelSrc(row.model_url || '', idCode),
   }
@@ -687,10 +691,12 @@ function initScanPage() {
   const infoCode = qs('#scanInfoCode', root)
   const infoPresident = qs('#scanInfoPresident', root)
   const infoPhoto = qs('#scanInfoPhoto', root)
+  const infoOwner = qs('#scanInfoOwner', root)
   const infoName = qs('#scanInfoName', root)
   const infoYear = qs('#scanInfoYear', root)
   const infoDesc = qs('#scanInfoDesc', root)
   const infoHistory = qs('#scanInfoHistory', root)
+  const relatedHost = qs('#scanRelated', root)
   const sheetInner = qs('.scan-sheet', infoSheet)
   const outlineNodes = new Map()
   const overlaySize = { w: 0, h: 0 }
@@ -1105,23 +1111,28 @@ function initScanPage() {
       if (gen !== copyGen) return
       setText(infoCode, code)
       setText(infoName, title)
-      setText(infoPresident, localizePresidentName(president))
-      setText(infoYear, info.year || '')
-      if (infoPhoto) {
-        const photo = typeof info.image_url === 'string' ? info.image_url.trim() : ''
-        if (photo) {
-          infoPhoto.hidden = false
-          infoPhoto.alt = title || info.name || ''
-          infoPhoto.src = photo
-        } else {
-          infoPhoto.hidden = true
-          infoPhoto.removeAttribute('src')
-        }
+      paintOwnerYear({
+        t,
+        owner: president,
+        year: info.year || '',
+        title: title,
+        description: desc,
+        presEl: infoPresident,
+        yearEl: infoYear,
+        photoEl: infoPhoto,
+        wrapEl: infoOwner,
+      })
+      if (infoPresident && president) {
+        infoPresident.textContent = localizePresidentName(president)
+        infoPresident.hidden = false
       }
-      setFadingText(infoDesc, desc)
-      setFadingText(infoHistory, hist)
+      const sameCopy = desc && title && desc.indexOf(title) === 0
+      setFadingText(infoDesc, sameCopy ? '' : desc)
+      const uniqueHist = hist && hist !== desc ? hist : ''
+      setFadingText(infoHistory, uniqueHist)
       const histSection = qs('#scanHistorySection', root)
-      if (histSection) histSection.hidden = !hist
+      if (histSection) histSection.hidden = !uniqueHist
+      paintRelated(artifact)
     }
 
     if (!canTranslate) {
@@ -1157,6 +1168,47 @@ function initScanPage() {
   function itemCode() {
     const info = state.artifact?.artifactInfo || {}
     return String(state.artifact?.label || info.code || '').trim()
+  }
+
+  function paintRelated(artifact) {
+    const info = artifact?.artifactInfo || {}
+    const code = String(artifact?.label || info.code || '').trim().toUpperCase()
+    const source = {
+      rdCode: code,
+      name: info.name,
+      owner: info.president,
+      year: info.year,
+      tags: info.tags,
+      type: info.type,
+      country: info.country,
+      subtitle: info.subtitle,
+    }
+    renderRelatedSection(relatedHost, {
+      t,
+      code,
+      groups: relatedGroups(source, Array.from(state.catalogByRd.values()), t),
+      onOpen: openRelatedArtifact,
+    })
+  }
+
+  async function openRelatedArtifact(nextCode) {
+    const rdCode = String(nextCode || '').trim().toUpperCase()
+    if (!rdCode || state.mode === 'SCANNING') return
+    const stayOpen = state.mode === 'INFO_OPEN'
+    const reqId = (state.openRequestId += 1)
+    const cached = state.catalogByRd.get(rdCode) || null
+    applyDetectionRecord(cached, 0, rdCode)
+    if (stayOpen) expandSheet()
+    if (cached) return
+    try {
+      const mapped = await fetchCatalogByCode(rdCode)
+      if (reqId !== state.openRequestId) return
+      if (mapped) state.catalogByRd.set(rdCode, mapped)
+      applyDetectionRecord(mapped, 0, rdCode)
+      if (stayOpen) expandSheet()
+    } catch {
+      if (reqId !== state.openRequestId) return
+    }
   }
 
   function syncResultChrome() {
@@ -1343,9 +1395,12 @@ function initScanPage() {
             president: record.owner,
             year: record.year,
             description: record.description || t('scan.noCatalog', 'No published catalog record for this item yet.'),
-            historical_context: record.description || '',
+            historical_context: '',
             image_url: record.imageUrl || '',
             model_url: record.modelUrl || '',
+            tags: record.tags || [],
+            type: record.type || '',
+            country: record.country || '',
           },
         }
       : {
@@ -1388,9 +1443,12 @@ function initScanPage() {
         description: cached
           ? (cached.description || '')
           : t('scan.loadingCatalogDetails', 'Loading catalog details…'),
-        historical_context: cached?.description || '',
+        historical_context: '',
         image_url: cached?.imageUrl || '',
         model_url: cached?.modelUrl || '',
+        tags: cached?.tags || [],
+        type: cached?.type || '',
+        country: cached?.country || '',
       },
     }, !cached)
 
@@ -1447,7 +1505,9 @@ function initScanPage() {
       state.cameraState = 'granted'
       state.cameraMessageKey = ''
       renderPermission()
-      void warmCatalogMap(state.catalogByRd)
+      void warmCatalogMap(state.catalogByRd).then(() => {
+        if (state.artifact) paintRelated(state.artifact)
+      })
       startInferenceLoop()
     } catch (err) {
       if (reqId !== state.cameraRequestId) return
@@ -1853,6 +1913,9 @@ function initScanPage() {
   })()
 
   renderPermission()
+  void warmCatalogMap(state.catalogByRd).then(() => {
+    if (state.artifact) paintRelated(state.artifact)
+  })
   void requestCamera()
   document.addEventListener('sl-scan-preview', (event) => {
     const code = event?.detail?.code

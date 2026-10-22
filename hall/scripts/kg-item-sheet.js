@@ -4,6 +4,7 @@
  */
 import { createModelStage } from './scan/model-stage.js?v=17'
 import { catalogModelSrc } from './catalog-models.js?v=4'
+import { relatedGroups, paintOwnerYear, renderRelatedSection } from './related-panel.js?v=2'
 
 export function createItemSheet(opts) {
   var t = opts.t || function (_k, fallback) { return fallback; };
@@ -11,6 +12,7 @@ export function createItemSheet(opts) {
   var presidentOf = opts.presidentOf || function () { return null; };
   var onOpen = opts.onOpen || function () {};
   var onClose = opts.onClose || function () {};
+  var catalogItems = opts.catalogItems || function () { return []; };
 
   var overlay = document.getElementById('kgItemOverlay');
   var stageHost = document.getElementById('kgItemStage');
@@ -19,11 +21,13 @@ export function createItemSheet(opts) {
   var codeEl = document.getElementById('kgItemCode');
   var nameEl = document.getElementById('kgItemName');
   var photoEl = document.getElementById('kgItemPhoto');
+  var ownerWrap = document.getElementById('kgItemOwner');
   var presEl = document.getElementById('kgItemPresident');
   var yearEl = document.getElementById('kgItemYear');
   var descEl = document.getElementById('kgItemDesc');
   var histSection = document.getElementById('kgItemHistorySection');
   var histEl = document.getElementById('kgItemHistory');
+  var relatedHost = document.getElementById('kgItemRelated');
   var backBtn = document.getElementById('kgBack');
   var titleCode = document.querySelector('.kg-title-code');
   var titleRest = document.querySelector('.kg-title-rest');
@@ -136,21 +140,79 @@ export function createItemSheet(opts) {
     return String(image || '').trim();
   }
 
+  function findArtifact(code) {
+    var needle = String(code || '').trim().toUpperCase();
+    if (!needle) return null;
+    var list = catalogItems() || [];
+    for (var i = 0; i < list.length; i++) {
+      var row = list[i];
+      var hit = String((row && (row.rdCode || row.id_code || row.code)) || '').trim().toUpperCase();
+      if (hit === needle) return row;
+    }
+    return null;
+  }
+
+  function paintRelated(fields) {
+    if (!relatedHost) return;
+    if (fields.kind === 'president' || !fields.code) {
+      relatedHost.hidden = true;
+      relatedHost.replaceChildren();
+      return;
+    }
+    renderRelatedSection(relatedHost, {
+      t: t,
+      code: fields.code,
+      groups: relatedGroups({
+        rdCode: fields.code,
+        name: fields.name,
+        owner: fields.president,
+        year: fields.year,
+        tags: fields.tags,
+        type: fields.type,
+        country: fields.country,
+        subtitle: fields.subtitle,
+      }, catalogItems(), t),
+      onOpen: function (nextCode) {
+        var node = findArtifact(nextCode);
+        if (node) openArtifact(node);
+      },
+    });
+  }
+
   function paint(fields) {
     var code = fields.code || '';
     var name = fields.name || t('scan.unknownItem', 'Unknown item');
+    var desc = fields.description || '';
+    var sameCopy = desc && name && desc.indexOf(name) === 0;
     setText(codeEl, code);
     if (codeEl) codeEl.hidden = !code;
     setText(nameEl, name);
-    setText(presEl, fields.president || '');
-    if (presEl) presEl.hidden = !fields.president;
-    setText(yearEl, fields.year || '');
-    if (yearEl) yearEl.hidden = !fields.year;
-    setText(descEl, fields.description || '');
+    if (fields.kind === 'president') {
+      setText(presEl, fields.president || '');
+      if (presEl) presEl.hidden = !fields.president;
+      setText(yearEl, fields.year || '');
+      if (yearEl) yearEl.hidden = !fields.year;
+      setPhoto(fields.photo, name);
+      if (ownerWrap) ownerWrap.hidden = !fields.president && !fields.year;
+    } else {
+      paintOwnerYear({
+        t: t,
+        owner: fields.president || '',
+        year: fields.year || '',
+        title: name,
+        description: desc,
+        presEl: presEl,
+        yearEl: yearEl,
+        photoEl: photoEl,
+        wrapEl: ownerWrap,
+      });
+    }
+    setText(descEl, sameCopy ? '' : desc);
     var hist = fields.history || '';
+    if (hist && hist === desc) hist = '';
     setText(histEl, hist);
     if (histSection) histSection.hidden = !hist;
-    setPhoto(fields.photo, name);
+    paintRelated(fields);
     if (titleCode) {
       titleCode.textContent = code ? '- ' + code : (fields.titleBit ? '- ' + fields.titleBit : '');
       titleCode.setAttribute('aria-hidden', open ? 'false' : 'true');
@@ -226,15 +288,19 @@ export function createItemSheet(opts) {
     var code = String(node.rdCode || '').trim();
     var pres = presidentOf(node.presidentId);
     var fields = {
+      kind: 'artifact',
       code: code,
       name: node.label || node.name || code,
-      president: (pres && (pres.displayName || pres.label)) || '',
+      president: node.owner || (pres && (pres.displayName || pres.label)) || '',
       year: node.year || '',
       description: node.description || t('scan.loadingCatalogDetails', 'Loading catalog details…'),
       history: '',
-      photo: catalogPhotoSrc(code, node.image),
+      tags: node.tags || [],
+      type: node.category || node.type || '',
+      country: node.place || node.country || '',
+      subtitle: node.subtitle || '',
     };
-    showOverlay();
+    if (!open) showOverlay();
     paint(fields);
     showModel(catalogModelSrc(node.modelFile || '', code));
     if (!code) return;
@@ -244,13 +310,17 @@ export function createItemSheet(opts) {
         if (gen !== loadGen || !open) return;
         var owner = (row && row.owner_name) || fields.president;
         paint({
+          kind: 'artifact',
           code: (row && row.id_code) || code,
           name: (row && row.title) || fields.name,
           president: owner,
           year: (row && (row.year_acquired || row.year)) || fields.year,
           description: (row && row.description) || '',
           history: '',
-          photo: catalogPhotoSrc((row && row.id_code) || code, (row && row.image_url) || node.image),
+          tags: (row && row.tags) || fields.tags,
+          type: (row && row.artifact_type) || fields.type,
+          country: (row && row.country_of_origin) || fields.country,
+          subtitle: (row && row.subtitle) || fields.subtitle,
         });
         showModel(catalogModelSrc((row && row.model_url) || node.modelFile || '', (row && row.id_code) || code));
       })
@@ -267,6 +337,7 @@ export function createItemSheet(opts) {
   function openPresident(node) {
     if (!node) return;
     var fields = {
+      kind: 'president',
       code: '',
       name: node.displayName || node.label || '',
       president: node.shortLabel || '',
@@ -276,7 +347,7 @@ export function createItemSheet(opts) {
       photo: node.photo || '',
       titleBit: node.shortLabel || node.label || '',
     };
-    showOverlay();
+    if (!open) showOverlay();
     paint(fields);
     showModel('');
     var gen = (loadGen += 1);
@@ -288,6 +359,7 @@ export function createItemSheet(opts) {
         });
         if (!hit) return;
         paint({
+          kind: 'president',
           code: '',
           name: hit.name || fields.name,
           president: node.shortLabel || '',

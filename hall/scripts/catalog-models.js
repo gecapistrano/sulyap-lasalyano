@@ -17,6 +17,11 @@ function isLocalHall() {
   return host === '127.0.0.1' || host === 'localhost'
 }
 
+export function hasVendoredCatalogModel(idCode) {
+  const code = String(idCode || '').trim().toUpperCase()
+  return VENDORED_GLBS.has(code)
+}
+
 export function catalogModelSrc(modelUrl, idCode) {
   const value = typeof modelUrl === 'string' ? modelUrl.trim() : ''
   const code = String(idCode || '').trim().toUpperCase()

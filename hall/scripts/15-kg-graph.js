@@ -1,8 +1,8 @@
 /* Knowledge Graph — 3D constellation (orbit / pan / zoom / select / layouts). */
 import * as THREE from 'three';
 import { buildCatalogGraph } from './catalog-graph.mjs?v=4';
-import { createItemSheet } from './kg-item-sheet.js?v=10';
-import { catalogModelSrc } from './catalog-models.js?v=2';
+import { createItemSheet } from './kg-item-sheet.js?v=11';
+import { catalogModelSrc } from './catalog-models.js?v=3';
 import { CATALOG_GLB_CODES } from './catalog-glb-ids.js?v=2';
 import { loadCatalogGlb, prepareCatalogMaterials } from './scan/model-stage.js?v=17';
 
@@ -473,7 +473,8 @@ import { loadCatalogGlb, prepareCatalogMaterials } from './scan/model-stage.js?v
   }
 
   function maxGraphGlbs() {
-    return wideMQ.matches ? 28 : 16;
+    /* HQ originals are 7–76MB. Cap constellation so one visit does not pull hundreds of MB. Overlay still loads the full file on click. */
+    return wideMQ.matches ? 10 : 6;
   }
 
   function pumpGlbQueue() {

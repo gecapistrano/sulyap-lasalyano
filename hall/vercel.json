@@ -3,6 +3,7 @@
   "buildCommand": "node scripts/check-scan-assets.mjs",
   "installCommand": "",
   "outputDirectory": "",
+  "ignoreCommand": "[ \"$VERCEL_ENV\" = preview ]",
   "headers": [
     {
       "source": "/models/(.*)",

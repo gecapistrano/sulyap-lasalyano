@@ -1,0 +1,22 @@
+# Free keep-alive for the Render web service. Sleep is what makes catalog /
+# president / KG hang 30–90s. This GET is public and spends no paid minutes
+# beyond GitHub Actions' free public-repo quota.
+name: Keep Render API awake
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: GET /health
+        run: >
+          curl -fsS --retry 2 --retry-all-errors --retry-delay 8 --max-time 90
+          https://sulyap-lasalyano-api.onrender.com/health

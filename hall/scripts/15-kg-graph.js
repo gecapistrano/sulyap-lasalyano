@@ -473,8 +473,8 @@ import { loadCatalogGlb, prepareCatalogMaterials } from './scan/model-stage.js?v
   }
 
   function maxGraphGlbs() {
-    /* HQ originals are 7–76MB. Cap constellation so one visit does not pull hundreds of MB. Overlay still loads the full file on click. */
-    return wideMQ.matches ? 10 : 6;
+    /* Do not auto-load all 58 HQ files. Overlay still loads the clicked item in full. */
+    return wideMQ.matches ? 28 : 16;
   }
 
   function pumpGlbQueue() {

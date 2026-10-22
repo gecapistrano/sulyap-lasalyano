@@ -6,11 +6,13 @@ Compress laptop copies (`npm run models:compress`) and publish to R2/Pages inste
 
 Does not store binaries in Postgres. Uses SUPABASE_SERVICE_ROLE_KEY locally.
 
+Visitor GLBs stay on the Vercel hall host. Do not re-upload them to Storage
+(Cached Egress is billed even on cache hits; purging does not refund usage).
+
 Usage (from backend/):
   python scripts/upload_catalog_models.py --dry-run
-  python scripts/upload_catalog_models.py
-  python scripts/upload_catalog_models.py --skip-existing
-  python scripts/upload_catalog_models.py --from-dir "D:\\STORAGE\\Downloads\\Andrew Gonzales (AG)"
+  python scripts/upload_catalog_models.py --bill-supabase-egress
+  python scripts/upload_catalog_models.py --bill-supabase-egress --skip-existing
 """
 from __future__ import annotations
 
@@ -336,6 +338,11 @@ def main() -> int:
     )
     parser.add_argument("--dry-run", action="store_true", help="List files and keys without uploading")
     parser.add_argument(
+        "--bill-supabase-egress",
+        action="store_true",
+        help="Required for a real upload. Visitor GLBs must stay off Supabase Storage.",
+    )
+    parser.add_argument(
         "--skip-existing",
         action="store_true",
         help="Skip objects whose DB row already stores the public URL for that key",
@@ -354,6 +361,16 @@ def main() -> int:
         help="Skip files larger than this many megabytes (default 80)",
     )
     args = parser.parse_args()
+
+    if not args.dry_run and not args.bill_supabase_egress:
+        print(
+            "Refusing to upload GLBs to Supabase Storage.\n"
+            "Visitor 3D is served from hall/models/catalog on Vercel.\n"
+            "Re-uploading spends Cached Egress and purging does not refund it.\n"
+            "Use --dry-run, or pass --bill-supabase-egress only if you accept that bill.",
+            file=sys.stderr,
+        )
+        return 2
 
     storage: StorageSettings | None = None
     try:

@@ -28,27 +28,52 @@ function fitObject(object, target = 1.35) {
   object.position.sub(center.multiplyScalar(target / maxDim))
 }
 
+function albedoTexture(mat) {
+  const tex = mat && mat.map
+  if (!tex) return null
+  const img = tex.image
+  if (img && typeof ImageBitmap !== 'undefined' && img instanceof ImageBitmap) {
+    const canvas = document.createElement('canvas')
+    canvas.width = img.width || 1
+    canvas.height = img.height || 1
+    const ctx = canvas.getContext('2d')
+    if (ctx) ctx.drawImage(img, 0, 0)
+    const baked = new THREE.CanvasTexture(canvas)
+    baked.colorSpace = THREE.SRGBColorSpace
+    baked.flipY = false
+    baked.wrapS = tex.wrapS
+    baked.wrapT = tex.wrapT
+    baked.needsUpdate = true
+    return baked
+  }
+  if ('colorSpace' in tex) tex.colorSpace = THREE.SRGBColorSpace
+  tex.flipY = false
+  tex.needsUpdate = true
+  return tex
+}
+
+function paintCatalogMaterial(mat) {
+  if (!mat || (mat.userData && mat.userData.catalogPainted)) return mat
+  const map = albedoTexture(mat)
+  const painted = new THREE.MeshBasicMaterial({
+    map: map || null,
+    color: 0xffffff,
+    side: THREE.DoubleSide,
+    transparent: false,
+    depthWrite: true,
+    toneMapped: false,
+  })
+  painted.userData.catalogPainted = true
+  return painted
+}
+
 function prepareCatalogMaterials(object) {
   if (!object) return object
   object.traverse((child) => {
     if (!child.isMesh || !child.material) return
     const mats = Array.isArray(child.material) ? child.material : [child.material]
-    mats.forEach((mat) => {
-      if (!mat) return
-      // Photogrammetry GLBs from the AG export mark every mesh metal (factor 1).
-      // Without an environment map that reads as unpainted gray clay.
-      if ('metalness' in mat) mat.metalness = 0
-      if ('metalnessMap' in mat) mat.metalnessMap = null
-      if ('roughness' in mat) {
-        const roughness = Number(mat.roughness)
-        mat.roughness = Number.isFinite(roughness) ? Math.max(0.42, roughness) : 0.72
-      }
-      if (mat.map && 'colorSpace' in mat.map) {
-        mat.map.colorSpace = THREE.SRGBColorSpace
-        mat.map.needsUpdate = true
-      }
-      mat.needsUpdate = true
-    })
+    const next = mats.map((mat) => paintCatalogMaterial(mat))
+    child.material = Array.isArray(child.material) ? next : next[0]
   })
   return object
 }
@@ -496,4 +521,4 @@ export function createModelStage(container) {
   }
 }
 
-export { loadGltf as loadCatalogGlb }
+export { loadGltf as loadCatalogGlb, prepareCatalogMaterials }

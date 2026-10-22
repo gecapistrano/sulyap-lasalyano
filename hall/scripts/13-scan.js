@@ -12,7 +12,7 @@ import {
   PREVIEW_ZOOM_MAX,
   preloadRdScanner,
 } from './scan/rd-classifier.js?v=4'
-import { createModelStage } from './scan/model-stage.js?v=15'
+import { createModelStage } from './scan/model-stage.js?v=16'
 import { catalogModelSrc } from './catalog-models.js?v=2'
 
 const MIN_CANDIDATE_CONFIDENCE = 0.32

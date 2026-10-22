@@ -689,12 +689,31 @@ import { loadCatalogGlb } from './scan/model-stage.js?v=15';
     return layout === 'timeline' ? PRES_KEEP_TIMELINE : PRES_KEEP;
   }
 
+  function isFocusedNode(node) {
+    return !!(node && (node.id === hoverId || node.id === selectedId));
+  }
+
+  function presDiscKeepout() {
+    var w = layout === 'timeline' ? 64 : 42;
+    // Portrait circle is 118px in a 256px canvas, plus the gold stroke.
+    return w * (121 / 256) + 0.35;
+  }
+
+  function artifactKeepout(node) {
+    var focused = isFocusedNode(node);
+    if (node && node.__glbReady) return artifactGlbSize(focused) * 0.48 + 0.2;
+    var size = layout === 'timeline'
+      ? (focused ? 10 : 7.2)
+      : (focused ? 8 : 5.4);
+    return size * 0.46 + 0.12;
+  }
+
   function linkKeepout(node) {
-    if (!node) return 2;
-    if (isPresNode(node)) return presKeep();
-    if (node.type === 'collection' || String(nodeIdOf(node)).indexOf('col:') === 0) return 14;
-    if (node.type === 'artifact' || String(nodeIdOf(node)).indexOf('art:') === 0) return 4;
-    return 8;
+    if (!node) return 1.1;
+    if (isPresNode(node)) return presDiscKeepout();
+    if (node.type === 'collection' || String(nodeIdOf(node)).indexOf('col:') === 0) return 11.2;
+    if (node.type === 'artifact' || String(nodeIdOf(node)).indexOf('art:') === 0) return artifactKeepout(node);
+    return 6;
   }
 
   function trimLinkCoords(coords, link) {
@@ -706,15 +725,11 @@ import { loadCatalogGlb } from './scan/model-stage.js?v=15';
     var len = Math.hypot(dx, dy, dz) || 1;
     var a = linkKeepout(src);
     var b = linkKeepout(tgt);
-    if (a + b + 6 >= len) {
-      var mid = 0.5;
-      coords.start.x = ax + dx * (mid - 0.015);
-      coords.start.y = ay + dy * (mid - 0.015);
-      coords.start.z = az + dz * (mid - 0.015);
-      coords.end.x = ax + dx * (mid + 0.015);
-      coords.end.y = ay + dy * (mid + 0.015);
-      coords.end.z = az + dz * (mid + 0.015);
-      return coords;
+    var need = a + b;
+    if (need + 1.2 >= len) {
+      var scale = Math.max(0, (len - 1.2) / Math.max(need, 0.001));
+      a *= scale;
+      b *= scale;
     }
     coords.start.x = ax + dx * (a / len);
     coords.start.y = ay + dy * (a / len);
@@ -781,6 +796,11 @@ import { loadCatalogGlb } from './scan/model-stage.js?v=15';
 
   function positionTrimmedLink(obj, coords, link) {
     trimLinkCoords(coords, link);
+    if (obj) {
+      if (obj.position) obj.position.set(0, 0, 0);
+      if (obj.rotation) obj.rotation.set(0, 0, 0);
+      if (obj.scale) obj.scale.set(1, 1, 1);
+    }
     writeLineEndpoints(findLine(obj), coords);
     return true;
   }

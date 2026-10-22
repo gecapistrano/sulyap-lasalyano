@@ -92,7 +92,7 @@ EN / FIL via `window.T` and `data-i` / `data-i-label`. Bracketed `[placeholders]
 
 ## Curator desk (staff, direct URL only)
 
-`/curator` → `curator.html` is **not** linked from the public home. Long-press (~3s) the hanging plaque’s Sulyap logo to open it. Locally it auto-bridges to the Next.js Curator Desk at `http://127.0.0.1:3000/curator` (override with `SL_CURATOR_CONFIG.nextAppOrigin` or `?next=https://…`; use `?stay=1` to keep the bridge page). Full edit UI stays on the Next + FastAPI stack (auth cookie + CSRF). Local/dev login: `admin` / `admin123`.
+`/curator` is **not** linked from the public home. Long-press (~3s) the hanging plaque’s Sulyap logo to open it. Locally `curator.html` auto-bridges to `http://127.0.0.1:3000/curator`. Production `vercel.json` proxies `/curator` to the staff Next.js desk on the same hall origin (Render CORS already allows it). Local/dev login: `admin` / `admin123`.
 
 ## Deploying
 

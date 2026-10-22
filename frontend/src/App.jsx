@@ -262,15 +262,16 @@ export default function App({
 
   const handleSplashDone = useCallback(() => {
     setShowApp(true)
-    void preloadRdScanner()
+    if (bootScreen !== 'curator') void preloadRdScanner()
     window.setTimeout(() => {
       setShowSplash(false)
     }, 520)
-  }, [])
+  }, [bootScreen])
 
   /** Keep ONNX / WASM off the splash thread; start after first paint when splash is skipped. */
   useEffect(() => {
     if (showSplash) return undefined
+    if (bootScreen === 'curator' || screen === 'curator') return undefined
     const id = window.requestIdleCallback
       ? window.requestIdleCallback(() => {
           void preloadRdScanner()
@@ -282,7 +283,7 @@ export default function App({
       if (window.requestIdleCallback) window.cancelIdleCallback(id)
       else window.clearTimeout(id)
     }
-  }, [showSplash])
+  }, [showSplash, bootScreen, screen])
 
   const renderAppScreen = () => {
     switch (screen) {

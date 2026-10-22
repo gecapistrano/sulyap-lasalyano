@@ -46,7 +46,7 @@ Live stack:
 
 ### Curator Desk (staff, not a second visitor site)
 
-Do **not** create another Vercel project for `frontend/`. One project, Root Directory `hall`. Staff use local `npm run dev:curator` or the hall `/curator` bridge. Visitor 3D stays in `hall/models/catalog` (never Supabase Storage GLBs).
+Visitor museum stays on one project (`sulyap-lasalyano`, Root Directory `hall`). The brown desk is the Next.js app in `frontend/`, deployed to the leftover `frontend` Vercel project and **proxied** at `https://sulyap-lasalyano.vercel.app/curator` so auth cookies use the hall origin already on Render `FRONTEND_ORIGINS`. Do not git-link that staff project to this repo (it would clone hall GLBs). Direct hits to the `frontend` host redirect home to hall. Visitor 3D stays in `hall/models/catalog`.
 
 ## 4. Live verify checklist (end-to-end)
 

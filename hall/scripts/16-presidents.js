@@ -393,6 +393,19 @@
 
   var bootAt = (window.performance && performance.now) ? performance.now() : Date.now();
   var bootRevealed = false;
+  var profilePainted = false;
+
+  function clearPresBoot() {
+    var root = document.documentElement;
+    var overlay = document.getElementById('slNavLoad');
+    root.classList.remove('pres-booting', 'page-tx-from', 'page-tx-leave');
+    if (document.body) document.body.classList.remove('is-booting');
+    if (overlay) {
+      overlay.classList.add('is-out');
+      overlay.classList.remove('is-on');
+      overlay.setAttribute('aria-hidden', 'true');
+    }
+  }
 
   function waitForImage(img, ms) {
     return new Promise(function (resolve) {
@@ -417,12 +430,16 @@
   }
 
   function revealPresBoot() {
-    if (bootRevealed) return;
+    if (bootRevealed) {
+      clearPresBoot();
+      return;
+    }
     bootRevealed = true;
     var now = (window.performance && performance.now) ? performance.now() : Date.now();
-    var wait = prefersReducedMotion() ? 0 : Math.max(0, 760 - (now - bootAt));
+    var wait = prefersReducedMotion() ? 0 : Math.max(0, 420 - (now - bootAt));
     window.setTimeout(function () {
       window.__presReady = true;
+      clearPresBoot();
       if (typeof window.slRevealPage === 'function') window.slRevealPage();
       else {
         try { document.dispatchEvent(new CustomEvent('sl-pres-ready')); } catch (e) {}
@@ -457,14 +474,18 @@
   }
 
   function showProfile(id, pres, artifacts) {
+    var firstPaint = !profilePainted;
     var missing = document.getElementById('presMissing');
     var profile = document.getElementById('presProfile');
     if (missing) missing.hidden = true;
     if (profile) {
-      profile.classList.add('is-pending');
-      profile.classList.remove('is-in');
+      if (firstPaint) {
+        profile.classList.add('is-pending');
+        profile.classList.remove('is-in');
+      }
       profile.hidden = false;
     }
+    profilePainted = true;
 
     var display = document.getElementById('presDisplay');
     if (display) display.textContent = pres.display;
@@ -505,9 +526,8 @@
     }
 
     buildMasonry(id, pres, artifacts);
-    waitForImage(photo, 2200).then(function () {
-      revealPresBoot();
-    });
+    revealPresBoot();
+    if (!firstPaint) return;
     afterPageTx(function () {
       if (prefersReducedMotion()) {
         var ready = document.getElementById('presProfile');
@@ -619,11 +639,15 @@
     window.setTimeout(function () {
       if (bootRevealed) return;
       revealPresBoot();
-    }, 12000);
+    }, 2800);
 
     if (!id) {
       showMissing();
       return;
+    }
+
+    if (PRESIDENTS[id]) {
+      showProfile(id, mergePresident(id, null), []);
     }
 
     loadCatalog(id)
@@ -636,11 +660,11 @@
         showProfile(id, pres, artifactsFor(pres, cat.artifacts));
       })
       .catch(function () {
-        if (!PRESIDENTS[id]) {
-          showMissing();
+        if (PRESIDENTS[id]) {
+          if (!profilePainted) showProfile(id, mergePresident(id, null), []);
           return;
         }
-        showProfile(id, mergePresident(id, null), []);
+        showMissing();
       });
   }
 

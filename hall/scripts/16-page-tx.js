@@ -53,11 +53,16 @@
     }
   }
 
+  function isPresidentPath(path){
+    var value = path || '';
+    return /\/president(\.html)?$/.test(value) || /\/presidents\/[^/]+\/?$/.test(value);
+  }
+
   function pageKind(path){
     var value = path || location.pathname;
     if(/\/scan(\.html)?$/.test(value)) return 'scan';
     if(/\/knowledge-graph(\.html)?$/.test(value)) return 'kg';
-    if(/\/president(\.html)?$/.test(value)) return 'president';
+    if(isPresidentPath(value)) return 'president';
     return 'home';
   }
 
@@ -65,7 +70,7 @@
     var path = url.pathname.replace(/\/+$/, '') || '/';
     if(/\/scan(\.html)?$/.test(path)) return 'scan';
     if(/\/knowledge-graph(\.html)?$/.test(path)) return 'kg';
-    if(/\/president(\.html)?$/.test(path)) return 'president';
+    if(isPresidentPath(path)) return 'president';
     if(path === '/' || path === '' || /\/index(\.html)?$/.test(path)) return 'home';
     return '';
   }

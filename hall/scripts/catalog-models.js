@@ -21,7 +21,7 @@ export function catalogModelSrc(modelUrl, idCode) {
   const value = typeof modelUrl === 'string' ? modelUrl.trim() : ''
   const code = String(idCode || '').trim().toUpperCase()
   if (value.startsWith('/') && !/^https?:\/\//i.test(value)) return value
-  if (VENDORED_GLBS.has(code)) return `/models/catalog/${encodeURIComponent(code)}.glb`
+  if (VENDORED_GLBS.has(code)) return `/models/catalog/${encodeURIComponent(code)}.glb?v=hq1`
   if (code && isLocalHall()) return `/media/models/${encodeURIComponent(code)}.glb`
   if (!value) return ''
   const cfg = configOf()

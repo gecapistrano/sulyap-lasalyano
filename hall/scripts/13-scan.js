@@ -13,7 +13,7 @@ import {
   preloadRdScanner,
 } from './scan/rd-classifier.js?v=4'
 import { createModelStage } from './scan/model-stage.js?v=17'
-import { catalogModelSrc } from './catalog-models.js?v=3'
+import { catalogModelSrc } from './catalog-models.js?v=4'
 
 const MIN_CANDIDATE_CONFIDENCE = 0.32
 const MIN_LOCK_CONFIDENCE = 0.55

@@ -31,3 +31,17 @@ services:
         sync: false
       - key: LLM_API_BASE
         sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_STORAGE_BUCKET
+        value: catalog-photos
+      - key: CATALOG_OMIT_STORAGE_MODELS
+        value: "true"
+      - key: PUBLIC_MODEL_BASE_URL
+        sync: false
+      - key: SYNC_REMOTE_DATABASE_URL
+        sync: false
+      - key: CATALOG_SYNC_ON_START
+        value: "0"

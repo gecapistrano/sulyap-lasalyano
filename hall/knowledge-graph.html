@@ -1,0 +1,169 @@
+<!-- vercel-root:hall -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Knowledge Graph — Sulyap Lasalyano</title>
+<meta name="description" content="Explore how Presidents’ Memorabilia artifacts connect across AEA-IRC, DLSU-D, presidents, and eras.">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=11">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=11">
+<meta name="theme-color" content="#0a140f" id="theme-color-meta">
+<meta name="color-scheme" content="dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Instrument+Sans:ital,wght@0,400;0,500;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script>
+(function(){
+  try{ localStorage.removeItem('pm-theme'); }catch(e){}
+  document.documentElement.setAttribute('data-theme', 'dark');
+})();
+/* Catalog API for the live KG (same public GET Browse/Scan use).
+   Override: /knowledge-graph?api=http://127.0.0.1:8000
+   Empty apiBaseUrl → same-origin /catalog (serve.mjs proxies locally).
+   If the API is unreachable, 15-kg-graph.js falls back to /public/data/graph.json. */
+(function () {
+  var params = new URLSearchParams(location.search);
+  var api = (params.get('api') || '').trim();
+  window.SL_KG_CONFIG = { apiBaseUrl: api };
+})();
+</script>
+<script>
+(function(){
+  try{
+    if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var path = location.pathname;
+    var kind = /\/scan(\.html)?$/.test(path) ? 'scan'
+      : /\/knowledge-graph(\.html)?$/.test(path) ? 'kg'
+      : /\/president(\.html)?$/.test(path) ? 'president'
+      : 'home';
+    if(kind === 'kg'){
+      sessionStorage.removeItem('sl_page_tx');
+      return;
+    }
+    if(sessionStorage.getItem('sl_page_tx') !== kind) return;
+    document.documentElement.classList.add('page-tx-from');
+    window.__pageTxSafety = setTimeout(function(){
+      document.documentElement.classList.remove('page-tx-from');
+    }, 2200);
+  }catch(e){}
+})();
+</script>
+<link rel="stylesheet" href="styles/01-tokens.css?v=17">
+<link rel="stylesheet" href="styles/13-page-tx.css?v=7">
+<link rel="stylesheet" href="styles/12-kg.css?v=32">
+<script defer src="scripts/02-i18n.js?v=102"></script>
+<script defer src="scripts/09-a11y.js?v=2"></script>
+<script defer src="vendor/3d-force-graph/3d-force-graph.min.js?v=1801"></script>
+<script defer src="scripts/14-kg.js?v=4"></script>
+<script defer src="scripts/16-page-tx.js?v=16"></script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "/vendor/three/three.module.js"
+  }
+}
+</script>
+<script type="module" src="scripts/15-kg-graph.js?v=49"></script>
+</head>
+<body class="kg-page is-booting">
+<div id="slNavLoad" class="sl-navload" aria-hidden="true">
+  <img class="sl-navload-icon" src="/icon-192.png" alt="" width="192" height="192" decoding="async">
+  <p class="sl-navload-brand">Sulyap Lasalyano</p>
+  <p class="sl-navload-label">Loading</p>
+  <div class="sl-loadbar" role="progressbar" aria-hidden="true"><i class="sl-loadbar-fill"></i></div>
+</div>
+<a class="skiplink" href="#kgMain" data-i="skip">Skip to content</a>
+
+<div id="kgMain" class="kg-shell" role="main">
+  <canvas id="kgScene" class="kg-scene" aria-hidden="true"></canvas>
+  <div class="kg-atmosphere" aria-hidden="true"></div>
+  <div id="kgGraph" class="kg-graph" role="application" data-i-label="kg.aria" aria-label="Knowledge graph"></div>
+
+  <div id="kgBoot" class="kg-boot" aria-hidden="true">
+    <img class="kg-boot-icon" src="/icon-192.png" alt="" width="192" height="192" decoding="async">
+    <p class="kg-boot-brand">Sulyap Lasalyano</p>
+    <div class="sl-loadbar" role="progressbar" aria-hidden="true"><i class="sl-loadbar-fill"></i></div>
+    <p class="kg-boot-label" data-i="kg.loading">Loading knowledge graph</p>
+  </div>
+
+  <header class="kg-chrome">
+    <button type="button" class="kg-back" id="kgBack" data-i-label="kg.backLabel" aria-label="Go back">
+      <span class="kg-back-text" data-i="kg.back">← Back</span>
+      <svg class="kg-back-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+    <h1 class="kg-title"><span class="kg-title-brand">Sulyap Lasalyano</span> <span class="kg-title-swap"><span class="kg-title-rest" data-i="kg.title">Knowledge Graph</span> <span class="kg-title-code" aria-hidden="true"></span></span></h1>
+    <div class="kg-chrome-end">
+      <div class="lang-dd kg-lang" data-lang-dd>
+        <button type="button" class="lang lang-dd-btn kg-lang-btn" aria-expanded="false" aria-haspopup="listbox" aria-controls="lang-menu-kg" data-i-label="lang">
+          <span class="lang-dd-val">EN</span>
+        </button>
+        <ul class="lang-dd-menu kg-lang-menu" id="lang-menu-kg" role="listbox" hidden>
+          <li role="option" data-value="en" aria-selected="true">English</li>
+          <li role="option" data-value="fil" aria-selected="false">Filipino</li>
+          <li role="option" data-value="es" aria-selected="false">Spanish</li>
+          <li role="option" data-value="fr" aria-selected="false">French</li>
+          <li role="option" data-value="zh" aria-selected="false">Chinese</li>
+          <li role="option" data-value="ko" aria-selected="false">Korean</li>
+          <li role="option" data-value="ja" aria-selected="false">Japanese</li>
+        </ul>
+      </div>
+    </div>
+  </header>
+
+  <p class="kg-status" id="kgStatus" data-i="kg.loading" aria-live="polite">Loading knowledge graph</p>
+  <ol id="kgYearRail" class="kg-year-rail" hidden aria-hidden="true"></ol>
+
+  <details class="kg-legend" id="kgLegend">
+    <summary data-i="kg.legend" data-i-label="kg.legendToggle">Legend</summary>
+    <ul class="kg-legend-list">
+      <li><span class="kg-swatch kg-swatch--pres" aria-hidden="true"></span><span data-i="kg.legendPresident">President</span></li>
+      <li><span class="kg-swatch kg-swatch--art" aria-hidden="true"></span><span data-i="kg.legendArtifact">Artifact</span></li>
+    </ul>
+  </details>
+
+  <div class="kg-tools">
+    <div class="kg-layout" role="group" data-i-label="kg.layout" aria-label="Layout">
+      <button type="button" class="kg-layout-btn" id="kgLayoutWeb" aria-pressed="true" data-i="kg.layoutWeb">Web</button>
+      <button type="button" class="kg-layout-btn" id="kgLayoutTimeline" aria-pressed="false" data-i="kg.layoutTimeline">Timeline</button>
+    </div>
+    <div class="kg-zoom-tools" role="group" data-i-label="kg.zoomControls" aria-label="Zoom controls">
+      <button type="button" class="kg-zoom-btn" id="kgZoomIn" data-i-label="kg.zoomIn" aria-label="Zoom in">+</button>
+      <button type="button" class="kg-zoom-btn" id="kgZoomOut" data-i-label="kg.zoomOut" aria-label="Zoom out">−</button>
+      <button type="button" class="kg-zoom-btn kg-zoom-btn--fit" id="kgFit" data-i="kg.fit" data-i-label="kg.fit">Fit all</button>
+    </div>
+  </div>
+
+  <div id="kgItemOverlay" class="kg-item-overlay" hidden aria-hidden="true">
+    <div id="kgItemStage" class="kg-item-stage" hidden role="application" data-i-label="scan.viewer" aria-label="Artifact 3D view. Drag to rotate, pinch to zoom."></div>
+    <div id="kgItemInfo" class="kg-item-info">
+      <button type="button" id="kgItemToggle" class="kg-sheet__arrow" aria-expanded="false" data-i-label="scan.expandDetails" aria-label="Show details">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22" aria-hidden="true">
+          <polyline points="6 14 12 8 18 14"></polyline>
+        </svg>
+      </button>
+      <div id="kgItemSheet" class="kg-sheet" role="dialog" aria-labelledby="kgItemName">
+        <div class="kg-sheet__peek">
+          <div id="kgItemCode" class="kg-sheet__code"></div>
+          <h2 id="kgItemName" class="kg-sheet__name"></h2>
+        </div>
+        <div class="kg-sheet__body">
+          <img id="kgItemPhoto" class="kg-sheet__photo" alt="" hidden>
+          <div id="kgItemPresident" class="kg-sheet__president"></div>
+          <div id="kgItemYear" class="kg-sheet__year"></div>
+          <p id="kgItemDesc" class="kg-sheet__desc"></p>
+          <section id="kgItemHistorySection" hidden>
+            <h3 class="kg-sheet__history-title" data-i="scan.historical">Historical Context</h3>
+            <p id="kgItemHistory" class="kg-sheet__history"></p>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

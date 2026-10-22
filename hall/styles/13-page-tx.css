@@ -1,0 +1,100 @@
+/* Cross-document black fade + shared loading screen between hall pages. */
+html.page-tx-from,
+html.page-tx-leave{
+  background:#000;
+}
+
+.sl-navload{
+  position:fixed;
+  inset:0;
+  z-index:400;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:.7rem;
+  margin:0;
+  background:#000;
+  color:rgba(232,212,176,.82);
+  opacity:0;
+  pointer-events:none;
+  contain:strict;
+  transition:opacity .28s ease;
+}
+html.page-tx-leave .sl-navload,
+html.page-tx-from .sl-navload,
+.sl-navload.is-on,
+.sl-navload.is-out{
+  display:flex;
+}
+html.page-tx-leave .sl-navload,
+html.page-tx-from .sl-navload,
+.sl-navload.is-on{
+  opacity:1;
+  pointer-events:auto;
+}
+html.page-tx-from .sl-navload{
+  transition:none;
+}
+html.page-tx-from.page-tx-in .sl-navload,
+.sl-navload.is-out{
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .32s ease;
+}
+
+.sl-navload-icon{
+  width:min(42vw, 9.25rem);
+  height:min(42vw, 9.25rem);
+  object-fit:contain;
+  display:block;
+  transform:translateZ(0);
+}
+html.page-tx-leave .sl-navload-icon,
+html.page-tx-from .sl-navload-icon,
+.sl-navload.is-on .sl-navload-icon{
+  animation:sl-navload-breathe 1.7s ease-in-out infinite;
+}
+.sl-navload-brand{
+  margin:0;
+  font-family:var(--sans, 'Instrument Sans', system-ui, sans-serif);
+  font-size:clamp(11px, 2.6vw, 13px);
+  font-weight:600;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:rgba(247,244,239,.92);
+}
+.sl-navload-label{
+  margin:0;
+  width:min(92vw, 28rem);
+  padding:0 .75rem;
+  text-align:center;
+  font-family:var(--mono, 'IBM Plex Mono', ui-monospace, monospace);
+  font-size:clamp(10.5px, 2.5vw, 12.5px);
+  font-weight:400;
+  letter-spacing:.16em;
+  line-height:1.45;
+  text-transform:uppercase;
+  color:rgba(232,212,176,.72);
+}
+
+@keyframes sl-navload-breathe{
+  0%,100%{ opacity:.78; transform:translateZ(0) scale(.985); }
+  50%{ opacity:1; transform:translateZ(0) scale(1); }
+}
+
+@media (prefers-reduced-motion:reduce){
+  html.page-tx-leave .sl-navload,
+  html.page-tx-from .sl-navload,
+  html.page-tx-from.page-tx-in .sl-navload,
+  .sl-navload{
+    transition:none;
+  }
+  html.page-tx-leave .sl-navload-icon,
+  html.page-tx-from .sl-navload-icon,
+  .sl-navload.is-on .sl-navload-icon{
+    animation:none;
+    opacity:1;
+    transform:none;
+  }
+}

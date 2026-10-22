@@ -1,10 +1,10 @@
 /* Knowledge Graph — 3D constellation (orbit / pan / zoom / select / layouts). */
 import * as THREE from 'three';
 import { buildCatalogGraph } from './catalog-graph.mjs?v=4';
-import { createItemSheet } from './kg-item-sheet.js?v=5';
+import { createItemSheet } from './kg-item-sheet.js?v=6';
 import { catalogModelSrc } from './catalog-models.js?v=2';
 import { CATALOG_GLB_CODES } from './catalog-glb-ids.js?v=2';
-import { loadCatalogGlb } from './scan/model-stage.js?v=14';
+import { loadCatalogGlb } from './scan/model-stage.js?v=15';
 
 (function () {
   var GRAPH_URL = '/public/data/graph.json';

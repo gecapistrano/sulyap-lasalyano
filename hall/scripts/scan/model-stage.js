@@ -28,6 +28,31 @@ function fitObject(object, target = 1.35) {
   object.position.sub(center.multiplyScalar(target / maxDim))
 }
 
+function prepareCatalogMaterials(object) {
+  if (!object) return object
+  object.traverse((child) => {
+    if (!child.isMesh || !child.material) return
+    const mats = Array.isArray(child.material) ? child.material : [child.material]
+    mats.forEach((mat) => {
+      if (!mat) return
+      // Photogrammetry GLBs from the AG export mark every mesh metal (factor 1).
+      // Without an environment map that reads as unpainted gray clay.
+      if ('metalness' in mat) mat.metalness = 0
+      if ('metalnessMap' in mat) mat.metalnessMap = null
+      if ('roughness' in mat) {
+        const roughness = Number(mat.roughness)
+        mat.roughness = Number.isFinite(roughness) ? Math.max(0.42, roughness) : 0.72
+      }
+      if (mat.map && 'colorSpace' in mat.map) {
+        mat.map.colorSpace = THREE.SRGBColorSpace
+        mat.map.needsUpdate = true
+      }
+      mat.needsUpdate = true
+    })
+  })
+  return object
+}
+
 function disposeObject(object) {
   if (!object) return
   object.traverse((child) => {
@@ -116,7 +141,7 @@ function parseGltf(buffer) {
       loader.parse(
         buffer,
         '',
-        (gltf) => resolve(gltf.scene || gltf.scenes?.[0] || null),
+        (gltf) => resolve(prepareCatalogMaterials(gltf.scene || gltf.scenes?.[0] || null)),
         () => resolve(null),
       )
     } catch {
@@ -248,14 +273,15 @@ export function createModelStage(container) {
 
   const scene = new THREE.Scene()
   const camera = new THREE.PerspectiveCamera(45, 1, 0.12, 40)
-  scene.add(new THREE.AmbientLight(0xffffff, 0.82))
-  const key = new THREE.DirectionalLight(0xffffff, 1.15)
+  scene.add(new THREE.HemisphereLight(0xf4efe6, 0x1c241c, 0.62))
+  scene.add(new THREE.AmbientLight(0xffffff, 0.58))
+  const key = new THREE.DirectionalLight(0xffffff, 1.05)
   key.position.set(3.4, 4.2, 5)
   scene.add(key)
-  const fill = new THREE.DirectionalLight(0xffffff, 0.42)
+  const fill = new THREE.DirectionalLight(0xffffff, 0.38)
   fill.position.set(-4, 1.2, -2)
   scene.add(fill)
-  const rim = new THREE.PointLight(0xc4a484, 0.55, 12)
+  const rim = new THREE.PointLight(0xc4a484, 0.48, 12)
   rim.position.set(-1.4, 2.2, 2.4)
   scene.add(rim)
 

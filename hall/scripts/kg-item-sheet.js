@@ -2,7 +2,7 @@
  * Knowledge Graph item overlay — Live Scan sheet layout over the constellation.
  * Opens on memorabilia (and president) click; closes without leaving the graph.
  */
-import { createModelStage } from './scan/model-stage.js?v=14'
+import { createModelStage } from './scan/model-stage.js?v=15'
 import { catalogModelSrc } from './catalog-models.js?v=2'
 
 export function createItemSheet(opts) {

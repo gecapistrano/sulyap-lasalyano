@@ -2,7 +2,7 @@
  * Knowledge Graph item overlay — Live Scan sheet layout over the constellation.
  * Opens on memorabilia (and president) click; closes without leaving the graph.
  */
-import { createModelStage } from './scan/model-stage.js?v=15'
+import { createModelStage } from './scan/model-stage.js?v=16'
 import { catalogModelSrc } from './catalog-models.js?v=2'
 
 export function createItemSheet(opts) {
@@ -32,6 +32,7 @@ export function createItemSheet(opts) {
   }
 
   var open = false;
+  var leaving = false;
   var expanded = false;
   var loadGen = 0;
   var modelStage = null;
@@ -161,10 +162,16 @@ export function createItemSheet(opts) {
     }
   }
 
+  function itemViewActive() {
+    return open || leaving || document.body.classList.contains('is-item-open') || !overlay.hidden;
+  }
+
   function showOverlay() {
     overlay.hidden = false;
     overlay.setAttribute('aria-hidden', 'false');
+    leaving = false;
     document.body.classList.add('is-item-open');
+    document.body.classList.remove('is-item-leaving');
     collapse();
     overlay.classList.remove('is-out');
     void overlay.offsetWidth;
@@ -177,9 +184,11 @@ export function createItemSheet(opts) {
   function hideOverlay() {
     if (!open) return;
     open = false;
+    leaving = true;
     loadGen += 1;
     overlay.classList.remove('is-in');
     overlay.classList.add('is-out');
+    document.body.classList.add('is-item-leaving');
     document.body.classList.remove('is-item-sheet-open');
     collapse();
     if (titleCode) {
@@ -194,7 +203,9 @@ export function createItemSheet(opts) {
     onClose();
     window.setTimeout(function () {
       if (open) return;
+      leaving = false;
       document.body.classList.remove('is-item-open');
+      document.body.classList.remove('is-item-leaving');
       overlay.hidden = true;
       overlay.classList.remove('is-out');
       overlay.setAttribute('aria-hidden', 'true');
@@ -368,10 +379,11 @@ export function createItemSheet(opts) {
 
   if (backBtn) {
     backBtn.addEventListener('click', function (e) {
-      if (!open) return;
+      if (!itemViewActive()) return;
       e.preventDefault();
+      e.stopPropagation();
       e.stopImmediatePropagation();
-      close();
+      if (open) close();
     }, true);
   }
 
@@ -387,6 +399,6 @@ export function createItemSheet(opts) {
     openArtifact: openArtifact,
     openPresident: openPresident,
     close: close,
-    isOpen: function () { return open; },
+    isOpen: function () { return itemViewActive(); },
   };
 }

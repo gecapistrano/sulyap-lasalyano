@@ -20,9 +20,21 @@
     location.href = FALLBACK;
   }
 
+  function kgItemViewOpen(){
+    var overlay = document.getElementById('kgItemOverlay');
+    return document.body.classList.contains('is-item-open')
+      || document.body.classList.contains('is-item-leaving')
+      || (overlay && !overlay.hidden);
+  }
+
   var backBtn = document.getElementById('kgBack');
   if(backBtn){
     backBtn.addEventListener('click', function(e){
+      if(kgItemViewOpen()){
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
       e.preventDefault();
       goBack();
     });

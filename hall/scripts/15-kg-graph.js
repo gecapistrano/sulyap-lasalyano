@@ -1,10 +1,10 @@
 /* Knowledge Graph — 3D constellation (orbit / pan / zoom / select / layouts). */
 import * as THREE from 'three';
 import { buildCatalogGraph } from './catalog-graph.mjs?v=4';
-import { createItemSheet } from './kg-item-sheet.js?v=6';
+import { createItemSheet } from './kg-item-sheet.js?v=8';
 import { catalogModelSrc } from './catalog-models.js?v=2';
 import { CATALOG_GLB_CODES } from './catalog-glb-ids.js?v=2';
-import { loadCatalogGlb } from './scan/model-stage.js?v=15';
+import { loadCatalogGlb, prepareCatalogMaterials } from './scan/model-stage.js?v=16';
 
 (function () {
   var GRAPH_URL = '/public/data/graph.json';
@@ -79,6 +79,7 @@ import { loadCatalogGlb } from './scan/model-stage.js?v=15';
   var yearRailSide = 'right';
   var yearControlsBound = false;
   var itemSheet = null;
+  var camSnap = null;
   var graphControlsOn = true;
   var glbScenes = {};
   var glbFailed = {};
@@ -419,7 +420,7 @@ import { loadCatalogGlb } from './scan/model-stage.js?v=15';
   }
 
   function fittedGlbClone(template, size) {
-    var obj = template.clone(true);
+    var obj = prepareCatalogMaterials(template.clone(true));
     obj.traverse(function (child) {
       if (child.isLight) child.visible = false;
       if (child.isMesh) {
@@ -1471,11 +1472,12 @@ import { loadCatalogGlb } from './scan/model-stage.js?v=15';
     var scene = Graph.scene && Graph.scene();
     if (scene && !scene.userData.kgModelLights) {
       scene.userData.kgModelLights = true;
-      scene.add(new THREE.AmbientLight(0xffffff, 0.62));
-      var key = new THREE.DirectionalLight(0xffffff, 0.9);
+      scene.add(new THREE.HemisphereLight(0xf4efe6, 0x1c241c, 0.7));
+      scene.add(new THREE.AmbientLight(0xffffff, 0.85));
+      var key = new THREE.DirectionalLight(0xffffff, 1.05);
       key.position.set(4, 6, 8);
       scene.add(key);
-      var fill = new THREE.DirectionalLight(0xc4a484, 0.38);
+      var fill = new THREE.DirectionalLight(0xc4a484, 0.5);
       fill.position.set(-5, 1.2, -3);
       scene.add(fill);
     }
@@ -1548,9 +1550,40 @@ import { loadCatalogGlb } from './scan/model-stage.js?v=15';
       t: t,
       prefixOf: resolveApiBase,
       presidentOf: function (id) { return byId[id] || null; },
-      onOpen: function () { setGraphInteractive(false); },
-      onClose: function () { setGraphInteractive(true); },
+      onOpen: function () {
+        camSnap = snapshotCamera();
+        setGraphInteractive(false);
+      },
+      onClose: function () {
+        setGraphInteractive(true);
+        restoreCamera(camSnap);
+      },
     });
+  }
+
+  function snapshotCamera() {
+    if (!Graph) return null;
+    var cam = typeof Graph.camera === 'function' ? Graph.camera() : null;
+    var controls = typeof Graph.controls === 'function' ? Graph.controls() : null;
+    if (!cam || !cam.position) return null;
+    var look = controls && controls.target ? controls.target : null;
+    return {
+      x: cam.position.x,
+      y: cam.position.y,
+      z: cam.position.z,
+      tx: look ? look.x : 0,
+      ty: look ? look.y : 0,
+      tz: look ? look.z : 0
+    };
+  }
+
+  function restoreCamera(snap) {
+    if (!snap || !Graph || typeof Graph.cameraPosition !== 'function') return;
+    Graph.cameraPosition(
+      { x: snap.x, y: snap.y, z: snap.z },
+      { x: snap.tx, y: snap.ty, z: snap.tz },
+      0
+    );
   }
 
   function setGraphInteractive(on) {

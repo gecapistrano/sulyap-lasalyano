@@ -3,7 +3,6 @@
  * Shows the list of DLSU-D presidents; tapping a card opens their memorabilia.
  */
 import { useEffect, useMemo, useState } from 'react'
-import { MOCK_PRESIDENTS } from '../data/presidentBrowseMocks'
 import { isBackendConfigured, listCatalogPresidents } from '../lib/archiveApi'
 import { t } from '../i18n'
 import { validateSearchQuery } from '../utils/security'
@@ -11,17 +10,28 @@ import './BrowseMode.css'
 
 export default function BrowseMode({ language = 'English', onBack, onOpenPresident, darkMode }) {
   const [query, setQuery] = useState('')
-  const [presidents, setPresidents] = useState(MOCK_PRESIDENTS)
+  const [presidents, setPresidents] = useState([])
+  const [loading, setLoading] = useState(() => isBackendConfigured())
 
   useEffect(() => {
-    if (!isBackendConfigured()) return undefined
+    if (!isBackendConfigured()) {
+      setPresidents([])
+      setLoading(false)
+      return undefined
+    }
     let cancelled = false
+    setLoading(true)
     listCatalogPresidents()
       .then((rows) => {
-        if (cancelled || !Array.isArray(rows) || rows.length === 0) return
-        setPresidents(rows)
+        if (cancelled) return
+        setPresidents(Array.isArray(rows) ? rows : [])
       })
-      .catch(() => {})
+      .catch(() => {
+        if (!cancelled) setPresidents([])
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
     return () => {
       cancelled = true
     }
@@ -69,7 +79,11 @@ export default function BrowseMode({ language = 'English', onBack, onOpenPreside
       </div>
 
       <div className="browse-list">
-        {filtered.map((president) => (
+        {loading ? (
+          <div className="browse-empty">{t(language, 'browse.loading')}</div>
+        ) : filtered.length === 0 ? (
+          <div className="browse-empty">{t(language, 'browse.emptyPresidents')}</div>
+        ) : filtered.map((president) => (
           <button
             key={president.id}
             type="button"

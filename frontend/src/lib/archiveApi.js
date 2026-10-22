@@ -17,6 +17,20 @@ export function isBackendConfigured() {
   return Boolean(env.apiConfigured)
 }
 
+/** Visitor-facing image for a catalog row. Local curator files go through the published photo route. */
+export function catalogImageSrc(idCode, imageUrl) {
+  const value = typeof imageUrl === 'string' ? imageUrl.trim() : ''
+  if (!value) return ''
+  if (/^https?:\/\//i.test(value)) return value
+  const code = String(idCode ?? '').trim()
+  if (!code || !env.apiConfigured) return ''
+  try {
+    return new URL(`/catalog/artifacts/id/${encodeURIComponent(code)}/photo`, env.apiBaseUrl).href
+  } catch {
+    return ''
+  }
+}
+
 export function resolveMediaUrl(pathOrUrl) {
   const value = typeof pathOrUrl === 'string' ? pathOrUrl.trim() : ''
   if (!value) return ''
@@ -47,21 +61,23 @@ function mapTags(row) {
 /** Map catalog JSON to the browse/detail row shape used by the UI. */
 export function mapCatalogArtifact(row) {
   if (!row || typeof row !== 'object') return null
-  const idCode = row.id_code || row.rd_code || ''
+  const idCode = row.id_code || row.rd_code || row.idCode || row.rdCode || ''
+  const imageUrl = catalogImageSrc(idCode, row.image_url || row.imageUrl || '')
   return {
     id: row.id,
     rdCode: idCode,
     idCode,
-    name: row.title,
+    name: row.title || row.name || '',
     subtitle: row.subtitle || '',
-    year: row.year_acquired || row.year || '',
-    yearAcquired: row.year_acquired || row.year || '',
-    countryOfOrigin: row.country_of_origin || '',
-    artifactType: row.artifact_type || '',
-    owner: row.owner_name || '',
+    year: row.year_acquired || row.year || row.yearAcquired || '',
+    yearAcquired: row.year_acquired || row.year || row.yearAcquired || '',
+    countryOfOrigin: row.country_of_origin || row.countryOfOrigin || '',
+    artifactType: row.artifact_type || row.artifactType || '',
+    owner: row.owner_name || row.owner || '',
     icon: row.icon || '🏺',
     description: row.description || '',
-    modelUrl: resolveMediaUrl(row.model_url || ''),
+    imageUrl,
+    modelUrl: resolveMediaUrl(row.model_url || row.modelUrl || ''),
     presidentId: row.president_id ?? null,
     tags: mapTags(row),
   }

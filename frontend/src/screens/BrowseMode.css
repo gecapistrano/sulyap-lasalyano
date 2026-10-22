@@ -294,6 +294,15 @@
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--aca-accent) 30%, transparent);
 }
 
+.browse-empty {
+  padding: 2rem 1.25rem;
+  text-align: center;
+  font-size: 0.95rem;
+  color: var(--brw-text-soft, var(--aca-muted-fg));
+  border: 1px dashed var(--brw-card-border, var(--aca-border));
+  border-radius: var(--aca-radius);
+}
+
 /* ═══════════════════════════════════════════
    Responsive — two columns in landscape/wide
    ═══════════════════════════════════════════ */

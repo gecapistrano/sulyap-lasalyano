@@ -206,6 +206,16 @@ function apiBaseConfigured() {
   }
 }
 
+function catalogPhotoSrc(idCode, imageUrl) {
+  const value = typeof imageUrl === 'string' ? imageUrl.trim() : ''
+  if (!value) return ''
+  if (/^https?:\/\//i.test(value)) return value
+  const base = apiBaseConfigured()
+  const code = String(idCode || '').trim()
+  if (!base || !code) return ''
+  return `${base}/catalog/artifacts/id/${encodeURIComponent(code)}/photo`
+}
+
 function mapCatalogRow(row) {
   if (!row || typeof row !== 'object') return null
   const idCode = row.id_code || row.rd_code || ''
@@ -216,6 +226,7 @@ function mapCatalogRow(row) {
     year: row.year_acquired || row.year || '',
     subtitle: row.subtitle || '',
     description: row.description || '',
+    imageUrl: catalogPhotoSrc(idCode, row.image_url || ''),
   }
 }
 
@@ -408,6 +419,7 @@ function initScanPage() {
   const detectLabel = qs('#scanDetectLabel', root)
   const exitBtn = qs('#scanExitBtn', root)
   const infoPresident = qs('#scanInfoPresident', root)
+  const infoPhoto = qs('#scanInfoPhoto', root)
   const infoName = qs('#scanInfoName', root)
   const infoYear = qs('#scanInfoYear', root)
   const infoDesc = qs('#scanInfoDesc', root)
@@ -622,6 +634,17 @@ function initScanPage() {
       ? t('scan.loadingCatalog', 'Loading from catalog…')
       : (artifact?.label || t('scan.title', 'Live Scan')))
     setText(infoPresident, info.president || '')
+    if (infoPhoto) {
+      const photo = typeof info.image_url === 'string' ? info.image_url.trim() : ''
+      if (photo) {
+        infoPhoto.hidden = false
+        infoPhoto.alt = info.name || ''
+        infoPhoto.src = photo
+      } else {
+        infoPhoto.hidden = true
+        infoPhoto.removeAttribute('src')
+      }
+    }
     setText(infoName, info.name || '')
     setText(infoYear, info.year || '')
     setText(infoDesc, info.description || '')
@@ -660,6 +683,7 @@ function initScanPage() {
           year: record.year,
           description: body,
           historical_context: body,
+          image_url: record.imageUrl || '',
         },
       }, false)
     } else {

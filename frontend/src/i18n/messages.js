@@ -65,7 +65,10 @@ const en = {
   'browse.items': '{count} items',
   'browse.item': '{count} item',
   'browse.emptyPresident': 'No memorabilia registered from this president yet. Stay tuned — more treasures are on the way.',
+  'browse.emptyPresidents': 'No presidents in the catalog yet.',
   'browse.emptyTag': 'No artifacts match this tag or your search yet.',
+  'browse.loading': 'Loading catalog…',
+  'browse.notFound': 'This item is not in the catalog.',
   'browse.related': 'Related',
 
   'detail.president': 'DLSU President',

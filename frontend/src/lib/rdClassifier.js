@@ -7,7 +7,7 @@ if (MODEL_ASSET_BASE_URL) {
 }
 const MODEL_BASE = MODEL_ASSET_BASE_URL.replace(/\/+$/, '')
 /** Bump when replacing ONNX or training-order labels (CDN caches /models as immutable). */
-const MODEL_ASSET_VERSION = 'v47-train-20261014'
+const MODEL_ASSET_VERSION = 'v147-yolov8s-20261022'
 const MODEL_URL = MODEL_BASE
   ? `${MODEL_BASE}/model.onnx?v=${MODEL_ASSET_VERSION}`
   : `/models/model.onnx?v=${MODEL_ASSET_VERSION}`
@@ -177,7 +177,21 @@ function alignClassNamesToModel(classNames, classCount) {
   return classNames
 }
 
-/** YOLOv8 ONNX class channels are logits; apply sigmoid like Ultralytics multiclass heads. */
+/**
+ * This Ultralytics Detect export already applies Sigmoid, so class scores are in [0, 1].
+ * Sigmoid again only when a sample looks like raw logits.
+ */
+function classScoresLookLikeLogits(values, classCount, anchors) {
+  const stride = Math.max(1, Math.floor(anchors / 24))
+  for (let anchor = 0; anchor < anchors; anchor += stride) {
+    for (let cls = 0; cls < classCount; cls += 1) {
+      const raw = Number(values[(4 + cls) * anchors + anchor])
+      if (raw < -0.05 || raw > 1.05) return true
+    }
+  }
+  return false
+}
+
 function sigmoid(x) {
   const z = Number(x)
   if (z >= 36) return 1
@@ -277,9 +291,7 @@ function parseDetectionOutput(outputTensor, classNames) {
   const classCount = channels - 4
   if (channels <= 4 || anchors <= 0 || classCount <= 0) return null
   const names = alignClassNamesToModel(classNames, classCount)
-
-  // This project's Ultralytics ONNX export stores class logits — always sigmoid.
-  const useSigmoid = true
+  const useSigmoid = classScoresLookLikeLogits(values, classCount, anchors)
 
   // Box coords may be pixels (0–640) or normalized (0–1).
   let boxExtent = 0

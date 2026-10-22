@@ -1,12 +1,10 @@
 /**
  * Related-tag helpers — shared by ArtifactDetail and RelatedArtifacts.
  */
-import { MOCK_ARTIFACTS_BROWSE, MOCK_ARTIFACTS_RELATED_EXTENDED } from '../data/artifactBrowseMocks'
-
 const RELATED_SKIP = new Set(['memorabilia', 'aea-irc collection'])
 
 export function getAllArtifactsForRelatedBrowse() {
-  return [...MOCK_ARTIFACTS_BROWSE, ...MOCK_ARTIFACTS_RELATED_EXTENDED]
+  return []
 }
 
 /** Tags shown on artifact detail / used to find peers (same rules, deduped). */

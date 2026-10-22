@@ -1,8 +1,9 @@
 """
-Idempotent local/demo seed for the public museum catalog.
+Curator bootstrap and an explicit demo catalog.
 
-Ensures every scanner label (frontend/public/models/labels.txt) has a published
-artifact row so Live Scan taps can resolve info from the database.
+Startup only ensures a curator login. Presidents and artifacts live in the
+hosted database and are edited there. `seed_demo_catalog` fills an empty
+local database on purpose and does not overwrite rows that already exist.
 """
 from __future__ import annotations
 
@@ -219,10 +220,16 @@ def _ensure_artifacts_for_labels(db: Session, curator: User) -> int:
 
 
 def seed_catalog_if_empty(db: Session) -> None:
-    """Ensure curator + presidents exist. Only invent scanner placeholder artifacts when catalog is empty.
+    """Ensure a curator login exists. Does not insert presidents or artifacts."""
+    _curator_account(db)
+    db.commit()
+    logger.info("Curator account ensured; catalog rows are not created on startup")
 
-    Once memorabilia has been imported from the Excel workbook (source of truth), do not
-    re-create missing label codes — that would drift Supabase / Curator Desk away from Excel.
+
+def seed_demo_catalog(db: Session) -> int:
+    """Fill an empty local database with demo presidents and scanner placeholders.
+
+    Existing president and artifact rows are left unchanged.
     """
     curator = _curator_account(db)
     _ensure_presidents(db)
@@ -231,7 +238,5 @@ def seed_catalog_if_empty(db: Session) -> None:
     if artifact_count == 0:
         added = _ensure_artifacts_for_labels(db, curator)
     db.commit()
-    if added:
-        logger.info("Ensured museum catalog rows (added %s artifacts for scanner labels)", added)
-    elif artifact_count:
-        logger.info("Catalog already has %s artifacts; skipped scanner label backfill", artifact_count)
+    logger.info("Demo catalog seed added %s artifacts", added)
+    return added

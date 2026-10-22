@@ -3,7 +3,7 @@
  * Opens on memorabilia (and president) click; closes without leaving the graph.
  */
 import { createModelStage } from './scan/model-stage.js?v=17'
-import { catalogModelSrc } from './catalog-models.js?v=2'
+import { catalogModelSrc } from './catalog-models.js?v=3'
 
 export function createItemSheet(opts) {
   var t = opts.t || function (_k, fallback) { return fallback; };

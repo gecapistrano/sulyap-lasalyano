@@ -33,6 +33,12 @@ html.pres-booting #slNavLoad{display:flex!important;opacity:1!important;pointer-
     }
     sessionStorage.removeItem('sl_page_tx');
   }catch(e){}
+  setTimeout(function(){
+    document.documentElement.classList.remove('pres-booting','page-tx-from');
+    if(document.body) document.body.classList.remove('is-booting');
+    var el=document.getElementById('slNavLoad');
+    if(el){ el.classList.add('is-out'); el.classList.remove('is-on'); }
+  }, 2800);
 })();
 </script>
 <link rel="stylesheet" href="/styles/01-tokens.css?v=17">
@@ -40,8 +46,8 @@ html.pres-booting #slNavLoad{display:flex!important;opacity:1!important;pointer-
 <link rel="stylesheet" href="/styles/13-presidents.css?v=13">
 <script defer src="/scripts/02-i18n.js?v=103"></script>
 <script defer src="/scripts/09-a11y.js?v=2"></script>
-<script defer src="/scripts/16-presidents.js?v=15"></script>
-<script defer src="/scripts/16-page-tx.js?v=15"></script>
+<script defer src="/scripts/16-presidents.js?v=16"></script>
+<script defer src="/scripts/16-page-tx.js?v=18"></script>
 </head>
 <body class="pres-page is-booting">
 <div id="slNavLoad" class="sl-navload" aria-hidden="true">
